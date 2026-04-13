@@ -32,14 +32,13 @@ public sealed class SettingsService
     public SettingsSnapshot Load()
     {
         var defaultSettings = AppSettings.CreateDefault();
-        var templateSettings = TryReadSettings(_paths.TemplatePath) ?? defaultSettings;
-        var localSettings = TryReadSettings(_paths.SettingsPath) ?? templateSettings;
+        var validationNotes = new List<string>();
+        var templateSettings = TryReadSettings(_paths.TemplatePath, "template settings", validationNotes) ?? defaultSettings;
+        var localSettings = TryReadSettings(_paths.SettingsPath, "local settings", validationNotes) ?? templateSettings;
 
         localSettings.General.ValuationCurrency = "USD";
 
-        var secretsFromFile = _paths.SecretsExists
-            ? SecretFileParser.ParseFile(_paths.SecretsPath)
-            : new Dictionary<string, string>(StringComparer.Ordinal);
+        var secretsFromFile = LoadSecrets(validationNotes);
 
         var secretStatuses = SecretNames.All.ToDictionary(
             name => name,
@@ -51,7 +50,7 @@ public sealed class SettingsService
             Paths = _paths,
             Settings = localSettings,
             SecretStatuses = secretStatuses,
-            ValidationMessages = Validate(localSettings, secretStatuses, _paths),
+            ValidationMessages = Validate(localSettings, secretStatuses, _paths, validationNotes),
         };
     }
 
@@ -64,28 +63,39 @@ public sealed class SettingsService
 
     public IReadOnlyList<string> Validate(AppSettings settings)
     {
-        var secretsFromFile = _paths.SecretsExists
-            ? SecretFileParser.ParseFile(_paths.SecretsPath)
-            : new Dictionary<string, string>(StringComparer.Ordinal);
+        var validationNotes = new List<string>();
+        var secretsFromFile = LoadSecrets(validationNotes);
         var secretStatuses = SecretNames.All.ToDictionary(
             name => name,
             name => ResolveSecretStatus(name, secretsFromFile),
             StringComparer.Ordinal);
-        return Validate(settings, secretStatuses, _paths);
+        return Validate(settings, secretStatuses, _paths, validationNotes);
     }
 
     private static IReadOnlyList<string> Validate(
         AppSettings settings,
         IReadOnlyDictionary<string, SecretStatus> secretStatuses,
-        VectorQuayPaths paths)
+        VectorQuayPaths paths,
+        IReadOnlyList<string>? leadingMessages = null)
     {
-        var messages = new List<string>
+        var messages = new List<string>();
+        if (leadingMessages is not null)
         {
+            messages.AddRange(leadingMessages);
+        }
+
+        messages.AddRange(
+        [
             $"Info: template path {(paths.TemplateExists ? "resolved" : "missing")} at {paths.TemplatePath}",
             $"Info: local settings {(paths.SettingsExists ? "exist" : "not created yet")} at {paths.SettingsPath}",
             $"Info: external secret file {(paths.SecretsExists ? "exists" : "is missing")} at {paths.SecretsPath}",
             "Info: shell startup is valid without secrets; missing secrets are warnings until exchange integration starts.",
-        };
+        ]);
+
+        if (messages.Count == 0)
+        {
+            messages.Add("Info: validation completed.");
+        }
 
         if (settings.General.ValuationCurrency != "USD")
         {
@@ -136,15 +146,47 @@ public sealed class SettingsService
         return messages;
     }
 
-    private static AppSettings? TryReadSettings(string path)
+    private Dictionary<string, string> LoadSecrets(List<string> validationNotes)
+    {
+        if (!_paths.SecretsExists)
+        {
+            return new Dictionary<string, string>(StringComparer.Ordinal);
+        }
+
+        try
+        {
+            var parsed = SecretFileParser.ParseWithDiagnostics(File.ReadAllText(_paths.SecretsPath));
+            if (parsed.InvalidLines.Count > 0)
+            {
+                validationNotes.Add($"Warning: secrets.env contains {parsed.InvalidLines.Count} malformed line(s) that were ignored.");
+            }
+
+            return parsed.Values;
+        }
+        catch (Exception ex)
+        {
+            validationNotes.Add($"Blocking: external secret file could not be read safely ({ex.GetType().Name}).");
+            return new Dictionary<string, string>(StringComparer.Ordinal);
+        }
+    }
+
+    private static AppSettings? TryReadSettings(string path, string label, List<string> validationNotes)
     {
         if (!File.Exists(path))
         {
             return null;
         }
 
-        var json = File.ReadAllText(path);
-        return JsonSerializer.Deserialize<AppSettings>(json, JsonOptions);
+        try
+        {
+            var json = File.ReadAllText(path);
+            return JsonSerializer.Deserialize<AppSettings>(json, JsonOptions);
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            validationNotes.Add($"Blocking: {label} could not be parsed safely ({ex.GetType().Name}).");
+            return null;
+        }
     }
 
     private static SecretStatus ResolveSecretStatus(string name, IReadOnlyDictionary<string, string> secretsFromFile)

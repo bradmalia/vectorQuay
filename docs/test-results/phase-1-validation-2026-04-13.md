@@ -19,7 +19,7 @@ git -C /home/brad/vectorquay status --short
 ## Results Summary
 
 - `PASS`: documented restore/build/test workflow is valid on the primary environment
-- `PASS`: full unit test suite passed (`9/9`)
+- `PASS`: expanded unit test suite passed (`13/13`)
 - `PASS`: focused secret precedence check passed
 - `PASS`: shell smoke run launched for 10 seconds without console failure output
 - `PASS`: all approved top-level destinations exist in the current shell structure
@@ -27,9 +27,9 @@ git -C /home/brad/vectorquay status --short
 - `PASS`: policy/configuration save, validate, reset, and overwrite-confirmation behavior exists in the shell/view-model baseline
 - `PASS`: `win-x64` publish smoke completed successfully
 - `PASS`: git working tree remained clean before result-artifact creation
-- `PARTIAL`: manual update-check surface exists, but no real VectorQuay GitHub Releases feed was configured for end-to-end validation
-- `PARTIAL`: visual/manual screen conformance has been reviewed iteratively, but a formal screenshot-backed checklist artifact for every screen was not captured in this run
-- `PARTIAL`: ignored-file enforcement is structurally correct because app-managed files live outside the repo, but this run did not create a full end-to-end local settings fixture and then capture a separate `git status` proof artifact for that case
+- `PASS`: live public GitHub Releases update-check validation completed successfully
+- `PASS`: manual screen checklist artifact was captured for all approved top-level screens
+- `PASS`: ignored-file-enforcement proof artifact was captured using representative external config fixtures
 
 ## Update-Check Follow-Up
 
@@ -92,16 +92,16 @@ Implication:
 - Evidence: approved indigo branding is used in shell assets; version appears in Home/About surfaces from the same assembly version source.
 
 ### ITP1-12: Ignored-File Enforcement
-- Result: `PARTIAL`
-- Evidence: repo remained clean and app-managed files are documented outside the repo, but this run did not capture a dedicated ignore-fixture proof step.
+- Result: `PASS`
+- Evidence: dedicated ignored-file proof artifact shows unchanged `git status` output before and after creating representative external config files under a temporary `XDG_CONFIG_HOME`.
 
 ### ITP1-13: Save, Validate, and Reset Command Flows
 - Result: `PASS`
 - Evidence: explicit commands and feedback states exist; overwrite confirmation logic is covered by unit tests.
 
 ### ITP1-14: Negative Validation Paths
-- Result: `PARTIAL`
-- Evidence: invalid policy mode and invalid threshold classification are covered by tests; malformed `settings.json`, malformed `secrets.env`, and invalid release payload still need explicit focused coverage.
+- Result: `PASS`
+- Evidence: focused coverage now exists for malformed `settings.json`, malformed `secrets.env` lines, invalid policy/threshold editor state, and invalid release payload parsing.
 
 ### ITP1-15: Windows Compatibility Smoke Strategy
 - Result: `PASS`
@@ -114,13 +114,6 @@ Implication:
 - Branding moved to the approved indigo direction rather than placeholder marks.
 - Configuration, secret boundaries, and manual update-check behavior remain within the approved Phase 1 scope.
 
-## Open Items Before Calling Phase 1 Fully Closed
-
-- Run a real manual update-check validation against a configured VectorQuay GitHub Releases endpoint.
-- Capture a formal manual navigation/rendering checklist artifact across all top-level screens.
-- Add explicit negative-path coverage for malformed `settings.json`, malformed `secrets.env`, and invalid release payload responses.
-- Capture a dedicated ignored-file-enforcement proof step using a controlled local settings/secrets fixture.
-
 ## Conclusion
 
-Phase 1 scaffolding is in a credible baseline state and is suitable for continued manual review or targeted closeout work. The remaining items are validation-completeness items, not foundational scaffold blockers.
+Phase 1 scaffolding is in a credible closeout-ready state. The foundational shell, validation evidence, and current public GitHub release-check path are all in place. Any remaining work is optional polish or future-phase preparation rather than a Phase 1 blocker.

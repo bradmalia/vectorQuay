@@ -252,6 +252,7 @@
           <li>Improve tuning workflows for aggressiveness, asset selection, and signal weighting.</li>
           <li>Add decision-trace and source-override management so operators can inspect why trades were accepted or rejected, see source contributions and weights, and adjust or reset source-level overrides safely.</li>
           <li>Prepare the product for future reuse or sale with bring-your-own-credentials, zero embedded secrets, repeatable setup, and configurable policy controls.</li>
+          <li>Add optional owner-configurable support surfaces such as author-support or tip information, keeping them clearly separate from trading logic, policy logic, exchange credentials, and bot behavior.</li>
         </ul>
         <div class="callout gate">
           <h3>Gate J: Product Readiness</h3>
@@ -262,6 +263,7 @@
             <li>Customer-specific secrets stay external.</li>
             <li>Documentation is complete.</li>
             <li>The product can be reused without being tightly coupled to one operator or machine.</li>
+            <li>Optional non-trading support surfaces remain clearly separated from trading, policy, and credential flows, and can be disabled or omitted in resale-oriented builds.</li>
           </ul>
         </div>
       </article>

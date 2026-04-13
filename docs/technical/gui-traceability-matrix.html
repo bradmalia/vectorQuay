@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay GUI Traceability Matrix</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 10.5pt;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--panel-strong);
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    td code {
+      font-size: 0.95em;
+    }
+
+    .status-explicit {
+      color: #17603a;
+      font-weight: 700;
+    }
+
+    .status-implicit {
+      color: #8a5a00;
+      font-weight: 700;
+    }
+
+    .status-unassigned {
+      color: #9c1c27;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">VectorQuay Technical Note</p>
+          <h1>GUI Traceability Matrix</h1>
+          <p class="subtitle">Mapping Phase 1 GUI shell features to the approved roadmap phases so later implementation scope stays explicit.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v1.0</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Working Baseline</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Executive Summary</h2>
+          <p>The approved roadmap covers the major functional intent of the Phase 1 GUI shell, but not every PRD mock control is mapped with equal precision. Most core screens are covered explicitly by later phases. Some richer operator-facing controls are only implied by broader roadmap language. <code>Support the Author</code> is now assigned as an optional productization feature under Phase 10 rather than remaining unassigned.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Quick View</h2>
+          <p><span class="status-explicit">Explicit</span> means the roadmap clearly names the function in a later phase. <span class="status-implicit">Implicit</span> means the screen feature is likely intended but only through broader roadmap language. <span class="status-unassigned">Unassigned</span> means the PRD introduces a GUI feature with no clear later roadmap home.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Screen-Level Matrix</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Phase 1 GUI Area</th>
+              <th>Later Phase Coverage</th>
+              <th>Status</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Home / Status</code></td>
+              <td>Phases 2, 3, 5, 6, 7, 10</td>
+              <td><span class="status-implicit">Implicit</span></td>
+              <td>The dashboard becomes real as balances, activity, performance, alerts, and diagnostics are implemented, but there is no single roadmap phase that explicitly completes <code>Home</code> as a first-class screen.</td>
+            </tr>
+            <tr>
+              <td><code>Configuration</code></td>
+              <td>Phases 1, 2, 10</td>
+              <td><span class="status-explicit">Explicit</span></td>
+              <td>Phase 1 covers the baseline. Phase 2 adds live Coinbase read-only connectivity and restrictions. Phase 10 reinforces reusable setup and productization.</td>
+            </tr>
+            <tr>
+              <td><code>Assets</code></td>
+              <td>Phases 2, 9</td>
+              <td><span class="status-explicit">Explicit</span></td>
+              <td>Phase 2 covers tradable products and account-aware asset data. Phase 9 explicitly covers discovery, lifecycle states, screening, and dynamic universe management.</td>
+            </tr>
+            <tr>
+              <td><code>Policies</code></td>
+              <td>Phases 2, 4, 10</td>
+              <td><span class="status-implicit">Implicit</span></td>
+              <td>Restrictions are explicit in Phase 2 and hard risk controls in Phase 4. Richer management UX such as bulk operations and advanced filtering is implied rather than explicitly decomposed.</td>
+            </tr>
+            <tr>
+              <td><code>Portfolio</code></td>
+              <td>Phases 2, 3, 6, 7</td>
+              <td><span class="status-explicit">Explicit</span></td>
+              <td>Balances and current investment state start in Phase 2. Durability and audit context deepen in Phase 3. Paper/live validation gives the screen operational meaning later.</td>
+            </tr>
+            <tr>
+              <td><code>Activity</code></td>
+              <td>Phases 3, 10</td>
+              <td><span class="status-explicit">Explicit</span></td>
+              <td>Replayable decision trail is explicit in Phase 3. Richer decision-trace, rationale inspection, and diagnostics are explicit in Phase 10.</td>
+            </tr>
+            <tr>
+              <td><code>Performance</code></td>
+              <td>Phases 5, 6, 7</td>
+              <td><span class="status-explicit">Explicit</span></td>
+              <td>Performance KPIs, comparisons, paper-trading results, and live-rollout comparisons are clearly covered in the roadmap.</td>
+            </tr>
+            <tr>
+              <td><code>Risk &amp; Thresholds</code></td>
+              <td>Phases 4, 7, 10</td>
+              <td><span class="status-explicit">Explicit</span></td>
+              <td>Phase 4 is the main implementation phase for configurable risk and threshold controls. Phase 7 adds live kill-switch and aggressiveness visibility.</td>
+            </tr>
+            <tr>
+              <td><code>Sources</code></td>
+              <td>Phases 8, 9, 10</td>
+              <td><span class="status-explicit">Mostly Explicit</span></td>
+              <td>External intelligence and AI signals are explicit in Phase 8, dynamic universe/discovery in Phase 9, and source contribution plus override management in Phase 10. Some specific PRD controls remain only loosely mapped.</td>
+            </tr>
+            <tr>
+              <td><code>Alerts</code></td>
+              <td>Phase 10</td>
+              <td><span class="status-implicit">Implicit / Partial</span></td>
+              <td>The roadmap explicitly says dashboards, alerts, diagnostics, and health reporting, but the PRD's detailed per-type, per-channel, and quiet-hour controls are not broken out cleanly by later phase.</td>
+            </tr>
+            <tr>
+              <td><code>About / Updates</code></td>
+              <td>Phases 1, 10</td>
+              <td><span class="status-explicit">Mostly Explicit</span></td>
+              <td>The manual update-management surface is already a Phase 1 requirement. Longer-term reusable setup and customer-safe productization align with Phase 10.</td>
+            </tr>
+            <tr>
+              <td><code>Support the Author</code></td>
+              <td>Phase 10</td>
+              <td><span class="status-explicit">Explicit</span></td>
+              <td>This is now assigned as an optional owner-configurable productization feature. It should remain clearly separated from trading behavior, policy logic, exchange credentials, and resale-safe default builds.</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="section-card">
+        <h2>Feature Groups That Need Sharper Assignment</h2>
+        <ul>
+          <li><strong>Alerts detail:</strong> category, severity, channel, and quiet-hour preference granularity is only implied today.</li>
+          <li><strong>Sources detail actions:</strong> <code>View History</code>, <code>Automation Settings</code>, reversible source-state workflows, and prompt-driven watcher creation need more precise later-phase ownership.</li>
+          <li><strong>Home as a composed dashboard:</strong> the roadmap covers the constituent data, but not the dashboard surface explicitly as a deliverable.</li>
+          <li><strong>Advanced policy UX:</strong> bulk actions, deep filtering, and richer selection-state handling should be assigned more explicitly if they are required for completion.</li>
+        </ul>
+        <div class="callout risk">
+          <h3>Scope Risk</h3>
+          <p>If the roadmap remains broad while the GUI PRD remains specific, later implementation can drift into “the screen implied it” arguments. This is manageable, but only if later PRDs/TRDs adopt the unresolved PRD controls explicitly.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Recommended Action</h2>
+        <ul>
+          <li>Use this matrix when drafting Phase 2 and later PRDs/TRDs.</li>
+          <li>Mark each unresolved GUI feature as either <em>explicitly assigned</em>, <em>intentionally deferred</em>, or <em>removed from completion scope</em>.</li>
+          <li>Keep <code>Support the Author</code> optional and productization-only so it does not blur the trading system boundary.</li>
+          <li>For <code>Sources</code> and <code>Alerts</code>, convert broad roadmap intent into specific operator workflows before those phases begin implementation.</li>
+        </ul>
+        <div class="callout gate">
+          <h3>Working Conclusion</h3>
+          <p>The major functional shell areas are covered by later phases. The main remaining traceability issue is not missing product direction overall; it is uneven specificity between the GUI PRD and the roadmap. That should be corrected in future phase-definition packages rather than discovered during implementation.</p>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

@@ -359,19 +359,9 @@ public partial class MainWindowViewModel : ViewModelBase
             response.EnsureSuccessStatusCode();
             await using var stream = await response.Content.ReadAsStreamAsync();
             using var document = await JsonDocument.ParseAsync(stream);
-
-            var root = document.RootElement;
-            var latestVersion = root.TryGetProperty("tag_name", out var tagName)
-                ? tagName.GetString() ?? "unknown"
-                : "unknown";
-            var releaseName = root.TryGetProperty("name", out var name)
-                ? name.GetString() ?? "Unnamed Release"
-                : "Unnamed Release";
-            UpdateActionUrl = root.TryGetProperty("html_url", out var htmlUrl)
-                ? htmlUrl.GetString() ?? string.Empty
-                : string.Empty;
-
-            UpdateStatus = $"Current version: {AppVersion}. Latest available: {latestVersion} ({releaseName}). Manual download only.";
+            var release = ParseReleaseDocument(document);
+            UpdateActionUrl = release.ActionUrl;
+            UpdateStatus = $"Current version: {AppVersion}. Latest available: {release.Version} ({release.Name}). Manual download only.";
         }
         catch (Exception ex)
         {
@@ -510,6 +500,30 @@ public partial class MainWindowViewModel : ViewModelBase
         return "Validation passed with informational messages only.";
     }
 
+    public static ReleaseCheckResult ParseReleaseDocument(JsonDocument document)
+    {
+        var root = document.RootElement;
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidOperationException("Release feed returned an invalid JSON object.");
+        }
+
+        if (!root.TryGetProperty("tag_name", out var tagName) || string.IsNullOrWhiteSpace(tagName.GetString()))
+        {
+            throw new InvalidOperationException("Release feed did not include a valid tag_name.");
+        }
+
+        var version = tagName.GetString()!;
+        var name = root.TryGetProperty("name", out var nameProperty) && !string.IsNullOrWhiteSpace(nameProperty.GetString())
+            ? nameProperty.GetString()!
+            : version;
+        var actionUrl = root.TryGetProperty("html_url", out var htmlUrl) && !string.IsNullOrWhiteSpace(htmlUrl.GetString())
+            ? htmlUrl.GetString()!
+            : string.Empty;
+
+        return new ReleaseCheckResult(version, name, actionUrl);
+    }
+
     private bool HasUnsavedCustomRiskChanges()
     {
         var defaults = AppSettings.CreateDefault().Risk;
@@ -586,3 +600,5 @@ public sealed class SourceEntryViewModel(string name, string type, string state,
 
     public string Scope { get; } = scope;
 }
+
+public sealed record ReleaseCheckResult(string Version, string Name, string ActionUrl);

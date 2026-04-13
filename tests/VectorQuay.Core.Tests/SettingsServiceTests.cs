@@ -158,6 +158,58 @@ public sealed class SettingsServiceTests
         Assert.Contains("BTC protected mode", viewModel.ValidationSummary, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Load_FallsBackGracefullyWhenSettingsJsonIsMalformed()
+    {
+        var paths = CreateTestPaths();
+        File.WriteAllText(paths.SettingsPath, "{ this is not valid json");
+
+        var service = new SettingsService(paths);
+        var snapshot = service.Load();
+
+        Assert.Equal("Pre-Integration", snapshot.Settings.General.ApplicationState);
+        Assert.Contains(snapshot.ValidationMessages, message => message.Contains("local settings could not be parsed safely", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Load_AddsWarningWhenSecretsFileContainsMalformedLines()
+    {
+        var paths = CreateTestPaths();
+        File.WriteAllText(paths.SecretsPath, """
+            VECTORQUAY_COINBASE_API_KEY=abc123
+            MALFORMED_LINE
+            =missing_key
+            """);
+
+        var service = new SettingsService(paths);
+        var snapshot = service.Load();
+
+        Assert.Equal(SecretSource.SecretFile, snapshot.SecretStatuses[SecretNames.CoinbaseApiKey].Source);
+        Assert.Contains(snapshot.ValidationMessages, message => message.Contains("malformed line", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ParseReleaseDocument_ThrowsForInvalidPayload()
+    {
+        using var document = JsonDocument.Parse("""{"name":"missing tag"}""");
+
+        var exception = Assert.Throws<InvalidOperationException>(() => MainWindowViewModel.ParseReleaseDocument(document));
+
+        Assert.Contains("tag_name", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ParseReleaseDocument_ReturnsExpectedReleaseDetails()
+    {
+        using var document = JsonDocument.Parse("""{"tag_name":"v1.0.0","name":"v1.0.0","html_url":"https://example.test/release"}""");
+
+        var result = MainWindowViewModel.ParseReleaseDocument(document);
+
+        Assert.Equal("v1.0.0", result.Version);
+        Assert.Equal("v1.0.0", result.Name);
+        Assert.Equal("https://example.test/release", result.ActionUrl);
+    }
+
     private static VectorQuayPaths CreateTestPaths()
     {
         var tempRoot = Path.Combine(Path.GetTempPath(), $"vectorquay-tests-{Guid.NewGuid():N}");
