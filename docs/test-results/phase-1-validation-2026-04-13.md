@@ -31,6 +31,24 @@ git -C /home/brad/vectorquay status --short
 - `PARTIAL`: visual/manual screen conformance has been reviewed iteratively, but a formal screenshot-backed checklist artifact for every screen was not captured in this run
 - `PARTIAL`: ignored-file enforcement is structurally correct because app-managed files live outside the repo, but this run did not create a full end-to-end local settings fixture and then capture a separate `git status` proof artifact for that case
 
+## Update-Check Follow-Up
+
+On 2026-04-13, a live GitHub release `v1.0.0` was created for `bradmalia/vectorQuay` to validate the About-screen update-check path.
+
+- Authenticated API request to `https://api.github.com/repos/bradmalia/vectorQuay/releases/latest` returned `200` and the expected release object.
+- After the repository was switched to `public`, unauthenticated access to the same endpoint also returned `200`.
+- Repository metadata confirmed `bradmalia/vectorQuay` is now `public`.
+- The current application update-check implementation performs an unauthenticated `HttpClient.GetAsync(ReleaseFeedUrl)`.
+
+Result:
+
+- `PASS` for end-to-end release-feed compatibility with the current implementation when the repository is public.
+
+Implication:
+
+- The current About update-check flow is compatible with a public GitHub Releases endpoint.
+- If the repository is made private again later, the current implementation will stop working unless authenticated release checks are added.
+
 ## Integration Plan Coverage
 
 ### ITP1-02: Build, Run, and Launch Workflow
@@ -66,8 +84,8 @@ git -C /home/brad/vectorquay status --short
 - Evidence: shared sources/watchers registry is present with locked tabs, selected-source detail state, and non-trusted watcher-oriented states.
 
 ### ITP1-10: Manual GitHub Releases Update Check
-- Result: `PARTIAL`
-- Evidence: About screen supports manual check behavior, but a real configured VectorQuay release endpoint was not available in this run.
+- Result: `PASS`
+- Evidence: after creating release `v1.0.0` and switching the repository to public, unauthenticated access to `releases/latest` returned `200`, which matches the current app implementation.
 
 ### ITP1-11: Branding and Version Consistency
 - Result: `PASS`
