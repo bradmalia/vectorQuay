@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 0 Integration Test Plan</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Integration Test Plan</p>
+          <h1>Phase 0 Integration Test Plan</h1>
+          <p class="subtitle">Cross-document validation for roadmap, PRD, TRD, and Phase 0 decision outputs.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v1.0</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">In Review</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Purpose</h2>
+          <p>This plan verifies that the approved Phase 0 roadmap, PRD, and technical requirements operate as a coherent system of record. For Phase 0, integration quality means traceability, consistency, and absence of contradictory guidance.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Test Goal</h2>
+          <p>Prove that the planning artifacts align well enough to support Phase 0 research without ambiguity or policy drift.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Scope</h2>
+        <ul>
+          <li>Validate consistency between roadmap v4, Phase 0 PRD, and Phase 0 technical requirements.</li>
+          <li>Validate traceability of business policy into technical policy.</li>
+          <li>Validate that approved constraints are preserved across documents.</li>
+          <li>Validate that required Phase 0 outputs are represented consistently.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Out of Scope</h2>
+        <ul>
+          <li>Executable software testing.</li>
+          <li>API integration testing.</li>
+          <li>GUI behavior testing.</li>
+          <li>Trading-strategy validation.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Integration Test Areas</h2>
+        <ul>
+          <li>Roadmap to PRD alignment.</li>
+          <li>PRD to TRD traceability.</li>
+          <li>Permissions policy consistency.</li>
+          <li>Asset-universe and quote-currency consistency.</li>
+          <li>Analysis-universe versus live-trading-universe consistency.</li>
+          <li>Human/bot mixed-control policy consistency.</li>
+          <li>Research method and evidence-standard consistency.</li>
+          <li>Future signal-source boundary consistency.</li>
+          <li>Security and secrets policy consistency.</li>
+          <li>Deliverable and exit-criteria consistency.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Test Cases</h2>
+        <div class="callout gate">
+          <h3>ITP-01: Roadmap Objective Alignment</h3>
+          <p>Verify that the PRD and TRD reflect the roadmap’s objective of aggressive but controlled growth.</p>
+          <p><strong>Pass condition:</strong> no document redefines the product objective in a conflicting way.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP-02: Spot-Only and Trade-Only Alignment</h3>
+          <p>Verify that roadmap, PRD, and TRD all preserve Coinbase spot-only and trade-only behavior.</p>
+          <p><strong>Pass condition:</strong> no document reintroduces staking, Web3, derivatives, bank flows, or external transfers.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP-03: Permissions Matrix Traceability</h3>
+          <p>Verify that every major permission in the PRD has corresponding technical treatment in the TRD.</p>
+          <p><strong>Pass condition:</strong> no approved policy is absent from technical enforcement planning.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP-04: Protected Asset Policy Consistency</h3>
+          <p>Verify that protected-asset modes are defined consistently across business and technical documents.</p>
+          <p><strong>Pass condition:</strong> `no buy`, `no sell`, and `fully excluded` are preserved without contradiction.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP-05: Mixed Human/Bot Control Consistency</h3>
+          <p>Verify that order ownership, unknown-order handling, and human-activity policy are reflected consistently.</p>
+          <p><strong>Pass condition:</strong> unknown orders default to human-owned and cancellation of human-owned orders remains approval-gated everywhere.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP-06: Tradable Universe Consistency</h3>
+          <p>Verify that quote-currency restrictions, liquidity rules, and candidate asset outputs are required consistently.</p>
+          <p><strong>Pass condition:</strong> PRD and TRD agree on USD/USDC policy and viability-threshold expectations.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP-07: Phase Output Consistency</h3>
+          <p>Verify that PRD and TRD require the same class of Phase 0 deliverables and decision outputs.</p>
+          <p><strong>Pass condition:</strong> no key output exists in one document and is missing from the other.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP-08: Research Method Consistency</h3>
+          <p>Verify that the technical research method and evidence standard remain consistent with Phase 0 feasibility expectations.</p>
+          <p><strong>Pass condition:</strong> research sources, confidence handling, and finding-record expectations are not contradicted elsewhere.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP-09: Security and Secrets Consistency</h3>
+          <p>Verify that PRD and TRD align on zero-secrets-in-repo, bring-your-own-credentials, and configuration-separation expectations.</p>
+          <p><strong>Pass condition:</strong> no document introduces conflicting secret-handling or deployment assumptions.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP-10: Research Findings Format Consistency</h3>
+          <p>Verify that the planned Phase 0 findings artifact format matches the TRD requirement for question, conclusion, source, confidence, impact on v1, and unresolved assumptions.</p>
+          <p><strong>Pass condition:</strong> the findings format preserves the required research schema without omission.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP-11: Dynamic Asset Discovery Consistency</h3>
+          <p>Verify that roadmap, PRD, TRD, and findings all preserve the distinction between the broad analysis universe and the narrower live trading universe.</p>
+          <p><strong>Pass condition:</strong> documents consistently state that all Coinbase-listed spot assets may be analyzed over time, while only a screened subset may become live-tradable.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP-12: Blockchain Signal Boundary Consistency</h3>
+          <p>Verify that the artifacts consistently preserve blockchain-derived data as a future signal-source area while excluding mempool or MEV-style execution tactics from Coinbase Advanced spot trading.</p>
+          <p><strong>Pass condition:</strong> no document implies that Coinbase spot execution should use miner-priority or validator-priority mechanics, and no document drops blockchain activity from future intelligence consideration.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Method</h2>
+        <ul>
+          <li>Perform manual document review with line-by-line comparison across approved artifacts.</li>
+          <li>Record each integration finding as pass, fail, or needs clarification.</li>
+          <li>Store results in a durable review artifact under <code>docs/test-results/</code>.</li>
+          <li>Any inconsistency must be resolved in the source documents before Phase 0 research begins.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Exit Criteria</h2>
+        <ul>
+          <li>No unresolved contradictions remain across roadmap, PRD, and TRD.</li>
+          <li>All critical policies are traceable from business rule to technical requirement.</li>
+          <li>All Phase 0 decision outputs are represented consistently.</li>
+        </ul>
+      </article>
+
+      <div class="footer">
+        VectorQuay Phase 0 Integration Test Plan • Approved baseline • Author/Owner: Brad Malia
+      </div>
+    </section>
+  </main>
+</body>
+</html>

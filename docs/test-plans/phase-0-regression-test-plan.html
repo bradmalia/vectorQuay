@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 0 Regression Test Plan</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Regression Test Plan</p>
+          <h1>Phase 0 Regression Test Plan</h1>
+          <p class="subtitle">Decision-preservation test plan for approved Phase 0 scope, controls, and constraints.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v1.0</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">In Review</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Purpose</h2>
+          <p>This plan protects approved decisions from being weakened or silently changed in later revisions. For Phase 0, regression means preserving product boundaries, safety rules, and core business assumptions.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Test Goal</h2>
+          <p>Prevent accidental scope expansion or policy erosion before implementation begins.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Regression Protection Areas</h2>
+        <ul>
+          <li>Spot-only policy.</li>
+          <li>Trade-only account policy.</li>
+          <li>No bank movement automation.</li>
+          <li>No external wallet transfer policy.</li>
+          <li>No staking, Web3, margin, or derivatives.</li>
+          <li>Protected-asset and human-approval rules.</li>
+          <li>Order ownership and mixed human/bot control rules.</li>
+          <li>USD valuation and USD/USDC quote-currency rules.</li>
+          <li>Dynamic asset discovery without all-assets-by-default live trading.</li>
+          <li>Blockchain-derived signal-source preservation without MEV-style Coinbase spot execution.</li>
+          <li>Future resale and zero-secrets assumptions.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Regression Test Cases</h2>
+        <div class="callout gate">
+          <h3>RTP-01: Spot-Only Preservation</h3>
+          <p>Verify that no later edit widens v1 scope to derivatives, futures, or leveraged products without explicit approval.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP-02: Trade-Only Account Preservation</h3>
+          <p>Verify that non-trading account actions remain prohibited unless a later approved scope change exists.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP-03: Human Order Protection</h3>
+          <p>Verify that human-owned orders never become bot-cancellable by default.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP-04: Protected Asset Preservation</h3>
+          <p>Verify that operator-controlled asset protection modes are not removed or weakened.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP-05: Funding and Transfer Guardrails</h3>
+          <p>Verify that later revisions do not re-enable bank deposits, bank withdrawals, payment-method changes, or external wallet transfers without explicit approval.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP-06: Quote-Currency and Valuation Rules</h3>
+          <p>Verify that USD valuation and approved v1 quote-currency policy remain intact unless formally changed.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP-07: Resale and Secrets Assumptions</h3>
+          <p>Verify that later documents do not introduce hardcoded user credentials or assumptions that break future resale.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP-08: Order Ownership Preservation</h3>
+          <p>Verify that bot-owned order tagging, unknown-order defaults, and audit expectations are not weakened in later revisions.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP-09: Mixed-Control Default Preservation</h3>
+          <p>Verify that the selected fail-safe behavior for mixed human/bot activity is not silently changed without explicit approval.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP-10: No-Trade Validity Preservation</h3>
+          <p>Verify that later revisions do not remove the system’s ability to reject all trade candidates and intentionally take no action.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP-11: Dynamic Universe Boundary Preservation</h3>
+          <p>Verify that later revisions do not silently change the approved model from “all Coinbase-listed spot assets may be analyzed” into “all assets are live-tradable by default.”</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP-12: Blockchain Signal Boundary Preservation</h3>
+          <p>Verify that later revisions do not drop blockchain activity from future signal research and do not reintroduce mempool-priority or MEV-style execution tactics as if they applied to Coinbase Advanced spot trading.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Method</h2>
+        <ul>
+          <li>Run document review whenever a Phase 0 artifact is materially revised.</li>
+          <li>Compare new revisions against the approved roadmap, PRD, and TRD baselines.</li>
+          <li>Store results in a durable review artifact under <code>docs/test-results/</code>.</li>
+          <li>Record any policy drift and reject revisions that weaken approved controls without explicit change approval.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Exit Criteria</h2>
+        <ul>
+          <li>All protected policy areas remain intact.</li>
+          <li>No silent scope expansion is present.</li>
+          <li>Any approved scope changes are explicitly documented and traceable.</li>
+        </ul>
+      </article>
+
+      <div class="footer">
+        VectorQuay Phase 0 Regression Test Plan • Approved baseline • Author/Owner: Brad Malia
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 0 Technical Requirements</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Technical Requirements Document</p>
+          <h1>Phase 0 Technical Requirements</h1>
+          <p class="subtitle">Research, feasibility, enforcement policy, and delivery requirements for the first go/no-go decision.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v1.0</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Approved</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Executive Summary</h2>
+          <p>Phase 0 technical work does not implement the trading product yet. It defines the research tasks, technical decision outputs, enforcement model, feasibility checks, and test planning required to determine whether VectorQuay should proceed into implementation.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Primary Output</h2>
+          <p>A defensible go/no-go decision backed by exchange constraints, account-action policy, asset-universe rules, and documented technical assumptions.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>1. Scope</h2>
+        <ul>
+          <li>Translate the approved Phase 0 PRD into concrete technical research and decision outputs.</li>
+          <li>Define the enforcement model for the Phase 0 business rules.</li>
+          <li>Determine whether the product can operate meaningfully at approximately $50 starting capital on Coinbase spot.</li>
+          <li>Produce the technical inputs required for Phase 1 architecture and implementation planning.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>2. Out of Scope</h2>
+        <ul>
+          <li>Building production trading logic.</li>
+          <li>Implementing live order placement.</li>
+          <li>Implementing paper trading.</li>
+          <li>Implementing AI-driven signal generation.</li>
+          <li>Implementing the GUI application.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>3. Technical Objectives</h2>
+        <ul>
+          <li>Validate Coinbase API and product constraints relevant to the approved business policy.</li>
+          <li>Define a technical enforcement model for allowed, prohibited, and approval-gated account actions.</li>
+          <li>Define the initial tradable universe policy in technically enforceable terms.</li>
+          <li>Define the future technical model for dynamic asset discovery, lifecycle classification, and separation of analysis universe from live trading universe.</li>
+          <li>Preserve future signal-source research areas, including blockchain-derived intelligence, without confusing them with Coinbase spot execution mechanics.</li>
+          <li>Define the minimum documentation and traceability required for future implementation and testing.</li>
+          <li>Produce a clear technical recommendation on whether to proceed, narrow scope, raise capital, or stop.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>3A. Research Evidence Standard</h2>
+        <ul>
+          <li>Coinbase official documentation and API references must be treated as the primary source for exchange capabilities and constraints.</li>
+          <li>Where possible, technical conclusions should be supported by direct account or product inspection in read-only mode.</li>
+          <li>Any assumption that is not directly verified must be documented explicitly as an assumption.</li>
+          <li>Each major feasibility conclusion must record its source basis and confidence level.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>3B. Research Execution Method</h2>
+        <ul>
+          <li>Phase 0 research must be performed as a structured investigation, not informal note-taking.</li>
+          <li>For exchange capabilities and constraints, use Coinbase official documentation as the primary source and verify against live read-only account or product inspection where possible.</li>
+          <li>For account-specific viability questions, inspect the target Coinbase account in read-only mode once the implementation phase supports safe observation.</li>
+          <li>For product decisions affected by costs, document fee assumptions, spread assumptions, and minimum-order assumptions explicitly.</li>
+          <li>Each research topic must produce a written finding in a consistent format: question, conclusion, source, confidence, impact on v1, and any unresolved assumption.</li>
+          <li>Research outputs must be stored in the repository so future sessions can resume without depending on chat history.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>4. Research Workstreams</h2>
+        <section class="two-col">
+          <article class="section-card">
+            <h2>Coinbase Feasibility</h2>
+            <ul>
+              <li>Confirm Coinbase Advanced Trade spot product support relevant to the target account type.</li>
+              <li>Confirm usable order types for v1 assumptions.</li>
+              <li>Confirm minimum order sizes, increments, and relevant size constraints.</li>
+              <li>Estimate the effect of fees and spread at approximately $50 capital.</li>
+              <li>Identify any API or account restrictions that affect automated spot trading.</li>
+            </ul>
+          </article>
+
+          <article class="section-card">
+            <h2>Tradable Universe</h2>
+            <ul>
+              <li>Define approved quote currencies for v1, starting with USD and USDC.</li>
+              <li>Define liquidity, spread, and market-quality thresholds as numeric values or explicit threshold formulas.</li>
+              <li>Define whether direct cross-asset pairs are allowed or whether routing must be normalized.</li>
+              <li>Define whether USDC is treated as a routing-only asset or a strategic defensive allocation.</li>
+              <li>Define the future dynamic asset lifecycle for all Coinbase-listed spot assets, such as discovered, observed, watchlist, eligible, active, and blocked.</li>
+              <li>Document candidate v1 assets that satisfy the above constraints.</li>
+              <li>Record the Phase 0 approved initial candidate class explicitly. The current approved set is BTC, ETH, SOL, XRP, ADA, LINK, LTC, XLM, BCH, and UNI, with DOGE retained as a conditional watchlist asset.</li>
+              <li>Document rejected assets and the reason each asset failed the v1 viability rules.</li>
+              <li>Define the expected technical behavior when no asset satisfies the v1 tradable-universe rules.</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="two-col">
+          <article class="section-card">
+            <h2>Control Policy</h2>
+            <ul>
+              <li>Define how bot-owned orders are tagged and identified.</li>
+              <li>Define default classification for unknown orders.</li>
+              <li>Define enforcement behavior when human activity is detected.</li>
+              <li>Define protected-asset modes and how they map to trade validation.</li>
+              <li>Define a technical permissions matrix aligned to the PRD policy matrix.</li>
+              <li>Set a fail-safe provisional default for mixed human/bot activity until final implementation behavior is approved.</li>
+              <li>Define the required order-ownership identifier characteristics: uniqueness, namespace/prefix, persistence in audit trails, and non-ambiguous ownership mapping.</li>
+            </ul>
+          </article>
+
+          <article class="section-card">
+            <h2>Documentation and Traceability</h2>
+            <ul>
+              <li>Define document outputs required to preserve project context across sessions.</li>
+              <li>Define how decisions, assumptions, and unresolved risks are logged.</li>
+              <li>Define traceability from PRD rule to technical enforcement and later test coverage.</li>
+              <li>Define how future signal-source research topics, including blockchain and on-chain activity, are recorded without implying v1 execution support where none exists.</li>
+            </ul>
+          </article>
+        </section>
+      </article>
+
+      <article class="section-card">
+        <h2>4A. Future Signal-Source Boundary</h2>
+        <ul>
+          <li>Phase 0 must distinguish between informational signal sources and executable trading mechanics.</li>
+          <li>Blockchain-derived intelligence, such as exchange inflow and outflow monitoring, whale-transfer monitoring, unusual wallet activity, and stablecoin flow analysis, may be tracked as future research areas.</li>
+          <li>MEV-style, mempool-priority, or miner and validator fee-bidding tactics must remain out of scope for Coinbase Advanced spot execution because they do not match centralized exchange matching behavior.</li>
+          <li>Any future on-chain signal work must be documented as optional intelligence input, not as a bypass around deterministic trade-execution and risk controls.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>5. Technical Deliverables</h2>
+        <ul>
+          <li>Phase 0 technical requirements document.</li>
+          <li>Technical permissions matrix with enforcement notes.</li>
+          <li>Coinbase feasibility findings summary.</li>
+          <li>Tradable-universe policy draft for v1.</li>
+          <li>Dynamic asset discovery and lifecycle management approach for later phases.</li>
+          <li>Approved and rejected asset evaluation list with reasons.</li>
+          <li>Order ownership and mixed-control policy draft.</li>
+          <li>Security and secrets handling baseline for future implementation phases.</li>
+          <li>Documented assumptions and unresolved risk register.</li>
+          <li>Go/no-go technical recommendation.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>5A. Enforcement Architecture</h2>
+        <ul>
+          <li>Phase 0 must define a pre-trade policy validation layer that checks permissions, protected assets, quote-currency rules, and candidate asset viability before a trade is considered executable.</li>
+          <li>Phase 0 must define a risk validation layer separate from policy validation.</li>
+          <li>Phase 0 must define a single execution boundary through which all order submission and cancellation actions must pass.</li>
+          <li>Phase 0 must define a post-trade reconciliation boundary responsible for comparing expected and actual account state.</li>
+          <li>Phase 0 must define the audit logging boundary that records all policy checks, risk checks, approvals, denials, and execution outcomes.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>6. Technical Permissions Matrix</h2>
+        <table style="width:100%; border-collapse:collapse; font-size:10.5pt;">
+          <thead>
+            <tr>
+              <th style="text-align:left; padding:10px; border-bottom:1px solid #e3e6f6; color:#262b5b;">Action</th>
+              <th style="text-align:left; padding:10px; border-bottom:1px solid #e3e6f6; color:#262b5b;">Business Policy</th>
+              <th style="text-align:left; padding:10px; border-bottom:1px solid #e3e6f6; color:#262b5b;">Enforcement Intent</th>
+              <th style="text-align:left; padding:10px; border-bottom:1px solid #e3e6f6; color:#262b5b;">Audit Requirement</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Read balances/orders/fills/products/market data</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Allowed</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Allow through read-only service boundaries.</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Log request and source context at debug/audit level.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Place spot buy/sell orders</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Allowed</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Only through strategy and risk-checked execution path.</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Log candidate trade, approval result, and submitted order metadata.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Take no trade action</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Allowed</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">System must be able to reject all candidates and remain in current allocation or defensive cash-like allocation.</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Log no-trade decision and rejection reasons.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Cancel bot-owned orders</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Allowed</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Require positive bot ownership marker before cancellation.</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Log ownership proof and cancel reason.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Cancel human-owned orders</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Human approval only</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Default deny unless explicit operator approval workflow exists.</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Log denial or approval path with actor identity.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Trade protected assets</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Mode dependent</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Validate `no buy`, `no sell`, or `fully excluded` before order creation.</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Log protected-asset check result on every candidate trade.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Add, modify, or remove bank accounts/payment methods</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Prohibited</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">No supported code path or API call may exist for v1.</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Log attempted requests as policy violations if encountered.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Bank deposits / bank withdrawals</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Prohibited</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">No supported code path or API call may exist for v1.</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Log attempted requests as policy violations if encountered.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">External wallet transfers</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Prohibited</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">No supported code path or API call may exist for v1.</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Log attempted requests as policy violations if encountered.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Recurring buys / non-strategy conversions / profit sweeps</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Prohibited</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">No supported code path may exist outside the approved strategy engine.</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Log attempted requests as policy violations if encountered.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Unknown orders without bot marker</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Treat as human-owned</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Default deny for cancellation or modification until ownership is proven.</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Log unknown-order detection and resulting control action.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Unexpected human trading activity</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Fail-safe handling required</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Default provisional behavior must be restricted mode or pause until implementation policy is finalized.</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Log human-activity detection, chosen fail-safe path, and operator notification requirement.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Quote-currency violations</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Prohibited</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Reject trade candidates that do not use approved v1 quote currencies.</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Log rejection with quote-currency policy reason.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Staking / Web3 / margin / derivatives</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Prohibited</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">No supported code path or API call may exist for v1.</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Log attempted requests as policy violations if encountered.</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="section-card">
+        <h2>7. Technical Decision Outputs Required</h2>
+        <ul>
+          <li>Is approximately $50 starting capital technically viable after likely fees, spread, and minimum-order constraints?</li>
+          <li>Which v1 assets satisfy the tradable-universe rules?</li>
+          <li>How should all Coinbase-listed spot assets be discovered and tracked for analysis without becoming automatically tradable?</li>
+          <li>Which assets were evaluated and rejected, and why?</li>
+          <li>Should v1 standardize routing on USD only or USD plus USDC?</li>
+          <li>Should the system take no action or remain in cash-like allocation when no candidate asset passes viability filters?</li>
+          <li>What is the final required default behavior when mixed human/bot activity is detected?</li>
+          <li>What order metadata scheme will identify bot ownership reliably, and what identifier properties are mandatory?</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>8. Security and Secrets</h2>
+        <ul>
+          <li>No production or user-specific secrets may be committed to the repository.</li>
+          <li>Phase 0 must define the intended local secret-handling approach for development and future deployment.</li>
+          <li>Phase 0 must define minimum log-redaction expectations for secrets and sensitive account identifiers.</li>
+          <li>Phase 0 must preserve the bring-your-own-credentials model required for future resale.</li>
+          <li>Only configuration templates may be committed to source control; real values must remain external.</li>
+          <li>Phase 0 must define expected configuration separation for local, development, and future production-like environments.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>9. Non-Functional Technical Requirements</h2>
+        <ul>
+          <li>All technical findings must be versioned in the repository.</li>
+          <li>All technical rules must be traceable back to the approved PRD.</li>
+          <li>Decisions must be understandable without reliance on chat history.</li>
+          <li>The output must support future resale, multi-user packaging, and secret isolation.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>10. Entry and Exit Criteria</h2>
+        <div class="callout gate">
+          <h3>Entry Criteria</h3>
+          <ul>
+            <li>Approved roadmap v4 exists.</li>
+            <li>Approved Phase 0 PRD exists.</li>
+          </ul>
+        </div>
+        <div class="callout gate">
+          <h3>Exit Criteria</h3>
+          <ul>
+            <li>Technical permissions matrix is complete.</li>
+            <li>Feasibility findings are documented with source basis and recorded assumptions.</li>
+            <li>Tradable-universe rules are documented with quantitative thresholds or formulas.</li>
+            <li>The future dynamic asset discovery model is documented clearly enough to guide later implementation.</li>
+            <li>Approved and rejected asset lists are documented with reasons.</li>
+            <li>Mixed human/bot control policy is documented.</li>
+            <li>A final default behavior for mixed human/bot activity is selected.</li>
+            <li>Unresolved risks and assumptions are explicitly recorded.</li>
+            <li>A final technical decision outcome is produced: proceed as planned, proceed with narrower scope, proceed with higher required capital, or stop.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>11. Risks and Unknowns</h2>
+        <div class="callout risk">
+          <h3>Key Technical Risks</h3>
+          <ul>
+            <li>The account size may be too small to justify automated trading after costs.</li>
+            <li>Coinbase account/product restrictions may narrow the usable asset universe more than expected.</li>
+            <li>Mixed human/bot control may create state ambiguity without strong ownership tagging.</li>
+            <li>Future resale needs may require stricter configuration boundaries than initially assumed.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>12. Recommendation</h2>
+        <p>Proceed with Phase 0 technical research and policy definition. No implementation phase should begin until the technical findings either confirm feasibility or narrow the scope to a technically defensible v1.</p>
+      </article>
+
+      <div class="footer">
+        VectorQuay Phase 0 Technical Requirements • Approved baseline • Author/Owner: Brad Malia
+      </div>
+    </section>
+  </main>
+</body>
+</html>

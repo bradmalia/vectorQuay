@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 0 Unit Test Plan</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Unit Test Plan</p>
+          <h1>Phase 0 Unit Test Plan</h1>
+          <p class="subtitle">Lightweight artifact-completeness and rule-consistency validation for Phase 0.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v1.0</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">In Review</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Purpose</h2>
+          <p>Phase 0 has little or no executable software, so unit testing in this phase means validating the completeness and internal consistency of individual requirements artifacts.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Test Goal</h2>
+          <p>Ensure each Phase 0 artifact contains the required rules, outputs, and review fields before later phases depend on them.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Validation Areas</h2>
+        <ul>
+          <li>Required sections are present in each Phase 0 artifact.</li>
+          <li>Critical policies are explicitly stated, not implied.</li>
+          <li>Key decision outputs are listed.</li>
+          <li>Status, version, owner, and branding metadata are present.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Unit-Level Checks</h2>
+        <div class="callout gate">
+          <h3>UTP-01: PRD Completeness</h3>
+          <p>Verify that the PRD contains scope, constraints, permissions matrix, protected-asset rules, quote-currency policy, mixed-control rules, and acceptance criteria.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP-02: TRD Completeness</h3>
+          <p>Verify that the TRD contains research method, evidence standard, technical permissions matrix, enforcement architecture, security/secrets requirements, future signal-source boundary rules, exit criteria, and technical decision outputs.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP-03: Metadata Completeness</h3>
+          <p>Verify that each document includes version, status, owner, and branding.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP-04: Policy Explicitness</h3>
+          <p>Verify that prohibited actions and approval-gated actions are written explicitly rather than implied through omission.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP-05: Research Output Completeness</h3>
+          <p>Verify that the TRD requires findings to record question, conclusion, source, confidence, impact on v1, and unresolved assumptions.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP-06: Security Baseline Completeness</h3>
+          <p>Verify that zero-secrets-in-repo, config-template-only policy, and environment-separation requirements are explicitly present.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP-07: Dynamic Universe and Signal Boundary Completeness</h3>
+          <p>Verify that the Phase 0 artifacts explicitly preserve dynamic asset discovery, the distinction between analysis universe and live trading universe, and the treatment of blockchain activity as a future signal source rather than a Coinbase spot execution tactic.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Method</h2>
+        <ul>
+          <li>Perform manual checklist-based review of each individual artifact.</li>
+          <li>Record pass/fail against required sections and rule presence.</li>
+          <li>Store results in a durable review artifact under <code>docs/test-results/</code>.</li>
+          <li>Fix omissions before considering broader integration or regression validation complete.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Exit Criteria</h2>
+        <ul>
+          <li>Each Phase 0 artifact contains all required sections.</li>
+          <li>No critical rule is missing from its source document.</li>
+          <li>Each artifact is complete enough to participate in integration review.</li>
+        </ul>
+      </article>
+
+      <div class="footer">
+        VectorQuay Phase 0 Unit Test Plan • Approved baseline • Author/Owner: Brad Malia
+      </div>
+    </section>
+  </main>
+</body>
+</html>

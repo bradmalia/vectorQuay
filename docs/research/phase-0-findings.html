@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 0 Findings</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Research Findings</p>
+          <h1>Phase 0 Findings</h1>
+          <p class="subtitle">Source-backed feasibility findings for Coinbase spot trading under the approved Phase 0 scope.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v1.0</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">In Review</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Purpose</h2>
+          <p>This document records Phase 0 research in the required format: question, conclusion, source, confidence, impact on v1, and unresolved assumptions.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Current Focus</h2>
+          <p>Initial Coinbase spot feasibility for approximately $50 capital, approved quote-currency policy, and the economic question that now matters most: whether production-account fee burden leaves enough room for meaningful net growth.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Research Findings</h2>
+        <div class="callout gate">
+          <h3>F-001: Which Coinbase API product should VectorQuay target for v1 spot trading?</h3>
+          <p><strong>Question:</strong> Which Coinbase API surface is the correct primary target for automated Coinbase spot trading in v1?</p>
+          <p><strong>Conclusion:</strong> VectorQuay v1 should target the Coinbase Advanced Trade API as the primary Coinbase trading interface.</p>
+          <p><strong>Source:</strong> Coinbase states that “The Coinbase Advanced API lets you manage orders, products, and fees with our new v3 endpoints” and “supports advanced trading features only.” Source: <a href="https://help.coinbase.com/en-gb/coinbase/trading-and-funding/advanced-trade/what-is-advanced-trade">What is Coinbase Advanced?</a></p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> API design, account integration assumptions, and later implementation planning should standardize around Advanced Trade, not older Coinbase retail API patterns.</p>
+          <p><strong>Unresolved assumptions:</strong> Need to confirm any account-specific restrictions relevant to the intended account and region.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>F-002: Are spot-oriented order types available through the target API?</h3>
+          <p><strong>Question:</strong> Does the target Coinbase API support the order types needed for a v1 spot-only product?</p>
+          <p><strong>Conclusion:</strong> Coinbase Advanced Trade documentation shows support for spot-relevant order configurations including market, limit, stop-limit, and fill-or-kill style order structures. For v1, VectorQuay should likely constrain itself to a simpler subset such as market IOC and limit GTC/GTD until feasibility and risk findings justify more complexity.</p>
+          <p><strong>Source:</strong> Coinbase Advanced order documentation lists `market_market_ioc`, `limit_limit_gtc`, `limit_limit_gtd`, `stop_limit_stop_limit_gtc`, `stop_limit_stop_limit_gtd`, and `limit_limit_fok`. Source: <a href="https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/orders">Advanced API Order Management</a></p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> The platform can likely support a basic spot execution path without needing complex order behavior on day one.</p>
+          <p><strong>Unresolved assumptions:</strong> Need confirmation of which order subset best fits the low-capital v1 strategy and whether account/product conditions restrict availability.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>F-003: Does the target API align with the approved trade-only account policy?</h3>
+          <p><strong>Question:</strong> Does Coinbase Advanced Trade API scope align with the approved v1 policy that the bot should trade only and should not automate deposits or withdrawals?</p>
+          <p><strong>Conclusion:</strong> Yes, current Coinbase help documentation explicitly states that the Advanced API “does not duplicate core Coinbase functions for account deposits, withdrawals, and transactions” and “supports advanced trading features only.”</p>
+          <p><strong>Source:</strong> <a href="https://help.coinbase.com/en-gb/coinbase/trading-and-funding/advanced-trade/what-is-advanced-trade">What is Coinbase Advanced?</a></p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> This strengthens the architectural fit between the approved trade-only policy and the chosen Coinbase API surface.</p>
+          <p><strong>Unresolved assumptions:</strong> We still need to ensure no implementation path accidentally mixes other Coinbase account features into the product scope.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>F-004: Does Coinbase product metadata expose the fields needed to evaluate low-capital viability?</h3>
+          <p><strong>Question:</strong> Can VectorQuay retrieve enough product metadata to evaluate minimum sizes, increments, and quote-currency precision for v1 feasibility?</p>
+          <p><strong>Conclusion:</strong> Yes. Coinbase Advanced Trade product endpoints document fields including `base_increment`, `quote_increment`, `quote_min_size`, `quote_max_size`, `base_min_size`, and `base_max_size`, which are directly relevant to low-capital viability analysis.</p>
+          <p><strong>Source:</strong> <a href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product">Get Product</a> and <a href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product">Get Public Product</a></p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> Phase 0 can evaluate whether specific products are technically tradeable under the approved USD/USDC quote policy and the approximately $50 starting-capital constraint.</p>
+          <p><strong>Unresolved assumptions:</strong> We still need to inspect actual target products and not rely only on schema examples.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>F-005: Can Phase 0 measure spread and market quality with official Coinbase data?</h3>
+          <p><strong>Question:</strong> Does Coinbase expose official order-book or ticker data sufficient to evaluate spread and market quality for the initial tradable universe?</p>
+          <p><strong>Conclusion:</strong> Yes. Coinbase Advanced Trade public market endpoints expose best bid/ask, mid-market, spread in basis points, spread absolute values, and recent trade/ticker data, which is sufficient for Phase 0 to define spread-based viability rules.</p>
+          <p><strong>Source:</strong> <a href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-book">Get Public Product Book</a> and <a href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades">Get Public Market Trades</a></p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> Phase 0 can define candidate-asset filters using official spread and market-quality data rather than relying on intuition or external data sources.</p>
+          <p><strong>Unresolved assumptions:</strong> We still need to decide actual numeric spread thresholds appropriate for a low-capital v1 strategy.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>F-006: Do current Coinbase fee rules increase risk for a low-capital strategy?</h3>
+          <p><strong>Question:</strong> Do current Coinbase Advanced fee rules create a meaningful Phase 0 risk for a strategy starting with approximately $50?</p>
+          <p><strong>Conclusion:</strong> Yes. Coinbase Advanced uses a maker/taker fee model, fees vary by fee tier, and tiers depend on trailing USD trading volume. For a low-capital v1 product, fee drag is a first-order risk because frequent taker-style trading can materially reduce net growth at small account size.</p>
+          <p><strong>Source:</strong> <a href="https://help.coinbase.com/en/coinbase/trading-and-funding/advanced-trade/advanced-trade-fees">Coinbase Advanced fees</a></p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> VectorQuay should treat fee drag as a primary feasibility constraint. The platform should not assume that high-frequency trading is economically viable at approximately $50 simply because the API supports it.</p>
+          <p><strong>Unresolved assumptions:</strong> We still need account-specific fee-tier visibility or operator confirmation to model the likely effective fee burden more precisely.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>F-011: What does authenticated transaction-summary data show for a low-volume research account?</h3>
+          <p><strong>Question:</strong> What does live authenticated Coinbase transaction-summary data reveal about fee burden on the temporary research account?</p>
+          <p><strong>Conclusion:</strong> The temporary read-only research account currently reports fee tier <code>Intro 1</code> with <code>taker_fee_rate = 0.012</code> and <code>maker_fee_rate = 0.006</code>. This means a low-volume account may face 1.2% taker fees and 0.6% maker fees before spread is considered.</p>
+          <p><strong>Source:</strong> Authenticated read-only response from <code>/api/v3/brokerage/transaction_summary</code> on 2026-04-12 using the temporary research account.</p>
+          <p><strong>Confidence:</strong> High for the research account; medium for production-account applicability.</p>
+          <p><strong>Impact on v1:</strong> This materially strengthens the conclusion that approximately $50 is a fragile operating point and that taker-heavy or high-turnover behavior is likely unattractive unless the production account has significantly better fee conditions.</p>
+          <p><strong>Unresolved assumptions:</strong> Future fee conditions may improve or worsen as account activity changes, but the production baseline has now been confirmed separately.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>F-014: What does the actual production account show for fee tier and starting balance?</h3>
+          <p><strong>Question:</strong> What does authenticated read-only inspection reveal about the actual Coinbase account intended for VectorQuay?</p>
+          <p><strong>Conclusion:</strong> The actual production account currently reports:
+          <ul>
+            <li><code>pricing_tier = Intro 1</code></li>
+            <li><code>taker_fee_rate = 0.012</code></li>
+            <li><code>maker_fee_rate = 0.006</code></li>
+            <li><code>total_balance = 47.26</code></li>
+            <li>an ETH wallet and a USD wallet in the observed account set at the time of inspection</li>
+          </ul>
+          This means the production account currently matches the temporary research account on the key fee-risk variable.</p>
+          <p><strong>Source:</strong> Authenticated read-only responses from <code>/api/v3/brokerage/transaction_summary</code> and <code>/api/v3/brokerage/accounts</code> on 2026-04-12 using the actual production-account read-only key.</p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> This substantially increases confidence in the current low-capital risk conclusion. The production account is not currently in a better fee state than the temporary research account, so the low-volume fee burden is a real production constraint, not just a research-account anomaly.</p>
+          <p><strong>Unresolved assumptions:</strong> Need to confirm whether fee conditions improve later through increased volume or another Coinbase pathway, but the current production baseline is now known.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>F-015: What does the actual account state imply for USD versus USDC routing?</h3>
+          <p><strong>Question:</strong> Does the actual production account currently favor USD or USDC as the more natural quote-currency default?</p>
+          <p><strong>Conclusion:</strong> The observed production account currently contains an ETH wallet and a USD wallet, but no USDC wallet in the returned account set at the time of inspection. Because USD is already present on the account while USDC is not, USD should be treated as the default initial quote-currency path for first implementation, while USDC remains an approved secondary quote currency if later strategy or account behavior justifies it.</p>
+          <p><strong>Source:</strong> Authenticated read-only response from <code>/api/v3/brokerage/accounts</code> on 2026-04-12 using the actual production-account key.</p>
+          <p><strong>Confidence:</strong> High for the observed account state.</p>
+          <p><strong>Impact on v1:</strong> This suggests the earliest implementation and operational model should prefer USD-routed trading flows first, while preserving support for USDC in policy and later design.</p>
+          <p><strong>Unresolved assumptions:</strong> Need confirmation that the account response includes all relevant spot wallets in all states and that no additional funding behavior changes this preference later.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>F-008: Does Coinbase public product data provide enough information to build approved and rejected asset lists?</h3>
+          <p><strong>Question:</strong> Can Phase 0 use official Coinbase public product data to classify candidate v1 assets under the approved USD/USDC quote-currency policy?</p>
+          <p><strong>Conclusion:</strong> Yes. Coinbase public product listings and public product-detail endpoints expose `product_id`, `quote_currency_id`, `base_currency_id`, `volume_24h`, `base_min_size`, `quote_min_size`, `price_increment`, `mid_market_price`, and tradability-related flags such as `is_disabled`, `cancel_only`, `limit_only`, `post_only`, `trading_disabled`, and `view_only`.</p>
+          <p><strong>Source:</strong> <a href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products">List Public Products</a> and <a href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product">Get Public Product</a></p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> Phase 0 can build an official-source approved/rejected asset list instead of relying on assumptions or manually curated guesses.</p>
+          <p><strong>Unresolved assumptions:</strong> We still need to choose the actual numeric thresholds that will determine approval or rejection.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>F-010: Is product-level Phase 0 screening fully completable from documentation alone?</h3>
+          <p><strong>Question:</strong> Can Phase 0 complete real product-level screening from documentation alone, without access to live Coinbase credentials or account context?</p>
+          <p><strong>Conclusion:</strong> Not fully. Coinbase documents the required product and market-data fields, but the current endpoint docs for “public” product and ticker surfaces still show an Authorization header requirement. That means full screening of actual live products may require authenticated access or later live read-only inspection rather than documentation-only review.</p>
+          <p><strong>Source:</strong> <a href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products">List Public Products</a>, <a href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product">Get Public Product</a>, and <a href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades">Get Public Market Trades</a>. Each endpoint definition currently shows an Authorization header in the documentation.</p>
+          <p><strong>Confidence:</strong> Medium to high.</p>
+          <p><strong>Impact on v1:</strong> Phase 0 can complete the framework, criteria, and technical method for candidate screening now, but final product-level approval/rejection of actual live pairs may require read-only authenticated inspection.</p>
+          <p><strong>Unresolved assumptions:</strong> Need later confirmation of whether these endpoints are truly callable without auth in practice or whether authenticated read-only access is required.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>F-012: Does authenticated live product inspection support the current liquid-major hypothesis?</h3>
+          <p><strong>Question:</strong> What does live authenticated product metadata show for provisional v1 candidates such as BTC-USD, ETH-USD, SOL-USD, and DOGE-USD?</p>
+          <p><strong>Conclusion:</strong> Yes. Authenticated live product inspection currently shows:
+          <ul>
+            <li>`BTC-USD`, `ETH-USD`, `SOL-USD`, and `DOGE-USD` all report <code>status = online</code>, <code>trading_disabled = false</code>, and <code>view_only = false</code>.</li>
+            <li>All four currently report <code>quote_min_size = 1</code>, which means they are technically reachable for a small-dollar account.</li>
+            <li>BTC, ETH, and SOL continue to fit the strongest candidate class because of their high approximate quote volume and lower strategy-risk profile relative to speculative assets.</li>
+            <li>DOGE is technically reachable and active, but it remains strategically weaker than BTC/ETH/SOL because of its speculative nature, not because of obvious product restrictions.</li>
+          </ul>
+          </p>
+          <p><strong>Source:</strong> Authenticated read-only responses from <code>/api/v3/brokerage/products/BTC-USD</code>, <code>ETH-USD</code>, <code>SOL-USD</code>, and <code>DOGE-USD</code> on 2026-04-12 using the temporary research account.</p>
+          <p><strong>Confidence:</strong> High for those products on the research account.</p>
+          <p><strong>Impact on v1:</strong> The candidate set can now move from general hypothesis to evidence-backed provisional screening. The remaining major unknown is economic attractiveness after fees and spread, not basic tradability.</p>
+          <p><strong>Unresolved assumptions:</strong> Additional live inspection may still be useful for watchlist or long-tail assets, but the main-candidate case is now well supported.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>F-013: What do live spreads look like for the main provisional candidates?</h3>
+          <p><strong>Question:</strong> What does authenticated live ticker data show for best bid/ask spread on the current provisional v1 candidates?</p>
+          <p><strong>Conclusion:</strong> Live spread data for the temporary research account shows very tight spreads on the tested liquid candidates:
+          <ul>
+            <li>`BTC-USD`: spread = <code>$0.01</code>, approximately <code>0.0014 bps</code></li>
+            <li>`ETH-USD`: spread = <code>$0.01</code>, approximately <code>0.0455 bps</code></li>
+            <li>`SOL-USD`: spread = <code>$0.01</code>, approximately <code>1.2185 bps</code></li>
+            <li>`DOGE-USD`: spread = <code>$0.00001</code>, approximately <code>1.0962 bps</code></li>
+          </ul>
+          These results indicate that for these liquid candidates, spread is likely much less constraining than the currently observed low-volume fee burden.</p>
+          <p><strong>Source:</strong> Authenticated read-only responses from <code>/api/v3/brokerage/market/products/{product_id}/ticker</code> on 2026-04-12 using the temporary research account, with spread calculations derived from returned <code>best_bid</code> and <code>best_ask</code>.</p>
+          <p><strong>Confidence:</strong> High for the observed moment-in-time data.</p>
+          <p><strong>Impact on v1:</strong> This materially strengthens the case for focusing on fee economics rather than spread economics when judging low-capital viability on highly liquid major pairs.</p>
+          <p><strong>Unresolved assumptions:</strong> Additional spread checks may still be useful for watchlist or later candidate assets, but the major-pair spread question is sufficiently answered for Phase 0.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>F-009: What is the current research-backed constraint on strategy style at approximately $50?</h3>
+          <p><strong>Question:</strong> What does the current research imply about the likely strategy style that remains feasible for a very small starting balance?</p>
+          <p><strong>Conclusion:</strong> The current research suggests that high-turnover or taker-heavy trading is structurally risky at approximately $50 because fee drag and spread can consume a meaningful share of expected gains. The most plausible v1 path is likely selective, low-turnover spot trading on liquid USD/USDC pairs rather than hyperactive trading.</p>
+          <p><strong>Source:</strong> Synthesized from Coinbase Advanced fee guidance, product metadata availability, and public market quality endpoints.</p>
+          <p><strong>Confidence:</strong> Medium.</p>
+          <p><strong>Impact on v1:</strong> Phase 0 should treat “maximize growth quickly” as compatible with selective opportunity-taking, not with assumed high-frequency behavior.</p>
+          <p><strong>Unresolved assumptions:</strong> This remains provisional until actual candidate products are evaluated under chosen spread and minimum-size thresholds.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>F-007: What is the current interim answer to the $50 viability question?</h3>
+          <p><strong>Question:</strong> Based on current official-source research, is VectorQuay technically viable on Coinbase spot with approximately $50 starting capital?</p>
+          <p><strong>Conclusion:</strong> The answer is provisionally yes at the API and metadata level, but conditionally weak at the economic level. Coinbase exposes the trading features and product metadata needed to build the product, and the main liquid candidates are technically tradeable, but the actual production account currently confirms a low-volume fee structure that makes approximately $47-$50 a fragile operating point.</p>
+          <p><strong>Source:</strong> Synthesized from current findings F-001 through F-014.</p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> The project should proceed with Phase 0 research, but no conclusion should yet be made that aggressive live trading at approximately $50 is economically justified.</p>
+          <p><strong>Unresolved assumptions:</strong> The main remaining question is no longer technical visibility. It is business judgment about whether the confirmed current fee economics are acceptable for the approved v1 goal.</p>
+        </div>
+
+        <div class="callout risk">
+          <h3>Interim Assessment</h3>
+          <p>The project is technically viable at the API-surface, metadata, and authenticated-read-only inspection level. For the liquid major pairs tested so far, spread is not the primary obstacle; fee burden is. The actual production account now confirms the low-volume fee concern directly, so the remaining question is whether those economics are acceptable for the approved business goal at approximately $47-$50.</p>
+        </div>
+
+        <div class="callout risk">
+          <h3>Open Research Queue</h3>
+          <ul>
+            <li>Estimate whether approximately $47-$50 remains practically tradeable after fees, spreads, and minimum-order constraints for candidate products.</li>
+            <li>Confirm practical quote-currency policy for USD and USDC under the intended account setup.</li>
+            <li>Confirm any account-specific conditions or regional limitations that could affect the approved scope.</li>
+            <li>Extend live spread checks to any additional watchlist or later candidate assets.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>First-Pass Screening Framework</h2>
+        <div class="callout gate">
+          <h3>SF-001: Proposed v1 Candidate Pair Filter</h3>
+          <p><strong>Question:</strong> What first-pass rules should VectorQuay use to approve or reject Coinbase spot pairs for v1 under the current research state?</p>
+          <p><strong>Conclusion:</strong> Until live authenticated screening is available, VectorQuay should use a conservative candidate filter that approves only liquid USD/USDC spot pairs with normal trading status, small minimum-size requirements, and acceptable spread/market-quality metrics.</p>
+          <p><strong>Source:</strong> Synthesized from F-004, F-005, F-006, F-008, and F-010.</p>
+          <p><strong>Confidence:</strong> Medium to high after authenticated product inspection.</p>
+          <p><strong>Impact on v1:</strong> This creates a defensible screening method now, even before final pair-level data is inspected live.</p>
+          <p><strong>Unresolved assumptions:</strong> Numeric thresholds below are provisional and should be validated against live Coinbase product data.</p>
+        </div>
+
+        <div class="callout approval">
+          <h3>Proposed Approval Conditions</h3>
+          <ul>
+            <li>Quote currency must be `USD` or `USDC`.</li>
+            <li>Product type must be spot-oriented and not view-only for the target account.</li>
+            <li>Product must not be disabled, trading-disabled, or in an abnormal restricted state.</li>
+            <li>`quote_min_size` and `base_min_size` must allow practical trade sizing within a roughly $50 account.</li>
+            <li>24-hour volume must be high enough that the pair is not obviously illiquid relative to v1 capital size.</li>
+            <li>Observed spread and/or spread basis points must remain low enough that fee-plus-spread drag does not dominate expected gains.</li>
+            <li>Price and quantity increments must support small-capital order sizing without excessive rounding waste.</li>
+          </ul>
+        </div>
+
+        <div class="callout risk">
+          <h3>Provisional Rejection Conditions</h3>
+          <ul>
+            <li>Quote currency is not `USD` or `USDC`.</li>
+            <li>Product is disabled, trading-disabled, or not tradeable for the target account.</li>
+            <li>Minimum size or increment rules make meaningful position sizing unrealistic at approximately $50.</li>
+            <li>Spread appears too wide for a low-capital system that must overcome both spread and fees.</li>
+            <li>Volume or market quality appears too weak for disciplined v1 trading.</li>
+            <li>Pair complexity or tradability flags indicate unusual handling that would add unnecessary v1 risk.</li>
+          </ul>
+        </div>
+
+        <div class="callout gate">
+          <h3>SF-002: Proposed Initial Asset Bias</h3>
+          <p><strong>Question:</strong> What types of assets should be favored in the first live asset-screening pass?</p>
+          <p><strong>Conclusion:</strong> The first pass should strongly favor large, liquid spot assets quoted in USD or USDC and avoid low-liquidity speculative assets until live data proves they satisfy spread, size, and market-quality thresholds.</p>
+          <p><strong>Source:</strong> Synthesized from fee-drag risk, spread-measurement capability, and the approved project risk posture.</p>
+          <p><strong>Confidence:</strong> Medium to high.</p>
+          <p><strong>Impact on v1:</strong> The likely first candidate set should be major liquid assets rather than meme/speculative assets, regardless of narrative upside.</p>
+          <p><strong>Unresolved assumptions:</strong> Exact expansion beyond the current approved-candidate and watchlist classes still requires additional later screening.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>SF-003: Proposed No-Trade Rule</h3>
+          <p><strong>Question:</strong> What should VectorQuay do if no asset passes the final Phase 0 screening rules?</p>
+          <p><strong>Conclusion:</strong> `No trade` must remain a valid and expected system outcome. If no approved asset meets the viability rules, VectorQuay should preserve capital and avoid forced trades.</p>
+          <p><strong>Source:</strong> Consistent with the approved TRD requirement that no-trade is a valid system action.</p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> The product should optimize for valid opportunity selection, not constant activity.</p>
+          <p><strong>Unresolved assumptions:</strong> None at the policy level; only implementation details remain for later phases.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>SF-004: Analysis Universe vs Live Trading Universe</h3>
+          <p><strong>Question:</strong> How should VectorQuay treat the full Coinbase-listed asset set over time without weakening current v1 controls?</p>
+          <p><strong>Conclusion:</strong> All Coinbase-listed spot assets should be eligible for ongoing analysis and discovery in future phases, but only a dynamically screened subset should be eligible for live trading. New or newly discovered assets should enter a lifecycle such as discovered, observed, watchlist, eligible, active, or blocked rather than becoming immediately tradable.</p>
+          <p><strong>Source:</strong> Product direction approved during Phase 0 collaboration and aligned with current feasibility findings.</p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> The current narrow live universe remains intact, while future platform direction stays broad enough to discover new Coinbase listings and reassess old exclusions automatically.</p>
+          <p><strong>Unresolved assumptions:</strong> The exact lifecycle automation and review cadence belong to later implementation phases.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>SF-005: How should blockchain and mempool activity be treated in the future signal stack?</h3>
+          <p><strong>Question:</strong> Should VectorQuay implement mempool or MEV-style execution tactics for Coinbase Advanced spot trading, and should blockchain activity still be considered as a future signal source?</p>
+          <p><strong>Conclusion:</strong> VectorQuay should not implement miner or validator fee-bidding, mempool-priority, or other MEV-style execution tactics for Coinbase Advanced spot trading because Coinbase spot uses centralized exchange matching rather than on-chain swap inclusion ordering. However, blockchain activity may still be valuable in future phases as an informational signal source, including exchange inflow and outflow monitoring, whale-transfer monitoring, unusual wallet activity, and stablecoin flow analysis.</p>
+          <p><strong>Source:</strong> Coinbase Exchange matching-engine documentation and Ethereum gas and fee documentation, interpreted in the context of the approved Coinbase Advanced spot-only scope. Sources: <a href="https://docs.cdp.coinbase.com/exchange/concepts/matching-engine">Coinbase Exchange Matching Engine</a> and <a href="https://ethereum.org/developers/docs/gas/">Ethereum Gas and Fees</a>.</p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> This preserves blockchain intelligence as a tracked future signal-source area so it is not forgotten, while keeping Coinbase spot execution logic aligned with how the exchange actually works.</p>
+          <p><strong>Unresolved assumptions:</strong> Future phases would still need separate research on which blockchain-derived signals are legally, technically, and economically useful enough to justify implementation.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Provisional Asset Hypothesis</h2>
+        <div class="callout approval">
+          <h3>AH-001: Likely First-Pass Candidates</h3>
+          <p><strong>Question:</strong> Which assets are the strongest provisional candidates for initial v1 screening under the current official-source research?</p>
+          <p><strong>Conclusion:</strong> `BTC-USD`, `ETH-USD`, and likely `SOL-USD` are the strongest initial candidate class for v1 evaluation because Coinbase’s own market pages currently show high relative popularity, active trader participation, and very large 24-hour trading volume. These assets fit the current working assumption that v1 should begin with highly liquid USD-quoted spot pairs.</p>
+          <p><strong>Source:</strong> Coinbase asset pages for <a href="https://www.coinbase.com/price/bitcoin">Bitcoin</a>, <a href="https://www.coinbase.com/price/ethereum">Ethereum</a>, and <a href="https://www.coinbase.com/price/solana">Solana</a>.</p>
+          <p><strong>Confidence:</strong> Medium.</p>
+          <p><strong>Impact on v1:</strong> These assets should be prioritized once live read-only product screening becomes available.</p>
+          <p><strong>Unresolved assumptions:</strong> Final approval still depends on actual product-level metadata, spreads, increments, and account tradability flags.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>AH-002: Conditional Watchlist Class</h3>
+          <p><strong>Question:</strong> Are any non-core but still liquid assets plausible watchlist candidates rather than immediate rejects?</p>
+          <p><strong>Conclusion:</strong> Assets such as `DOGE-USD` appear better treated as conditional watchlist candidates rather than automatic approvals or automatic rejects. Coinbase currently shows substantial 24-hour trading activity for DOGE, but its speculative and meme-driven character makes it a weaker first-wave candidate than BTC, ETH, or SOL under the current risk posture.</p>
+          <p><strong>Source:</strong> Coinbase asset page for <a href="https://www.coinbase.com/price/dogecoin/">Dogecoin</a>.</p>
+          <p><strong>Confidence:</strong> Medium.</p>
+          <p><strong>Impact on v1:</strong> Conditional assets may be evaluated later if they satisfy live spread, size, and policy thresholds, but they should not anchor the first v1 asset list.</p>
+          <p><strong>Unresolved assumptions:</strong> Need live pair-level screening and a stronger decision on whether speculative assets belong in the first production asset set.</p>
+        </div>
+
+        <div class="callout risk">
+          <h3>AH-003: Likely Early Reject Categories</h3>
+          <p><strong>Question:</strong> What asset categories are most likely to be rejected before detailed live screening?</p>
+          <p><strong>Conclusion:</strong> The current research strongly suggests early rejection of:
+          <ul>
+            <li>non-USD and non-USDC quoted pairs,</li>
+            <li>restricted, disabled, or view-only products,</li>
+            <li>thinly traded long-tail assets,</li>
+            <li>pairs with wide spreads relative to low account size,</li>
+            <li>assets whose minimum-size or increment rules waste too much of a roughly $50 balance.</li>
+          </ul>
+          </p>
+          <p><strong>Source:</strong> Synthesized from the approved Phase 0 policy, Coinbase public product schemas, and Coinbase fee/spread research.</p>
+          <p><strong>Confidence:</strong> Medium to high.</p>
+          <p><strong>Impact on v1:</strong> The first live asset list should likely be small, conservative, and heavily biased toward liquid majors.</p>
+          <p><strong>Unresolved assumptions:</strong> The reject categories are clear, but individual long-tail assets would still need later pair-level inspection before any expansion decision.</p>
+        </div>
+
+        <div class="callout approval">
+          <h3>AH-004: First Explicit Classification</h3>
+          <p><strong>Question:</strong> Based on current authenticated production-account research, how should the first asset classification be stated?</p>
+          <p><strong>Conclusion:</strong>
+          <ul>
+            <li><strong>Approved initial-candidate class:</strong> `BTC-USD`, `ETH-USD`, `SOL-USD`, `XRP-USD`, `ADA-USD`, `LINK-USD`, `LTC-USD`, `XLM-USD`, `BCH-USD`, `UNI-USD`, plus their `USDC` equivalents where supported and screened</li>
+            <li><strong>Conditional watchlist class:</strong> `DOGE-USD`, `DOGE-USDC`</li>
+            <li><strong>Default excluded class:</strong> all other assets unless later evidence shows they satisfy the approved quote-currency, market-quality, and low-capital viability rules</li>
+          </ul>
+          </p>
+          <p><strong>Source:</strong> Authenticated read-only product and ticker inspection on 2026-04-12 using the actual production account key for BTC, ETH, SOL, XRP, ADA, LINK, LTC, XLM, BCH, UNI, and DOGE across USD and USDC variants where screened.</p>
+          <p><strong>Confidence:</strong> High for the listed screened pairs.</p>
+          <p><strong>Impact on v1:</strong> VectorQuay now has an evidence-backed initial candidate set rather than just a conceptual bias toward liquid majors.</p>
+          <p><strong>Unresolved assumptions:</strong> Watchlist assets remain conditional because strategic suitability is weaker even when basic product tradability is acceptable.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Provisional v1 Asset Policy</h2>
+        <div class="callout approval">
+          <h3>AP-001: Proposed Initial Asset Policy</h3>
+          <p><strong>Question:</strong> Based on current Phase 0 research, what initial asset policy should VectorQuay adopt for v1 before live product inspection is available?</p>
+          <p><strong>Conclusion:</strong> VectorQuay v1 should begin with a deliberately narrow initial asset policy:
+          <ul>
+            <li>approved quote currencies limited to `USD` and `USDC`, with `USD` treated as the default initial implementation path for the current production account state,</li>
+            <li>initial focus on major liquid spot assets,</li>
+            <li>default emphasis on approved initial candidates: `BTC`, `ETH`, `SOL`, `XRP`, `ADA`, `LINK`, `LTC`, `XLM`, `BCH`, and `UNI` through approved `USD` and `USDC` spot pairs,</li>
+            <li>conditional watchlist treatment for speculative but active assets such as `DOGE-USD` and `DOGE-USDC`,</li>
+            <li>default rejection of long-tail, illiquid, or operationally unusual products.</li>
+          </ul>
+          </p>
+          <p><strong>Source:</strong> Synthesized from F-004 through F-014 and AH-001 through AH-004.</p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> This gives VectorQuay a conservative initial asset posture consistent with low-capital execution and the approved risk model.</p>
+          <p><strong>Unresolved assumptions:</strong> Final pair approval still requires any additional watchlist screening beyond the approved initial-candidate set, but the major-candidate case is now evidence-backed.</p>
+        </div>
+
+        <div class="callout risk">
+          <h3>AP-002: Default Exclusion Rule</h3>
+          <p><strong>Conclusion:</strong> Any asset should remain excluded from the v1 live list unless it passes all of the following:
+          <ul>
+            <li>quote-currency policy,</li>
+            <li>tradability-state checks,</li>
+            <li>minimum-size compatibility,</li>
+            <li>increment efficiency,</li>
+            <li>spread viability,</li>
+            <li>fee-drag plausibility,</li>
+            <li>operator policy checks including protected-asset exclusions.</li>
+          </ul>
+          </p>
+          <p><strong>Impact on v1:</strong> The live asset list should be opt-in by evidence, not opt-out by exception.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Low-Capital Viability Model</h2>
+        <div class="callout gate">
+          <h3>VM-001: Proposed Viability Conditions for Approximately $50</h3>
+          <p><strong>Question:</strong> What conditions must be true for VectorQuay to be considered practically viable at approximately $50 starting capital?</p>
+          <p><strong>Conclusion:</strong> A roughly $50 v1 is only practically viable if all of the following remain true for the candidate asset set:
+          <ul>
+            <li>minimum order sizes do not force trades that consume an unreasonable share of the account,</li>
+            <li>price and quantity increments do not create excessive rounding waste,</li>
+            <li>spread plus likely fee burden leaves room for net positive expected growth, though current research suggests fees are the dominant factor for liquid majors,</li>
+            <li>the strategy trades selectively enough that fee drag does not dominate returns,</li>
+            <li>the asset list remains restricted to liquid pairs where market quality is predictably strong.</li>
+          </ul>
+          </p>
+          <p><strong>Source:</strong> Synthesized from Coinbase fee guidance, product metadata availability, and spread/market-quality endpoint research.</p>
+          <p><strong>Confidence:</strong> Medium.</p>
+          <p><strong>Impact on v1:</strong> This makes clear that low-capital viability is conditional and narrow, not general-purpose.</p>
+          <p><strong>Unresolved assumptions:</strong> The remaining uncertainty is strategic, not access-related: whether the confirmed fee economics are acceptable for the approved growth ambition at the current capital level.</p>
+        </div>
+
+        <div class="callout risk">
+          <h3>VM-002: What Would Make Approximately $50 Non-Viable?</h3>
+          <p><strong>Conclusion:</strong> The approved v1 model should be treated as economically non-viable at approximately $50 if live research shows one or more of the following:
+          <ul>
+            <li>candidate products require minimum trade sizes that are too large relative to the account,</li>
+            <li>maker/taker fee burden plus spread leaves too little room for net growth,</li>
+            <li>approved assets with acceptable quality are too few to support disciplined opportunity selection,</li>
+            <li>practical execution would force overconcentration or overtrading.</li>
+          </ul>
+          </p>
+          <p><strong>Impact on v1:</strong> If these conditions hold, the correct Phase 0 decision may be to proceed only with a higher capital floor or narrower scope.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>VM-003: Current Working Position</h3>
+          <p><strong>Conclusion:</strong> The current research does not justify rejecting the product at approximately $50 yet, but it does justify treating approximately $50 as a fragile operating point. The most defensible current position is:
+          <ul>
+            <li>`technically feasible` at the API and policy level,</li>
+            <li>`economically weak at low volume` if fee conditions resemble the temporary research account,</li>
+            <li>`likely only viable` with a narrow, liquid, low-turnover asset policy and strong preference for maker-friendly execution where possible.</li>
+          </ul>
+          </p>
+          <p><strong>Confidence:</strong> Medium to high.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>VM-004: Refined Headline Conclusion</h3>
+          <p><strong>Conclusion:</strong> VectorQuay currently appears <strong>technically feasible and operationally coherent</strong>, but <strong>low-capital economic viability remains conditionally acceptable rather than demonstrated</strong>. The strongest current evidence indicates that, for liquid major pairs, fees are the dominant low-capital constraint and spreads are secondary.</p>
+          <p><strong>Confidence:</strong> Medium to high.</p>
+          <p><strong>Impact on v1:</strong> This supports continued Phase 0 work and later implementation planning, but it does not yet justify assuming that a roughly $50 account can be traded aggressively with attractive net economics.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Additional Architectural Note</h2>
+        <div class="callout gate">
+          <h3>AN-001: Coinbase Multiple Portfolios as a Future Isolation Option</h3>
+          <p><strong>Question:</strong> Is there a Coinbase-native mechanism that could later help isolate bot-managed funds from manual trading funds?</p>
+          <p><strong>Conclusion:</strong> Coinbase Advanced documents a multiple-portfolios feature that allows separate trading environments and separate API keys per portfolio. This is not required for current v1 planning, but it may later become valuable for isolating bot-managed funds from manually managed funds if the target account supports it.</p>
+          <p><strong>Source:</strong> <a href="https://help.coinbase.com/en/coinbase/trading-and-funding/advanced-trade/multiple-portfolios">Multiple portfolios</a></p>
+          <p><strong>Confidence:</strong> Medium.</p>
+          <p><strong>Impact on v1:</strong> No immediate Phase 0 scope change. However, this may become a strong recommendation later if mixed human/bot account activity remains a concern.</p>
+          <p><strong>Unresolved assumptions:</strong> Need confirmation that the intended Coinbase account type supports this feature and that it fits the approved product scope.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>AN-002: What does the actual production account show for portfolios?</h3>
+          <p><strong>Question:</strong> Does the actual production account currently use multiple Coinbase portfolios?</p>
+          <p><strong>Conclusion:</strong> The production account currently exposes a single portfolio with:
+          <ul>
+            <li><code>name = Default</code></li>
+            <li><code>type = DEFAULT</code></li>
+            <li><code>deleted = false</code></li>
+          </ul>
+          There is no current evidence from the production account that multiple portfolios are already configured.</p>
+          <p><strong>Source:</strong> Authenticated read-only response from <code>/api/v3/brokerage/portfolios</code> on 2026-04-12 using the actual production-account key.</p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> If later phases want account-level separation between manual and bot-managed activity, that would require an explicit future portfolio strategy rather than relying on an already-isolated setup.</p>
+          <p><strong>Unresolved assumptions:</strong> Need future confirmation of whether additional portfolios can be created or should be recommended for this account.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Final Phase 0 Recommendation</h2>
+        <div class="callout approval">
+          <h3>PR-001: Final Recommendation</h3>
+          <p><strong>Question:</strong> Based on completed Phase 0 research, what is the most defensible recommendation?</p>
+          <p><strong>Conclusion:</strong> `Proceed with narrower scope.` The completed Phase 0 evidence supports continuing the project, but only under a disciplined initial operating model:
+          <ul>
+            <li>Coinbase Advanced Trade API as the sole v1 trading surface,</li>
+            <li>spot only, trade only,</li>
+            <li>USD and USDC as the only approved quote currencies,</li>
+            <li>a controlled 10-asset initial candidate set biased toward liquid majors and stronger next-tier liquid spot assets,</li>
+            <li>low-turnover selective trading rather than high-frequency behavior,</li>
+            <li>strong skepticism toward taker-heavy execution at low volume,</li>
+            <li>`no trade` as a normal and expected outcome when no setup passes screening.</li>
+          </ul>
+          </p>
+          <p><strong>Source:</strong> Synthesized from current findings F-001 through F-014, SF-001 through SF-003, AH-001 through AH-003, VM-001 through VM-004, and AN-001.</p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> The project should continue, but the early live-trading ambition should be narrowed toward liquid, low-friction, low-turnover opportunities instead of broad aggressive coverage. The current evidence supports proceeding with discipline, not proceeding with speed-at-all-costs assumptions.</p>
+          <p><strong>Unresolved assumptions:</strong> The main remaining question is strategic and economic judgment, not missing technical visibility.</p>
+        </div>
+
+        <div class="callout risk">
+          <h3>PR-002: Why Not “Proceed As Planned” Yet?</h3>
+          <p><strong>Conclusion:</strong> The current research does not justify a full “proceed as planned” recommendation because the product still lacks evidence on:
+          <ul>
+            <li>actual pair-level spread quality under live inspection,</li>
+            <li>practical screening results for candidate versus rejected assets.</li>
+          </ul>
+          </p>
+        </div>
+
+        <div class="callout gate">
+          <h3>PR-003: What Would Move the Recommendation?</h3>
+          <p><strong>Conclusion:</strong>
+          <ul>
+            <li>`Proceed as planned` would require a business decision that the currently observed fee economics are acceptable for a very narrow major-asset v1.</li>
+            <li>`Proceed with higher required capital` would become appropriate if the business goal remains aggressive growth despite the already confirmed Intro 1 fee burden.</li>
+            <li>`Stop` would only become likely if authenticated screening shows the approved v1 constraints are structurally incompatible with meaningful Coinbase spot trading.</li>
+          </ul>
+          </p>
+        </div>
+
+        <div class="callout approval">
+          <h3>PR-004: Decision Matrix</h3>
+          <table style="width:100%; border-collapse:collapse; font-size:10.5pt;">
+            <thead>
+              <tr>
+                <th style="text-align:left; padding:10px; border-bottom:1px solid #e3e6f6; color:#262b5b;">Decision Option</th>
+                <th style="text-align:left; padding:10px; border-bottom:1px solid #e3e6f6; color:#262b5b;">Current Support Level</th>
+                <th style="text-align:left; padding:10px; border-bottom:1px solid #e3e6f6; color:#262b5b;">Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Proceed as planned</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Weak</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Current production-account fees are too unfavorable to justify a broad or aggressive interpretation of the original ambition.</td>
+              </tr>
+              <tr>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Proceed with narrower scope</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Strong</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">This is the best-supported option under current evidence: liquid majors, USD/USDC only, low turnover, and no forced trades.</td>
+              </tr>
+              <tr>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Proceed with higher required capital</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Moderate</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">This becomes stronger if the project goal remains aggressive growth despite the current Intro 1 fee burden.</td>
+              </tr>
+              <tr>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Stop</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Weak</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Technical viability is now well supported, so a full stop is not justified by current evidence.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Remaining Open Research Items</h2>
+        <div class="callout gate">
+          <h3>RA-001: Remaining High-Value Research Items</h3>
+          <ul>
+            <li>Confirm whether the intended account supports multiple portfolios and whether that matters for later isolation strategy.</li>
+            <li>Expand pair-level evidence later if the project wants to widen beyond the current approved-candidate and watchlist classes.</li>
+          </ul>
+        </div>
+
+        <div class="callout risk">
+          <h3>RA-002: Why Authenticated Read-Only Access Matters</h3>
+          <p><strong>Conclusion:</strong> Coinbase developer docs explicitly list `view`-permission endpoints for products, best bid/ask, product books, market trades, accounts, and transaction summaries. Those endpoints are the most direct way to resolve the remaining Phase 0 uncertainty with real account and product data rather than schema-level evidence alone.</p>
+          <p><strong>Source:</strong> <a href="https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/rest-api">Advanced Trade API Endpoints</a> and <a href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/fees/get-transaction-summary">Get Transaction Summary</a></p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> Phase 0 now has authenticated research capability on both the temporary and production accounts. Remaining work is refinement, not core access enablement.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Fee Tier Upgrade Research</h2>
+        <div class="callout gate">
+          <h3>FU-001: How does a Coinbase Advanced account become a “higher volume” account?</h3>
+          <p><strong>Question:</strong> What does it mean on Coinbase Advanced for an account to move into a better fee state, and is there a manual “upgrade” process?</p>
+          <p><strong>Conclusion:</strong> The normal path is automatic volume-based tiering. Coinbase states that Advanced fee tiers update hourly based on trailing trading volume. In addition, Coinbase offers a VIP program for eligible traders outside the UK, where level is determined by trailing 30-day trading volume or asset balance and benefits include discounted trading fees. Coinbase also documents a limited status-match / fee-upgrade path for certain traders coming from other exchanges.</p>
+          <p><strong>Source:</strong> <a href="https://help.coinbase.com/en/coinbase/trading-and-funding/advanced-trade/advanced-trade-fees">Coinbase Advanced fees</a>, <a href="https://help.coinbase.com/coinbase/trading-and-funding/advanced-trade/advanced-vip">Coinbase Advanced VIP</a>, and <a href="https://help.coinbase.com/coinbase/trading-and-funding/cb-advanced/fee-upgrade-incentive">Coinbase Advanced fee upgrade incentive</a>.</p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> For most users, “upgrade the account” does not mean filing a normal support request to unlock lower fees. It means increasing eligible trading volume over time, meeting VIP criteria where available, or qualifying for a status-match style incentive if applicable.</p>
+          <p><strong>Unresolved assumptions:</strong> Need production-account region and eligibility context to know whether VIP or status match would apply.</p>
+        </div>
+
+        <div class="callout approval">
+          <h3>FU-002: Comparison Matrix</h3>
+          <table style="width:100%; border-collapse:collapse; font-size:10.5pt;">
+            <thead>
+              <tr>
+                <th style="text-align:left; padding:10px; border-bottom:1px solid #e3e6f6; color:#262b5b;">Scenario</th>
+                <th style="text-align:left; padding:10px; border-bottom:1px solid #e3e6f6; color:#262b5b;">How Fees Change</th>
+                <th style="text-align:left; padding:10px; border-bottom:1px solid #e3e6f6; color:#262b5b;">What We Know</th>
+                <th style="text-align:left; padding:10px; border-bottom:1px solid #e3e6f6; color:#262b5b;">Impact on VectorQuay</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Low-volume research account</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Current live tier on the temporary account is <code>Intro 1</code> with <code>1.2% taker</code> and <code>0.6% maker</code>.</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Verified directly from authenticated <code>/transaction_summary</code>.</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Very unfavorable for high-turnover or taker-heavy small-account trading.</td>
+              </tr>
+              <tr>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Higher normal trading volume</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Fee tiers update hourly based on trailing 30-day volume.</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Official Coinbase policy confirms automatic tier updates, but the full public tier table is not fully exposed in the source set currently used here.</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Better volume should improve economics, but exact production-tier benefit still needs direct production-account inspection.</td>
+              </tr>
+              <tr>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">VIP-eligible trader</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">VIP levels are based on trailing 30-day volume or asset balance and include discounted fees.</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Official Coinbase help documents the VIP program and automatic enrollment for eligible traders outside the UK.</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Could materially improve feasibility, but likely not relevant to the current $50 operating model.</td>
+              </tr>
+              <tr>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Status-match / fee-upgrade incentive</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Temporary upgraded pricing may be available if Coinbase approves proof of significant outside-exchange volume.</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Coinbase documents a fee-upgrade incentive requiring proof of at least $500K 30-day spot volume on an eligible third-party exchange.</td>
+                <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Not relevant for a typical small retail account unless there is substantial outside trading history.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout gate">
+          <h3>FU-003: Practical Steps on Coinbase</h3>
+          <p><strong>Question:</strong> What steps would be required on Coinbase to move toward a better fee state?</p>
+          <p><strong>Conclusion:</strong> The normal Coinbase path is mostly automatic rather than a manual “upgrade” workflow:
+          <ol style="margin:10px 0 12px 22px; padding:0;">
+            <li>Use Coinbase Advanced, not simple retail flow, for fee-tiered trading.</li>
+            <li>Trade enough eligible volume that the trailing 30-day volume moves into better hourly-updated tiers.</li>
+            <li>Check the Coinbase Advanced fees page while signed in to see the current tier and requirements to reach the next level.</li>
+            <li>If eligible and outside the UK, review the Coinbase Advanced VIP page for automatic enrollment conditions.</li>
+            <li>If there is substantial trading history on another exchange, review the Coinbase fee-upgrade incentive / VIP status-match path and submit proof if appropriate.</li>
+          </ol>
+          </p>
+          <p><strong>Source:</strong> <a href="https://help.coinbase.com/en/coinbase/trading-and-funding/advanced-trade/advanced-trade-fees">Coinbase Advanced fees</a>, <a href="https://help.coinbase.com/coinbase/trading-and-funding/advanced-trade/advanced-vip">Coinbase Advanced VIP</a>, and <a href="https://help.coinbase.com/coinbase/trading-and-funding/cb-advanced/fee-upgrade-incentive">Coinbase Advanced fee upgrade incentive</a>.</p>
+          <p><strong>Confidence:</strong> High.</p>
+          <p><strong>Impact on v1:</strong> For the likely VectorQuay use case, the realistic path is not “manually upgrading” the account but either accepting the current retail-volume economics or materially increasing trading volume/capital over time.</p>
+          <p><strong>Unresolved assumptions:</strong> The remaining uncertainty is whether future volume growth or program eligibility could improve the fee state enough to justify a more aggressive operating model.</p>
+        </div>
+      </article>
+
+      <div class="footer">
+        VectorQuay Phase 0 Findings • Approved baseline • Author/Owner: Brad Malia
+      </div>
+    </section>
+  </main>
+</body>
+</html>

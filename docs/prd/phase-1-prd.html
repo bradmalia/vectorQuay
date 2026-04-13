@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 1 PRD</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Product Requirements Document</p>
+          <h1>Phase 1 PRD</h1>
+          <p class="subtitle">Repository, security, documentation, and GUI foundation for the first implementation phase.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v1.0</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Approved</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Executive Summary</h2>
+          <p>Phase 1 is the first implementation phase. It does not build trading behavior yet. It establishes the local product foundation for VectorQuay: repository structure, secure configuration, persistent project context, branding integration, and the first usable GUI administration shell.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Phase Goal</h2>
+          <p>Deliver a runnable, branded local application foundation that is secure enough to continue building on and structured enough to support Phase 2 Coinbase integration safely.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Purpose</h2>
+        <p>Phase 1 converts the approved Phase 0 decisions into an actual local product baseline. The output of this phase should be a clean implementation starting point that preserves the approved constraints, keeps secrets out of source control, and gives the operator a first GUI shell for status, configuration, and future controls.</p>
+      </article>
+
+      <article class="section-card">
+        <h2>Carry-Forward Decisions</h2>
+        <ul>
+          <li>Coinbase Advanced Trade remains the sole planned v1 exchange surface.</li>
+          <li>Spot only and trade-only behavior remain mandatory for v1.</li>
+          <li>No bank transfers, external wallet transfers, staking, Web3, margin, or derivatives may appear in the product scope.</li>
+          <li>Live trading remains restricted to a screened subset of assets, not all Coinbase-listed assets by default.</li>
+          <li>The current approved initial candidate class is BTC, ETH, SOL, XRP, ADA, LINK, LTC, XLM, BCH, and UNI, with DOGE on the conditional watchlist.</li>
+          <li>Blockchain-derived data may be researched later as a signal source, but MEV-style or mempool-priority execution tactics remain out of scope for Coinbase Advanced spot.</li>
+          <li>Bring-your-own-credentials and zero-secrets-in-repo remain required design rules.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Recommended GUI Stack</h2>
+        <p>Phase 1 should use <strong>Avalonia UI on .NET 8</strong> as the recommended GUI stack.</p>
+        <ul>
+          <li>Avalonia is a better fit than Windows-only desktop options because Ubuntu is the primary runtime target and Windows 11 compatibility is still required.</li>
+          <li>It keeps the product in the preferred .NET ecosystem without forcing a browser-hosted admin app for the first implementation phase.</li>
+          <li>Phase 1 should treat this stack decision as part of the product baseline unless a later approved technical decision explicitly changes it.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Background</h2>
+        <p>Phase 0 concluded that VectorQuay is technically feasible but should proceed with narrower scope because the current production account is a fragile low-capital starting point with confirmed Intro 1 Coinbase Advanced fees. Phase 1 therefore emphasizes product foundation, safety, and operator clarity rather than premature trading behavior.</p>
+      </article>
+
+      <section class="two-col">
+        <article class="section-card">
+          <h2>In Scope</h2>
+          <ul>
+            <li>Create the private GitHub repository for VectorQuay and establish it as the canonical source-control home for the project.</li>
+            <li>Create the core `VectorQuay` repository and project structure for source, tests, docs, assets, and configuration templates.</li>
+            <li>Establish the primary .NET solution baseline for Ubuntu-first local operation with a Windows 11 compatibility path.</li>
+            <li>Implement the first GUI application shell for operator/admin use.</li>
+            <li>Integrate branding, titling, and owner attribution into the application shell and documentation structure.</li>
+            <li>Implement secure configuration loading and secret-handling patterns suitable for local development and future resale.</li>
+            <li>Establish durable project context files and decision logging so future sessions can recover project state quickly.</li>
+            <li>Define the first operator views and navigation structure for future Coinbase and strategy functionality.</li>
+            <li>Establish a baseline local run experience and developer onboarding path.</li>
+          </ul>
+        </article>
+
+        <article class="section-card">
+          <h2>Out of Scope</h2>
+          <ul>
+            <li>Live Coinbase order placement or order cancellation.</li>
+            <li>Paper trading.</li>
+            <li>Strategy logic or portfolio optimization.</li>
+            <li>AI-driven decisioning or sentiment analysis.</li>
+            <li>Automated asset discovery jobs, except for reserving the shell and controls that later phases will use.</li>
+            <li>Market-data persistence beyond what is needed for app-shell scaffolding.</li>
+            <li>Production deployment automation.</li>
+          </ul>
+        </article>
+      </section>
+
+      <article class="section-card">
+        <h2>Primary Users and Stakeholders</h2>
+        <ul>
+          <li>Primary operator and owner: Brad Malia.</li>
+          <li>Future local operator of the GUI administration application.</li>
+          <li>Future resale customers who will need a reusable, credential-isolated installation path.</li>
+          <li>Future engineering users who will build Coinbase integration, risk controls, and strategy components on top of this baseline.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 1 Product Outcomes</h2>
+        <ul>
+          <li>A structured local codebase exists and can be built and run consistently.</li>
+          <li>A GUI shell exists with branded navigation and placeholder operator views.</li>
+          <li>Secrets and environment-specific values are loaded from safe local sources rather than committed files.</li>
+          <li>Project context, roadmap state, and decision logs are preserved in-repo in a repeatable way.</li>
+          <li>The product foundation is ready for Phase 2 Coinbase read-only integration without reworking core layout or secret handling.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Functional Requirements</h2>
+        <article class="section-card">
+          <h2>Repository and Solution Foundation</h2>
+          <ul>
+            <li>Create the private GitHub repository in Phase 1 and commit the approved Phase 0 documentation baseline into it as the initial project record.</li>
+            <li>Create a coherent root structure for source, tests, docs, assets, and configuration templates.</li>
+            <li>Create the first .NET solution and projects needed for the GUI shell and shared application foundation.</li>
+            <li>Preserve naming and structure that can grow into a resale-ready product rather than a single-user script repository.</li>
+            <li>Include checked-in templates for configuration, but do not commit real credentials or machine-specific secrets.</li>
+          </ul>
+        </article>
+
+        <article class="section-card">
+          <h2>GUI Administration Shell</h2>
+          <ul>
+            <li>Provide a GUI application that runs locally on Ubuntu with a Windows 11 compatibility path, using Avalonia UI on .NET 8 as the default Phase 1 stack.</li>
+            <li>Display VectorQuay branding and owner attribution appropriately.</li>
+            <li>Provide a basic application shell with top-level navigation or sections for future views such as status, configuration, account, assets, decisions, and about/help.</li>
+            <li>Support a safe startup state even before Coinbase connectivity exists.</li>
+            <li>Clearly indicate that trading is not active during Phase 1.</li>
+            <li>Include editable policy and configuration views, not just read-only placeholders, while still preventing secret values from being exposed in plain text once entered.</li>
+          </ul>
+        </article>
+
+        <article class="section-card">
+          <h2>Configuration and Secret Handling</h2>
+          <ul>
+            <li>Support local environment-specific configuration without storing secrets in the repository.</li>
+            <li>Provide a clear pattern for loading Coinbase and OpenAI credentials later without baking them into code or docs.</li>
+            <li>Support checked-in configuration templates and ignored local override files.</li>
+            <li>Establish the approved local secret-storage path for Phase 1, including an ignored local configuration file and/or environment-variable pattern, rather than leaving secret storage unspecified.</li>
+            <li>Define deterministic configuration precedence so later phases do not guess where effective values come from.</li>
+            <li>For Phase 1, non-secret operator settings and policy edits should persist through application-managed local settings, checked-in files should remain templates only, and secrets should remain external to source control.</li>
+            <li>Ensure application logging and error display do not expose secret values.</li>
+            <li>Non-editable fields in the GUI should use an obvious disabled or greyed-out visual treatment so operators can distinguish fixed values from editable settings.</li>
+          </ul>
+        </article>
+
+        <article class="section-card">
+          <h2>Context and Documentation Preservation</h2>
+          <ul>
+            <li>Maintain the project context structure approved in Phase 0.</li>
+            <li>Ensure major product, architecture, and implementation decisions can be captured durably for later sessions.</li>
+            <li>Provide a clear place for current status, next steps, and handoff notes.</li>
+          </ul>
+        </article>
+
+        <article class="section-card">
+          <h2>Operator Visibility</h2>
+          <ul>
+            <li>Provide placeholder or scaffolded views for future operator needs, including status, allowed assets, protected assets, and application health.</li>
+            <li>Make it clear which areas are informational in Phase 1 versus functional in later phases.</li>
+            <li>Prepare the interface so future kill switches, connection health, and account views can be added without redesigning the shell.</li>
+            <li>Reserve clear operator-facing sections for future holdings, investment allocation, trade history, KPIs, and charts so later phases can populate them without restructuring the application shell.</li>
+            <li>Reserve UI structure for future trade-history filtering by timestamp, asset, action, and status, plus timestamp sorting.</li>
+            <li>Reserve UI structure for future performance time-range selection such as 24H, 7D, 30D, 90D, 1Y, and ALL.</li>
+            <li>Reserve UI structure for a combined activity view that can show historical decision records, decision rationale, and related execution outcomes in one place without forcing the operator to switch between separate trade and trace screens.</li>
+            <li>Reserve UI structure for a future Risk and Thresholds view that separates operator-safe editable controls from advanced or read-only threshold settings and supports preset risk profiles such as High Risk, Medium Risk, Low Risk, and Custom.</li>
+            <li>Reserve UI structure for future source-intelligence management, including a source registry that treats direct sources and watchers as first-class entries, filter controls, row selection, detail panel, ignore controls, reversible block controls, reactivate/unblock actions, reset-to-default actions, source reliability review, editable source scope, and source-state handling such as Active, Observed, Ignored, Blocked, and Needs Review.</li>
+            <li>Reserve UI structure for future source discovery and onboarding, including operator-added sources by URL or handle plus AI-assisted watcher creation from prompts such as monitoring a subreddit, topic, or news theme, with those watchers appearing in the same registry as direct sources.</li>
+            <li>Reserve a global alert and notification area in the shell plus a dedicated alerts view for future in-app alerts, notification history, and outbound alert preferences such as email and SMS.</li>
+            <li>Reserve UI structure for alert preference granularity so operators can choose which alert categories, severities, channels, and delivery windows they want rather than receiving all alerts all of the time.</li>
+            <li>Include a real manual Phase 1 update check in the About area against the configured release source, showing current version, latest available version, and user-facing update actions, while keeping installation and restart behavior manual.</li>
+            <li>Reserve UI structure for future asset-universe discovery that supports both scheduled automatic discovery runs and an operator-triggered manual refresh action.</li>
+            <li>Reserve UI structure for future activity filtering by timestamp/date range, asset, action, source, status, and decision outcome.</li>
+            <li>Allow standard trading metrics such as PnL, Win Rate, and Drawdown to retain their normal names while providing tooltip or inline-help explanations for operator clarity.</li>
+            <li>Allow the operator to edit policy state that is safe to edit in Phase 1, including approved candidate assets, watchlist notes, protected-asset modes, and non-secret local configuration values.</li>
+            <li>Reserve UI structure for policy selection and editing that makes the selected rule obvious, including checkbox-based selection or equivalent row-state clarity for future single-item and multi-item actions.</li>
+            <li>Reserve UI structure for policy filtering so operators can narrow rules by asset, mode, state, or search term as the rule set grows.</li>
+            <li>Non-secret policy edits in Phase 1 should be treated as authoritative local operator policy and persisted through application-managed local settings rather than editable checked-in files.</li>
+            <li>Make clear that GUI edits do not bypass formal asset-governance rules or later technical enforcement boundaries.</li>
+            <li>Switching from a Custom risk profile to a preset profile should require confirmation when unsaved custom changes would be overwritten.</li>
+            <li>Reset to Default in threshold or source-management screens should explicitly restore the default recommended state rather than silently deleting context.</li>
+          </ul>
+        </article>
+      </article>
+
+      <article class="section-card">
+        <h2>Non-Functional Requirements</h2>
+        <ul>
+          <li>The application must be runnable locally on Ubuntu and structured for Windows 11 compatibility.</li>
+          <li>Docker is optional and not required for Phase 1. The initial build should prioritize a straightforward native local development experience over containerization.</li>
+          <li>Phase 1 must not require Docker to build, run, or configure the local application.</li>
+          <li>The project must remain private-repo friendly and future resale friendly.</li>
+          <li>No real secrets may be stored in source control, screenshots, sample config, or logs.</li>
+          <li>The GUI shell should be usable and visually consistent with the approved branding direction.</li>
+          <li>The codebase should be structured for maintainability and future testability rather than shortcut prototype behavior.</li>
+          <li>A standard documented build-and-run workflow must exist for the primary development environment.</li>
+          <li>Documentation updates must remain part of phase completion criteria.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Initial GUI Views</h2>
+        <ul>
+          <li><strong>Home / Status:</strong> operator dashboard view combining overall app state, safe inactive status, alerts, recent activity, top portfolio indicators, and top candidate visibility.</li>
+          <li><strong>Configuration:</strong> environment summary, editable non-secret configuration, secret-source status, and validation/error feedback without revealing secret values.</li>
+          <li><strong>Assets:</strong> an `Asset Universe` view showing the approved initial candidate class, DOGE watchlist note, future dynamic-universe direction, filtering by asset and state, default ranking by trade-priority score, reserved support for automatic discovery, and a manual refresh/discover action placeholder.</li>
+          <li><strong>Policies:</strong> trade-only rules, prohibited actions, and editable protected-asset settings with clear operator-facing terminology plus explicit row selection, filtering, and future bulk actions.</li>
+          <li><strong>Portfolio:</strong> reserved shell view for future holdings, allocation, and current investment state.</li>
+          <li><strong>Activity:</strong> reserved shell view for future decision-led activity records in one place, combining decision rationale with related execution outcomes and filtering by timestamp, asset, action, status, source, and outcome.</li>
+          <li><strong>Performance:</strong> reserved shell view for future KPIs, PnL summaries, graphs/charts, and selectable time ranges such as 24H, 7D, 30D, 90D, 1Y, and ALL.</li>
+          <li><strong>Risk &amp; Thresholds:</strong> reserved shell view for future editable operator-safe risk controls, visible advanced thresholds, reset-to-default behavior, threshold explanations, and preset modes such as High Risk, Medium Risk, Low Risk, and Custom.</li>
+          <li><strong>Sources:</strong> reserved shell view for future source intelligence, including registry filters, checkbox-based row selection, source states, reliability review, weight overrides, ignore controls, reversible block/reactivate actions, reset-to-default actions that undo operator overrides, source details, editable scope, manual source addition, AI-assisted watcher creation, and watchers displayed as first-class registry items alongside direct sources.</li>
+          <li><strong>Alerts:</strong> reserved shell view for future in-app alerts, notification history, and outbound notification preferences such as email and SMS, including per-alert-type controls, severity filtering, and delivery scheduling or quiet-hour preferences.</li>
+          <li><strong>About:</strong> branding, owner attribution, version, documentation references, owner-configurable author-support options, and a real manual Phase 1 update-management surface such as `Check for Updates` and `Download Update`, with installation behavior remaining manual.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Mock Screens</h2>
+        <div class="callout gate">
+          <h3>Mock Interaction Guidance</h3>
+          <p>Phase 1 mock buttons are directional product controls, not final UI specifications. The PRD should define the intended behavior of meaningful operator actions, especially where misuse could affect policy, source handling, alerts, or future trading behavior. Final control flows, confirmations, and technical implementation details should be refined in the Phase 1 technical requirements document.</p>
+        </div>
+
+        <div class="callout approval">
+          <h3>Home / Status Mock</h3>
+          <div style="border:1px solid #d9def5; border-radius:16px; overflow:hidden; background:#ffffff; box-shadow:0 14px 28px rgba(22,26,61,0.08);">
+            <div style="display:flex; min-height:320px;">
+              <aside style="width:220px; background:linear-gradient(180deg,#262b5b 0%,#3e478f 100%); color:#fff; padding:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,.12); padding:4px;" />
+                  <div style="font-weight:700; font-size:18px;">VectorQuay</div>
+                </div>
+                <div style="opacity:.9; margin:10px 0;">Home</div>
+                <div style="opacity:.75; margin:10px 0;">Configuration</div>
+                <div style="opacity:.75; margin:10px 0;">Assets</div>
+                <div style="opacity:.75; margin:10px 0;">Policies</div>
+                <div style="opacity:.75; margin:10px 0;">Portfolio</div>
+                <div style="opacity:.75; margin:10px 0;">Activity</div>
+                <div style="opacity:.75; margin:10px 0;">Performance</div>
+                <div style="opacity:.75; margin:10px 0;">Risk &amp; Thresholds</div>
+                <div style="opacity:.75; margin:10px 0;">Sources</div>
+                <div style="opacity:.75; margin:10px 0;">Alerts</div>
+                <div style="opacity:.75; margin:10px 0;">About</div>
+              </aside>
+              <section style="flex:1; padding:24px; background:#f6f8ff;">
+                <div style="background:#fff4d6; color:#6a4d00; border:1px solid #f1d48a; border-radius:12px; padding:10px 12px; margin-bottom:14px; font-size:13px;">Global Alerts Area: reserved for future warnings, errors, and important operator notifications.</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+                  <div>
+                    <div style="font-size:12px; color:#5f6794; text-transform:uppercase; letter-spacing:.08em;">Version 0.1.0</div>
+                    <div style="font-size:26px; font-weight:700; color:#262b5b;">Dashboard</div>
+                  </div>
+                  <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:999px; padding:8px 12px; font-weight:600;">Trading Inactive</div>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:16px;">
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;"><div style="font-size:12px; color:#5f6794;">App Health</div><div style="font-size:20px; font-weight:700; color:#262b5b;">Ready</div></div>
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;"><div style="font-size:12px; color:#5f6794;">Coinbase</div><div style="font-size:20px; font-weight:700; color:#262b5b;">Not Connected</div></div>
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;"><div style="font-size:12px; color:#5f6794;">Application State</div><div style="font-size:20px; font-weight:700; color:#262b5b;">Pre-Integration</div></div>
+                </div>
+                <div style="display:grid; grid-template-columns:1.1fr .9fr; gap:14px; margin-bottom:14px;">
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                      <div style="font-weight:700; color:#262b5b;">Portfolio Snapshot</div>
+                      <div style="font-size:12px; color:#5f6794;">Last Updated: Placeholder</div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+                      <div><div style="font-size:12px; color:#5f6794;">Total Value</div><div style="font-size:18px; font-weight:700; color:#262b5b;">Example Value</div></div>
+                      <div><div style="font-size:12px; color:#5f6794;">Open Positions</div><div style="font-size:18px; font-weight:700; color:#262b5b;">Placeholder</div></div>
+                      <div><div style="font-size:12px; color:#5f6794;">USD Available</div><div style="font-size:18px; font-weight:700; color:#262b5b;">Placeholder</div></div>
+                    </div>
+                  </div>
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:16px;">
+                    <div style="font-weight:700; color:#262b5b; margin-bottom:8px;">Top Candidates</div>
+                    <div style="font-size:13px; color:#424a76; margin-bottom:6px;">BTC · Approved · High Priority</div>
+                    <div style="font-size:13px; color:#424a76; margin-bottom:6px;">ETH · Approved · High Priority</div>
+                    <div style="font-size:13px; color:#424a76;">XRP · Approved · Medium Priority</div>
+                  </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:16px;">
+                    <div style="font-weight:700; color:#262b5b; margin-bottom:8px;">Recent Activity</div>
+                    <div style="font-size:13px; color:#424a76; margin-bottom:6px;">Config validated successfully · Placeholder</div>
+                    <div style="font-size:13px; color:#424a76; margin-bottom:6px;">Asset universe reviewed · Placeholder</div>
+                    <div style="font-size:13px; color:#424a76;">No live trades in Phase 1 · Placeholder</div>
+                  </div>
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                      <div style="font-weight:700; color:#262b5b;">System Summary</div>
+                      <div style="font-size:12px; color:#5f6794;">Last Updated: Placeholder</div>
+                    </div>
+                    <div style="color:#424a76;">Phase 1 local shell active. No live trading, no paper trading, no exchange actions enabled. Next expected milestone: secure config + Coinbase read-only integration foundation.</div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout gate">
+          <h3>Configuration Mock</h3>
+          <div style="border:1px solid #d9def5; border-radius:16px; overflow:hidden; background:#ffffff; box-shadow:0 14px 28px rgba(22,26,61,0.08);">
+            <div style="display:flex; min-height:320px;">
+              <aside style="width:220px; background:linear-gradient(180deg,#262b5b 0%,#3e478f 100%); color:#fff; padding:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,.12); padding:4px;" />
+                  <div style="font-weight:700; font-size:18px;">VectorQuay</div>
+                </div>
+                <div style="opacity:.75; margin:10px 0;">Home</div>
+                <div style="opacity:.9; margin:10px 0;">Configuration</div>
+                <div style="opacity:.75; margin:10px 0;">Assets</div>
+                <div style="opacity:.75; margin:10px 0;">Policies</div>
+                <div style="opacity:.75; margin:10px 0;">Portfolio</div>
+                <div style="opacity:.75; margin:10px 0;">Activity</div>
+                <div style="opacity:.75; margin:10px 0;">Performance</div>
+                <div style="opacity:.75; margin:10px 0;">Risk &amp; Thresholds</div>
+                <div style="opacity:.75; margin:10px 0;">Sources</div>
+                <div style="opacity:.75; margin:10px 0;">Alerts</div>
+                <div style="opacity:.75; margin:10px 0;">About</div>
+              </aside>
+              <section style="flex:1; padding:24px; background:#f6f8ff;">
+                <div style="display:flex; align-items:center; gap:10px; font-size:24px; font-weight:700; color:#262b5b; margin-bottom:14px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:26px; height:26px;" />
+                  <span>Configuration</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                  <div style="background:#f7f9ff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;">
+                    <div style="font-size:12px; color:#5f6794;">Coinbase Key Source</div>
+                    <div style="margin-top:8px; padding:10px 12px; background:#fff; border:1px solid #cfd7ff; border-radius:10px;">Local secret file</div>
+                  </div>
+                  <div style="background:#f7f9ff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;">
+                    <div style="font-size:12px; color:#5f6794;">OpenAI Key Source</div>
+                    <div style="margin-top:8px; padding:10px 12px; background:#fff; border:1px solid #cfd7ff; border-radius:10px;">Not configured</div>
+                  </div>
+                  <div style="background:#f7f9ff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;">
+                    <div style="font-size:12px; color:#5f6794;">Detected Platform</div>
+                    <div style="margin-top:8px; padding:10px 12px; background:#eef1f7; border:1px solid #d7dbe8; border-radius:10px; color:#6b7287;">Linux (Detected)</div>
+                  </div>
+                  <div style="background:#f7f9ff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;">
+                    <div style="font-size:12px; color:#5f6794;">Valuation Currency</div>
+                    <div style="margin-top:8px; padding:10px 12px; background:#eef1f7; border:1px solid #d7dbe8; border-radius:10px; color:#6b7287;">USD (Locked for v1)</div>
+                  </div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:16px;">
+                  <div style="background:#262b5b; color:#fff; border-radius:10px; padding:10px 16px; font-weight:600;">Save</div>
+                  <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:10px 16px; font-weight:600;">Validate</div>
+                </div>
+                <div style="font-size:12px; color:#5f6794; margin-top:10px;">Last Updated: Placeholder</div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout gate">
+          <h3>Assets Mock</h3>
+          <div style="border:1px solid #d9def5; border-radius:16px; overflow:hidden; background:#ffffff; box-shadow:0 14px 28px rgba(22,26,61,0.08);">
+            <div style="display:flex; min-height:320px;">
+              <aside style="width:220px; background:linear-gradient(180deg,#262b5b 0%,#3e478f 100%); color:#fff; padding:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,.12); padding:4px;" />
+                  <div style="font-weight:700; font-size:18px;">VectorQuay</div>
+                </div>
+                <div style="opacity:.75; margin:10px 0;">Home</div>
+                <div style="opacity:.75; margin:10px 0;">Configuration</div>
+                <div style="opacity:.9; margin:10px 0;">Assets</div>
+                <div style="opacity:.75; margin:10px 0;">Policies</div>
+                <div style="opacity:.75; margin:10px 0;">Portfolio</div>
+                <div style="opacity:.75; margin:10px 0;">Activity</div>
+                <div style="opacity:.75; margin:10px 0;">Performance</div>
+                <div style="opacity:.75; margin:10px 0;">Risk &amp; Thresholds</div>
+                <div style="opacity:.75; margin:10px 0;">Sources</div>
+                <div style="opacity:.75; margin:10px 0;">Alerts</div>
+                <div style="opacity:.75; margin:10px 0;">About</div>
+              </aside>
+              <section style="flex:1; padding:24px; background:#f6f8ff;">
+                <div style="background:#f7f9ff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;">
+                  <div style="display:flex; align-items:center; gap:10px; font-size:22px; font-weight:700; color:#262b5b; margin-bottom:10px;">
+                    <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:24px; height:24px;" />
+                    <span>Asset Universe</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:#5f6794; font-size:12px;">
+                    <div>Filters: Asset / State</div>
+                    <div>Default Sort: Trade Priority</div>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:#5f6794; font-size:12px;">
+                    <div>Last Discovery Scan: Placeholder</div>
+                    <div style="color:#2b357f; font-weight:600;">Refresh Universe</div>
+                  </div>
+                  <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                    <tr><th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Asset</th><th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">State</th><th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Priority</th><th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Notes</th></tr>
+                    <tr><td style="padding:8px; border-bottom:1px solid #eef2ff;">BTC</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Approved</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">High</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">USD preferred</td></tr>
+                    <tr><td style="padding:8px; border-bottom:1px solid #eef2ff;">ETH</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Approved</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">High</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Initial holding</td></tr>
+                    <tr><td style="padding:8px; border-bottom:1px solid #eef2ff;">XRP</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Approved</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Medium</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Expansion set</td></tr>
+                    <tr><td style="padding:8px; border-bottom:1px solid #eef2ff;">DOGE</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Watchlist</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Low</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Speculative</td></tr>
+                    <tr><td style="padding:8px;">New Listing</td><td style="padding:8px;">Observed</td><td style="padding:8px;">Pending</td><td style="padding:8px;">Auto-discovered, not tradable yet</td></tr>
+                  </table>
+                  <div style="font-size:12px; color:#5f6794; margin-top:10px;">Newly discovered assets should appear automatically in a non-tradable state until screened. Operators should also be able to trigger a manual discovery refresh.</div>
+                  <div style="font-size:12px; color:#5f6794; margin-top:8px;">Last Screening Update: Placeholder</div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout gate">
+          <h3>Policies Mock</h3>
+          <div style="border:1px solid #d9def5; border-radius:16px; overflow:hidden; background:#ffffff; box-shadow:0 14px 28px rgba(22,26,61,0.08);">
+            <div style="display:flex; min-height:320px;">
+              <aside style="width:220px; background:linear-gradient(180deg,#262b5b 0%,#3e478f 100%); color:#fff; padding:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,.12); padding:4px;" />
+                  <div style="font-weight:700; font-size:18px;">VectorQuay</div>
+                </div>
+                <div style="opacity:.75; margin:10px 0;">Home</div>
+                <div style="opacity:.75; margin:10px 0;">Configuration</div>
+                <div style="opacity:.75; margin:10px 0;">Assets</div>
+                <div style="opacity:.9; margin:10px 0;">Policies</div>
+                <div style="opacity:.75; margin:10px 0;">Portfolio</div>
+                <div style="opacity:.75; margin:10px 0;">Activity</div>
+                <div style="opacity:.75; margin:10px 0;">Performance</div>
+                <div style="opacity:.75; margin:10px 0;">Risk &amp; Thresholds</div>
+                <div style="opacity:.75; margin:10px 0;">Sources</div>
+                <div style="opacity:.75; margin:10px 0;">Alerts</div>
+                <div style="opacity:.75; margin:10px 0;">About</div>
+              </aside>
+              <section style="flex:1; padding:24px; background:#f6f8ff;">
+                <div style="background:#f7f9ff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;">
+                  <div style="display:flex; align-items:center; gap:10px; font-size:22px; font-weight:700; color:#262b5b; margin-bottom:10px;">
+                    <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:24px; height:24px;" />
+                    <span>Policies</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:#5f6794; font-size:12px;">
+                    <div>Filters: Search / Asset / Mode / State</div>
+                    <div>Default Sort: Most Recently Updated</div>
+                  </div>
+                  <div style="font-size:12px; color:#5f6794; margin-bottom:10px;">Select one rule to edit details, or select multiple rules for future bulk actions.</div>
+                  <table style="width:100%; border-collapse:collapse; font-size:13px; background:#fff; border:1px solid #dfe4fb; border-radius:12px; overflow:hidden;">
+                    <tr>
+                      <th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Select</th>
+                      <th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Asset</th>
+                      <th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Mode</th>
+                      <th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Notes</th>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px; border-bottom:1px solid #eef2ff;">☑</td>
+                      <td style="padding:8px; border-bottom:1px solid #eef2ff;">ETH</td>
+                      <td style="padding:8px; border-bottom:1px solid #eef2ff;">Do Not Sell</td>
+                      <td style="padding:8px; border-bottom:1px solid #eef2ff;">Protected current holding</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px;">☐</td>
+                      <td style="padding:8px;">BTC</td>
+                      <td style="padding:8px;">Do Not Trade</td>
+                      <td style="padding:8px;">Operator lock</td>
+                    </tr>
+                  </table>
+                  <div style="display:grid; grid-template-columns:1.1fr .9fr; gap:14px; margin-top:14px;">
+                    <div>
+                      <div style="font-size:12px; color:#5f6794; margin-bottom:10px;">Last Policy Update: Placeholder</div>
+                      <div style="display:flex; gap:10px;">
+                        <div style="background:#262b5b; color:#fff; border-radius:10px; padding:10px 14px; font-weight:600;">Add Rule</div>
+                        <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:10px 14px; font-weight:600;">Edit</div>
+                      </div>
+                    </div>
+                    <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;">
+                      <div style="font-weight:700; color:#262b5b; margin-bottom:8px;">Selected Policy Details</div>
+                      <div style="font-size:12px; color:#5f6794; margin-bottom:6px;">Asset: ETH</div>
+                      <div style="font-size:12px; color:#5f6794; margin-bottom:6px;">Mode: Do Not Sell</div>
+                      <div style="font-size:12px; color:#5f6794; margin-bottom:6px;">Notes: Protected current holding</div>
+                      <div style="font-size:12px; color:#5f6794; margin-bottom:6px;">Source: Operator rule</div>
+                      <div style="font-size:12px; color:#5f6794; margin-bottom:10px;">Last Updated: Placeholder</div>
+                      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:8px 12px; font-weight:600;">Edit Rule</div>
+                        <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:8px 12px; font-weight:600;">Remove</div>
+                        <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:8px 12px; font-weight:600;">Reset Default</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout gate">
+          <h3>Portfolio Mock</h3>
+          <div style="border:1px solid #d9def5; border-radius:16px; overflow:hidden; background:#ffffff; box-shadow:0 14px 28px rgba(22,26,61,0.08);">
+            <div style="display:flex; min-height:340px;">
+              <aside style="width:220px; background:linear-gradient(180deg,#262b5b 0%,#3e478f 100%); color:#fff; padding:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,.12); padding:4px;" />
+                  <div style="font-weight:700; font-size:18px;">VectorQuay</div>
+                </div>
+                <div style="opacity:.75; margin:10px 0;">Home</div>
+                <div style="opacity:.75; margin:10px 0;">Configuration</div>
+                <div style="opacity:.75; margin:10px 0;">Assets</div>
+                <div style="opacity:.75; margin:10px 0;">Policies</div>
+                <div style="opacity:.9; margin:10px 0;">Portfolio</div>
+                <div style="opacity:.75; margin:10px 0;">Activity</div>
+                <div style="opacity:.75; margin:10px 0;">Performance</div>
+                <div style="opacity:.75; margin:10px 0;">Risk &amp; Thresholds</div>
+                <div style="opacity:.75; margin:10px 0;">Sources</div>
+                <div style="opacity:.75; margin:10px 0;">Alerts</div>
+                <div style="opacity:.75; margin:10px 0;">About</div>
+              </aside>
+              <section style="flex:1; padding:24px; background:#f6f8ff;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:24px; height:24px;" />
+                  <div style="font-size:26px; font-weight:700; color:#262b5b;">Portfolio</div>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:14px;">
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;"><div style="font-size:12px; color:#5f6794;">Total Value</div><div style="font-size:20px; font-weight:700; color:#262b5b;">Example Value</div></div>
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;"><div style="font-size:12px; color:#5f6794;">Change</div><div style="font-size:20px; font-weight:700; color:#262b5b;">24H Placeholder</div></div>
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;"><div style="font-size:12px; color:#5f6794;">Active Assets</div><div style="font-size:20px; font-weight:700; color:#262b5b;">3</div></div>
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;"><div style="font-size:12px; color:#5f6794;">Trade Count</div><div style="font-size:20px; font-weight:700; color:#262b5b;">0</div></div>
+                </div>
+                <div style="display:grid; grid-template-columns:1.1fr .9fr; gap:14px;">
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;">
+                    <div style="font-weight:700; color:#262b5b; margin-bottom:8px;">Allocation</div>
+                    <div style="height:170px; border:1px dashed #cfd7ff; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#5f6794;">Future allocation view</div>
+                  </div>
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;">
+                    <div style="font-weight:700; color:#262b5b; margin-bottom:8px;">Current Holdings</div>
+                    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                      <tr><th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Asset</th><th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Value</th></tr>
+                      <tr><td style="padding:8px; border-bottom:1px solid #eef2ff;">ETH</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Placeholder</td></tr>
+                      <tr><td style="padding:8px; border-bottom:1px solid #eef2ff;">USD</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Placeholder</td></tr>
+                      <tr><td style="padding:8px;">Other</td><td style="padding:8px;">Placeholder</td></tr>
+                    </table>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout gate">
+          <h3>Performance Mock</h3>
+          <div style="border:1px solid #d9def5; border-radius:16px; overflow:hidden; background:#ffffff; box-shadow:0 14px 28px rgba(22,26,61,0.08);">
+            <div style="display:flex; min-height:320px;">
+              <aside style="width:220px; background:linear-gradient(180deg,#262b5b 0%,#3e478f 100%); color:#fff; padding:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,.12); padding:4px;" />
+                  <div style="font-weight:700; font-size:18px;">VectorQuay</div>
+                </div>
+                <div style="opacity:.75; margin:10px 0;">Home</div>
+                <div style="opacity:.75; margin:10px 0;">Configuration</div>
+                <div style="opacity:.75; margin:10px 0;">Assets</div>
+                <div style="opacity:.75; margin:10px 0;">Policies</div>
+                <div style="opacity:.75; margin:10px 0;">Portfolio</div>
+                <div style="opacity:.75; margin:10px 0;">Activity</div>
+                <div style="opacity:.9; margin:10px 0;">Performance</div>
+                <div style="opacity:.75; margin:10px 0;">Risk &amp; Thresholds</div>
+                <div style="opacity:.75; margin:10px 0;">Sources</div>
+                <div style="opacity:.75; margin:10px 0;">Alerts</div>
+                <div style="opacity:.75; margin:10px 0;">About</div>
+              </aside>
+              <section style="flex:1; padding:24px; background:#f6f8ff;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:24px; height:24px;" />
+                  <div style="font-size:26px; font-weight:700; color:#262b5b;">Performance</div>
+                </div>
+                <div style="font-size:12px; color:#5f6794; margin-bottom:10px;">Last Updated: Placeholder</div>
+                <div style="display:flex; gap:6px; font-size:11px; color:#2b357f; margin-bottom:12px;">
+                  <span style="padding:4px 8px; border:1px solid #cfd7ff; border-radius:999px; background:#eef2ff;">24H</span>
+                  <span style="padding:4px 8px; border:1px solid #dfe4fb; border-radius:999px;">7D</span>
+                  <span style="padding:4px 8px; border:1px solid #dfe4fb; border-radius:999px;">30D</span>
+                  <span style="padding:4px 8px; border:1px solid #dfe4fb; border-radius:999px;">90D</span>
+                  <span style="padding:4px 8px; border:1px solid #dfe4fb; border-radius:999px;">1Y</span>
+                  <span style="padding:4px 8px; border:1px solid #dfe4fb; border-radius:999px;">ALL</span>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:14px;">
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;"><div style="font-size:12px; color:#5f6794;">PnL</div><div style="font-size:20px; font-weight:700; color:#262b5b;">Placeholder</div></div>
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;"><div style="font-size:12px; color:#5f6794;">Win Rate</div><div style="font-size:20px; font-weight:700; color:#262b5b;">Placeholder</div></div>
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;"><div style="font-size:12px; color:#5f6794;">Drawdown</div><div style="font-size:20px; font-weight:700; color:#262b5b;">Placeholder</div></div>
+                </div>
+                <div style="height:180px; border:1px dashed #cfd7ff; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#5f6794; background:#fff;">Future KPI / performance chart area</div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout gate">
+          <h3>Risk &amp; Thresholds Mock</h3>
+          <div style="border:1px solid #d9def5; border-radius:16px; overflow:hidden; background:#ffffff; box-shadow:0 14px 28px rgba(22,26,61,0.08);">
+            <div style="display:flex; min-height:320px;">
+              <aside style="width:220px; background:linear-gradient(180deg,#262b5b 0%,#3e478f 100%); color:#fff; padding:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,.12); padding:4px;" />
+                  <div style="font-weight:700; font-size:18px;">VectorQuay</div>
+                </div>
+                <div style="opacity:.75; margin:10px 0;">Home</div>
+                <div style="opacity:.75; margin:10px 0;">Configuration</div>
+                <div style="opacity:.75; margin:10px 0;">Assets</div>
+                <div style="opacity:.75; margin:10px 0;">Policies</div>
+                <div style="opacity:.75; margin:10px 0;">Portfolio</div>
+                <div style="opacity:.75; margin:10px 0;">Activity</div>
+                <div style="opacity:.75; margin:10px 0;">Performance</div>
+                <div style="opacity:.9; margin:10px 0;">Risk &amp; Thresholds</div>
+                <div style="opacity:.75; margin:10px 0;">Sources</div>
+                <div style="opacity:.75; margin:10px 0;">Alerts</div>
+                <div style="opacity:.75; margin:10px 0;">About</div>
+              </aside>
+              <section style="flex:1; padding:24px; background:#f6f8ff;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:24px; height:24px;" />
+                  <div style="font-size:26px; font-weight:700; color:#262b5b;">Risk &amp; Thresholds</div>
+                </div>
+                <div style="font-size:12px; color:#5f6794; margin-bottom:10px;">Last Updated: Placeholder</div>
+                <div style="display:flex; gap:8px; font-size:12px; margin-bottom:14px;">
+                  <span style="padding:6px 10px; border:1px solid #dfe4fb; border-radius:999px; background:#fff; color:#5f6794;">High Risk</span>
+                  <span style="padding:6px 10px; border:1px solid #cfd7ff; border-radius:999px; background:#eef2ff; color:#2b357f; font-weight:600;">Medium Risk</span>
+                  <span style="padding:6px 10px; border:1px solid #dfe4fb; border-radius:999px; background:#fff; color:#5f6794;">Low Risk</span>
+                  <span style="padding:6px 10px; border:1px solid #dfe4fb; border-radius:999px; background:#fff; color:#5f6794;">Custom</span>
+                </div>
+                <div style="background:#f7f9ff; border:1px solid #dfe4fb; border-radius:14px; padding:14px; margin-bottom:14px;">
+                  <div style="font-weight:700; color:#262b5b; margin-bottom:8px;">Selected Profile: Medium Risk</div>
+                  <div style="font-size:12px; color:#5f6794;">Preset profiles should be recommended defaults. High, Medium, and Low should load suggested values. Custom should allow operators to edit the values directly.</div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;">
+                    <div style="font-weight:700; color:#262b5b; margin-bottom:8px;">Operator-Safe Controls</div>
+                    <div style="margin-bottom:10px; padding:10px 12px; background:#eef1f7; border:1px solid #d7dbe8; border-radius:10px; color:#6b7287;">Max Daily Loss · Preset Value</div>
+                    <div style="margin-bottom:10px; padding:10px 12px; background:#eef1f7; border:1px solid #d7dbe8; border-radius:10px; color:#6b7287;">Max Position Size · Preset Value</div>
+                    <div style="padding:10px 12px; background:#eef1f7; border:1px solid #d7dbe8; border-radius:10px; color:#6b7287;">Max Portfolio Exposure · Preset Value</div>
+                  </div>
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;">
+                    <div style="font-weight:700; color:#262b5b; margin-bottom:8px;">Advanced Thresholds</div>
+                    <div style="margin-bottom:10px; padding:10px 12px; background:#eef1f7; border:1px solid #d7dbe8; border-radius:10px; color:#6b7287;">Spread Tolerance · Visible / Read-Only Placeholder</div>
+                    <div style="margin-bottom:10px; padding:10px 12px; background:#eef1f7; border:1px solid #d7dbe8; border-radius:10px; color:#6b7287;">Liquidity Minimum · Visible / Read-Only Placeholder</div>
+                    <div style="padding:10px 12px; background:#eef1f7; border:1px solid #d7dbe8; border-radius:10px; color:#6b7287;">Confidence Cutoff · Visible / Read-Only Placeholder</div>
+                  </div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:16px;">
+                  <div style="background:#262b5b; color:#fff; border-radius:10px; padding:10px 14px; font-weight:600;">Save</div>
+                  <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:10px 14px; font-weight:600;">Switch to Custom</div>
+                  <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:10px 14px; font-weight:600;">Reset to Default</div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout gate">
+          <h3>Activity Mock</h3>
+          <div style="border:1px solid #d9def5; border-radius:16px; overflow:hidden; background:#ffffff; box-shadow:0 14px 28px rgba(22,26,61,0.08);">
+            <div style="display:flex; min-height:340px;">
+              <aside style="width:220px; background:linear-gradient(180deg,#262b5b 0%,#3e478f 100%); color:#fff; padding:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,.12); padding:4px;" />
+                  <div style="font-weight:700; font-size:18px;">VectorQuay</div>
+                </div>
+                <div style="opacity:.75; margin:10px 0;">Home</div>
+                <div style="opacity:.75; margin:10px 0;">Configuration</div>
+                <div style="opacity:.75; margin:10px 0;">Assets</div>
+                <div style="opacity:.75; margin:10px 0;">Policies</div>
+                <div style="opacity:.75; margin:10px 0;">Portfolio</div>
+                <div style="opacity:.9; margin:10px 0;">Activity</div>
+                <div style="opacity:.75; margin:10px 0;">Performance</div>
+                <div style="opacity:.75; margin:10px 0;">Risk &amp; Thresholds</div>
+                <div style="opacity:.75; margin:10px 0;">Sources</div>
+                <div style="opacity:.75; margin:10px 0;">Alerts</div>
+                <div style="opacity:.75; margin:10px 0;">About</div>
+              </aside>
+              <section style="flex:1; padding:24px; background:#f6f8ff;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:24px; height:24px;" />
+                  <div style="font-size:26px; font-weight:700; color:#262b5b;">Activity</div>
+                </div>
+                <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px; margin-bottom:12px;">
+                  <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:#5f6794; font-size:12px;">
+                    <div>Filters: Date Range / Asset / Action / Source / Outcome</div>
+                    <div>Sort: Timestamp (Newest First)</div>
+                  </div>
+                  <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                    <tr>
+                      <th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Timestamp</th>
+                      <th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Asset / Pair</th>
+                      <th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Action</th>
+                      <th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Amount</th>
+                      <th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Outcome</th>
+                      <th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Confidence</th>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px; border-bottom:1px solid #eef2ff; background:#eef2ff;">Placeholder</td>
+                      <td style="padding:8px; border-bottom:1px solid #eef2ff; background:#eef2ff;">BTC-USD</td>
+                      <td style="padding:8px; border-bottom:1px solid #eef2ff; background:#eef2ff;">Buy</td>
+                      <td style="padding:8px; border-bottom:1px solid #eef2ff; background:#eef2ff;">Placeholder</td>
+                      <td style="padding:8px; border-bottom:1px solid #eef2ff; background:#eef2ff;">Selected</td>
+                      <td style="padding:8px; border-bottom:1px solid #eef2ff; background:#eef2ff;">Placeholder</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px;">Placeholder</td>
+                      <td style="padding:8px;">ETH-USD</td>
+                      <td style="padding:8px;">Sell</td>
+                      <td style="padding:8px;">Placeholder</td>
+                      <td style="padding:8px;">Rejected</td>
+                      <td style="padding:8px;">Placeholder</td>
+                    </tr>
+                  </table>
+                </div>
+                <div style="font-size:12px; color:#5f6794; margin-bottom:10px;">Selected row shown below. Viewing Decision: BTC-USD Buy · Amount Placeholder · Timestamp Placeholder</div>
+                <div style="background:#f7f9ff; border:1px solid #dfe4fb; border-radius:12px; padding:12px; margin-bottom:10px;">
+                  <div style="font-weight:700; color:#262b5b; margin-bottom:6px;">Decision Details</div>
+                  <div style="color:#424a76;">Reserved for future rationale summary, confidence score, and pass/fail checks from the strategy and risk engine.</div>
+                </div>
+                <div style="background:#fff; border:1px solid #dfe4fb; border-radius:12px; padding:12px; margin-bottom:10px;">
+                  <div style="font-weight:700; color:#262b5b; margin-bottom:6px;">Policy and Risk Checks</div>
+                  <div style="font-size:12px; color:#424a76;">Reserved for future permissions, protected-asset checks, sizing checks, and risk-gate results tied to this exact decision.</div>
+                </div>
+                <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                  <tr><th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Source</th><th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Signal</th><th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Weight</th></tr>
+                  <tr><td style="padding:8px; border-bottom:1px solid #eef2ff;">Market Trend</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Positive</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Default</td></tr>
+                  <tr><td style="padding:8px; border-bottom:1px solid #eef2ff;">Influencer A</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Negative</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Override</td></tr>
+                  <tr><td style="padding:8px;">News Feed B</td><td style="padding:8px;">Positive</td><td style="padding:8px;">Default</td></tr>
+                </table>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout gate">
+          <h3>Sources Mock</h3>
+          <div style="border:1px solid #d9def5; border-radius:16px; overflow:hidden; background:#ffffff; box-shadow:0 14px 28px rgba(22,26,61,0.08);">
+            <div style="display:flex; min-height:340px;">
+              <aside style="width:220px; background:linear-gradient(180deg,#262b5b 0%,#3e478f 100%); color:#fff; padding:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,.12); padding:4px;" />
+                  <div style="font-weight:700; font-size:18px;">VectorQuay</div>
+                </div>
+                <div style="opacity:.75; margin:10px 0;">Home</div>
+                <div style="opacity:.75; margin:10px 0;">Configuration</div>
+                <div style="opacity:.75; margin:10px 0;">Assets</div>
+                <div style="opacity:.75; margin:10px 0;">Policies</div>
+                <div style="opacity:.75; margin:10px 0;">Portfolio</div>
+                <div style="opacity:.75; margin:10px 0;">Activity</div>
+                <div style="opacity:.75; margin:10px 0;">Performance</div>
+                <div style="opacity:.75; margin:10px 0;">Risk &amp; Thresholds</div>
+                <div style="opacity:.9; margin:10px 0;">Sources</div>
+                <div style="opacity:.75; margin:10px 0;">Alerts</div>
+                <div style="opacity:.75; margin:10px 0;">About</div>
+              </aside>
+              <section style="flex:1; padding:24px; background:#f6f8ff;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:24px; height:24px;" />
+                  <div style="font-size:26px; font-weight:700; color:#262b5b;">Sources</div>
+                </div>
+                <div style="font-size:12px; color:#5f6794; margin-bottom:10px;">Last Updated: Placeholder</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;"><div style="font-size:12px; color:#5f6794;">Active Sources</div><div style="font-size:20px; font-weight:700; color:#262b5b;">Placeholder</div></div>
+                  <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;"><div style="font-size:12px; color:#5f6794;">Needs Review</div><div style="font-size:20px; font-weight:700; color:#262b5b;">Placeholder</div></div>
+                </div>
+                <div style="display:flex; gap:8px; font-size:12px; margin-bottom:10px;">
+                  <span style="padding:6px 10px; border:1px solid #cfd7ff; border-radius:999px; background:#eef2ff; color:#2b357f; font-weight:600;">All</span>
+                  <span style="padding:6px 10px; border:1px solid #dfe4fb; border-radius:999px; background:#fff; color:#5f6794;">Direct Sources</span>
+                  <span style="padding:6px 10px; border:1px solid #dfe4fb; border-radius:999px; background:#fff; color:#5f6794;">Watchers</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:#5f6794; font-size:12px;">
+                  <div>Filters: Search / Type / State / Asset / More Filters</div>
+                  <div>Default Sort: Most Influential</div>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+                  <div style="background:#262b5b; color:#fff; border-radius:10px; padding:10px 12px; font-weight:600;">Add Source</div>
+                  <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:10px 12px; font-weight:600;">Add Watcher</div>
+                </div>
+                <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px; margin-bottom:14px;">
+                  <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                    <tr><th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Select</th><th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Source</th><th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Type</th><th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">State</th><th style="text-align:left; padding:8px; border-bottom:1px solid #dfe4fb;">Weight</th></tr>
+                    <tr><td style="padding:8px; border-bottom:1px solid #eef2ff;">☑</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Influencer A</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Influencer</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Active</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Reduced Override</td></tr>
+                    <tr><td style="padding:8px; border-bottom:1px solid #eef2ff;">☐</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">News Feed B</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">News Site</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Active</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Default</td></tr>
+                    <tr><td style="padding:8px; border-bottom:1px solid #eef2ff;">☐</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">/r/dogecoin</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Watcher</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Observed</td><td style="padding:8px; border-bottom:1px solid #eef2ff;">Pending</td></tr>
+                    <tr><td style="padding:8px;">☐</td><td style="padding:8px;">Influencer C</td><td style="padding:8px;">Influencer</td><td style="padding:8px;">Ignored</td><td style="padding:8px;">0</td></tr>
+                  </table>
+                  <div style="font-size:12px; color:#5f6794; margin-top:10px;">Click a row or checkbox to select a source or watcher. Use one selection for detail editing, or select multiple rows for future bulk actions.</div>
+                </div>
+                <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;">
+                  <div style="font-weight:700; color:#262b5b; margin-bottom:10px;">Selected: Influencer A</div>
+                  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div style="background:#f7f9ff; border:1px solid #dfe4fb; border-radius:12px; padding:12px;">
+                      <div style="font-weight:700; color:#262b5b; margin-bottom:6px;">Identity</div>
+                      <div style="font-size:12px; color:#5f6794; margin-bottom:6px;">Type: Influencer</div>
+                      <div style="font-size:12px; color:#5f6794;">State: Active</div>
+                    </div>
+                    <div style="background:#f7f9ff; border:1px solid #dfe4fb; border-radius:12px; padding:12px;">
+                      <div style="font-weight:700; color:#262b5b; margin-bottom:6px;">Scope</div>
+                      <div style="font-size:12px; color:#5f6794;">DOGE, SOL</div>
+                    </div>
+                    <div style="background:#f7f9ff; border:1px solid #dfe4fb; border-radius:12px; padding:12px;">
+                      <div style="font-weight:700; color:#262b5b; margin-bottom:6px;">Influence</div>
+                      <div style="font-size:12px; color:#5f6794; margin-bottom:6px;">Weight: Reduced Override</div>
+                      <div style="font-size:12px; color:#5f6794;">Last Contribution: Placeholder</div>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+                    <div style="background:#262b5b; color:#fff; border-radius:10px; padding:10px 12px; font-weight:600;">Edit Weight</div>
+                    <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:10px 12px; font-weight:600;">Edit Scope</div>
+                    <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:10px 12px; font-weight:600;">More Actions</div>
+                  </div>
+                  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; font-size:12px; color:#5f6794;">
+                    <span>More Actions: Ignore / Block / Reactivate / Reset Default</span>
+                  </div>
+                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:10px 12px; font-weight:600;">View History</div>
+                    <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:10px 12px; font-weight:600;">Automation Settings</div>
+                  </div>
+                  <div style="font-size:12px; color:#5f6794; margin-top:12px;">History should show lifecycle events, override changes, and recent contributions. AI-created watchers should begin as Observed or Needs Review. State actions should remain reversible.</div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout gate">
+          <h3>Alerts Mock</h3>
+          <div style="border:1px solid #d9def5; border-radius:16px; overflow:hidden; background:#ffffff; box-shadow:0 14px 28px rgba(22,26,61,0.08);">
+            <div style="display:flex; min-height:320px;">
+              <aside style="width:220px; background:linear-gradient(180deg,#262b5b 0%,#3e478f 100%); color:#fff; padding:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,.12); padding:4px;" />
+                  <div style="font-weight:700; font-size:18px;">VectorQuay</div>
+                </div>
+                <div style="opacity:.75; margin:10px 0;">Home</div>
+                <div style="opacity:.75; margin:10px 0;">Configuration</div>
+                <div style="opacity:.75; margin:10px 0;">Assets</div>
+                <div style="opacity:.75; margin:10px 0;">Policies</div>
+                <div style="opacity:.75; margin:10px 0;">Portfolio</div>
+                <div style="opacity:.75; margin:10px 0;">Activity</div>
+                <div style="opacity:.75; margin:10px 0;">Performance</div>
+                <div style="opacity:.75; margin:10px 0;">Risk &amp; Thresholds</div>
+                <div style="opacity:.75; margin:10px 0;">Sources</div>
+                <div style="opacity:.9; margin:10px 0;">Alerts</div>
+                <div style="opacity:.75; margin:10px 0;">About</div>
+              </aside>
+              <section style="flex:1; padding:24px; background:#f6f8ff;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:24px; height:24px;" />
+                  <div style="font-size:26px; font-weight:700; color:#262b5b;">Alerts</div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr .9fr; gap:14px;">
+              <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;">
+                <div style="font-weight:700; color:#262b5b; margin-bottom:8px;">Recent Alerts</div>
+                <div style="padding:10px 12px; border:1px solid #cfd7ff; background:#f7f9ff; border-radius:10px; margin-bottom:8px;">New Version Available · Placeholder</div>
+                <div style="padding:10px 12px; border:1px solid #f1d48a; background:#fff8e8; border-radius:10px; margin-bottom:8px;">Large Loss Threshold Triggered · Placeholder</div>
+                <div style="padding:10px 12px; border:1px solid #cfd7ff; background:#f7f9ff; border-radius:10px; margin-bottom:8px;">System Validation Completed · Placeholder</div>
+                <div style="padding:10px 12px; border:1px solid #dfe4fb; background:#fff; border-radius:10px;">Large Win Threshold Triggered · Placeholder</div>
+              </div>
+              <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;">
+                <div style="font-weight:700; color:#262b5b; margin-bottom:8px;">Notification Preferences</div>
+                <div style="margin-bottom:8px; color:#424a76;">In-App Alerts: Enabled</div>
+                <div style="margin-bottom:8px; color:#424a76;">Email Alerts: Enabled</div>
+                <div style="margin-bottom:8px; color:#424a76;">SMS Alerts: Disabled</div>
+                <div style="margin-bottom:8px; color:#424a76;">Enabled Types: Loss, System, Version</div>
+                <div style="margin-bottom:8px; color:#424a76;">Quiet Hours: 10:00 PM - 7:00 AM</div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+                  <div style="background:#262b5b; color:#fff; border-radius:10px; padding:10px 12px; font-weight:600;">Edit Preferences</div>
+                  <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:10px 12px; font-weight:600;">Send Test</div>
+                </div>
+                <div style="font-size:12px; color:#5f6794; margin-top:12px;">Edit Preferences should let the operator choose alert types, severity levels, delivery channels, and time windows so notifications stay useful rather than noisy.</div>
+              </div>
+            </div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout gate">
+          <h3>About Mock</h3>
+          <div style="border:1px solid #d9def5; border-radius:16px; overflow:hidden; background:#ffffff; box-shadow:0 14px 28px rgba(22,26,61,0.08);">
+            <div style="display:flex; min-height:340px;">
+              <aside style="width:220px; background:linear-gradient(180deg,#262b5b 0%,#3e478f 100%); color:#fff; padding:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,.12); padding:4px;" />
+                  <div style="font-weight:700; font-size:18px;">VectorQuay</div>
+                </div>
+                <div style="opacity:.75; margin:10px 0;">Home</div>
+                <div style="opacity:.75; margin:10px 0;">Configuration</div>
+                <div style="opacity:.75; margin:10px 0;">Assets</div>
+                <div style="opacity:.75; margin:10px 0;">Policies</div>
+                <div style="opacity:.75; margin:10px 0;">Portfolio</div>
+                <div style="opacity:.75; margin:10px 0;">Activity</div>
+                <div style="opacity:.75; margin:10px 0;">Performance</div>
+                <div style="opacity:.75; margin:10px 0;">Risk &amp; Thresholds</div>
+                <div style="opacity:.75; margin:10px 0;">Sources</div>
+                <div style="opacity:.75; margin:10px 0;">Alerts</div>
+                <div style="opacity:.9; margin:10px 0;">About</div>
+              </aside>
+              <section style="flex:1; padding:24px; background:#f6f8ff;">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                  <img src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay logo" style="width:34px; height:34px;" />
+                  <div>
+                    <div style="font-size:24px; font-weight:700; color:#262b5b;">VectorQuay</div>
+                    <div style="font-size:12px; color:#5f6794;">Indigo Signal · Author/Owner: Brad Malia</div>
+                  </div>
+                </div>
+                <div style="background:#f7f9ff; border:1px solid #dfe4fb; border-radius:14px; padding:14px; margin-bottom:12px;">
+                  <div style="font-weight:700; color:#262b5b; margin-bottom:8px;">About This Application</div>
+                  <div style="color:#424a76; margin-bottom:10px;">Phase 1 local administration shell for the VectorQuay Coinbase spot trading platform.</div>
+                  <div style="font-size:12px; color:#5f6794;">Version: 0.1.0 placeholder · Trading Status: Inactive · Documentation: Roadmap, PRD, TRD, and test plans linked here in later implementation.</div>
+                </div>
+                <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px; margin-bottom:12px;">
+                  <div style="font-weight:700; color:#262b5b; margin-bottom:8px;">Updates</div>
+                  <div style="font-size:12px; color:#5f6794; margin-bottom:8px;">Current Version: 0.1.0 · Latest Available: Placeholder</div>
+                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <div style="background:#262b5b; color:#fff; border-radius:10px; padding:8px 12px; font-weight:600;">Check for Updates</div>
+                    <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:8px 12px; font-weight:600;">Download Update</div>
+                    <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:8px 12px; font-weight:600;">View Release</div>
+                  </div>
+                  <div style="font-size:12px; color:#5f6794; margin-top:10px;">Phase 1 includes a real manual update check in the shell. Safe version checks and download/open behavior should work against a configured release source before any in-app self-update behavior is considered.</div>
+                </div>
+                <div style="background:#fff; border:1px solid #dfe4fb; border-radius:14px; padding:14px;">
+                  <div style="font-weight:700; color:#262b5b; margin-bottom:8px;">Support the Author</div>
+                  <div style="display:flex; gap:14px; align-items:center;">
+                    <div style="width:96px; height:96px; border:1px dashed #cfd7ff; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#5f6794; background:#f7f9ff;">QR Code</div>
+                    <div>
+                      <div style="font-size:12px; color:#5f6794; margin-bottom:6px;">Manual crypto tip only. Not connected to bot trading behavior. This section should be owner-configurable and may be disabled or omitted in resale-oriented builds.</div>
+                      <div style="padding:8px 10px; border:1px solid #dfe4fb; border-radius:10px; background:#f7f9ff; font-size:12px; color:#262b5b;">Wallet Address Placeholder</div>
+                      <div style="display:flex; gap:8px; margin-top:10px;">
+                        <div style="background:#262b5b; color:#fff; border-radius:10px; padding:8px 12px; font-weight:600;">Copy Address</div>
+                        <div style="background:#eef2ff; color:#2b357f; border:1px solid #cfd7ff; border-radius:10px; padding:8px 12px; font-weight:600;">Supported Assets</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+      </article>
+
+      <article class="section-card">
+        <h2>Success Metrics</h2>
+        <ul>
+          <li>The codebase can be cloned, configured with templates, and launched locally without ad hoc setup steps.</li>
+          <li>The private GitHub repository exists and contains the approved documentation baseline plus the initial Phase 1 project scaffold.</li>
+          <li>The GUI shell builds and runs on the primary target environment.</li>
+          <li>Secrets are externalized and redacted appropriately in logs and UI.</li>
+          <li>Configuration precedence and secret-source behavior are documented and deterministic.</li>
+          <li>Editable policy and configuration screens behave coherently and communicate invalid or incomplete states clearly.</li>
+          <li>Missing-secret or not-yet-configured states are handled gracefully and visibly in the UI.</li>
+          <li>The documentation structure remains synchronized with the codebase structure.</li>
+          <li>Phase 2 can begin Coinbase read-only integration without foundational restructuring.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Deliverables</h2>
+        <ul>
+          <li>Approved Phase 1 PRD.</li>
+          <li>Phase 1 technical requirements document.</li>
+          <li>Phase 1 unit, integration, and regression test plans.</li>
+          <li>Private GitHub repository initialized with the approved documentation baseline.</li>
+          <li>Initial repository and solution scaffold.</li>
+          <li>Runnable GUI administration shell.</li>
+          <li>Secure configuration and secret-handling baseline.</li>
+          <li>Updated project context and decision-log artifacts.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Acceptance Criteria</h2>
+        <div class="callout approval">
+          <h3>Phase 1 Is Complete When</h3>
+          <ul>
+            <li>The repository contains a coherent .NET application structure and supporting docs structure.</li>
+            <li>The private GitHub repository exists and contains the approved Phase 0 baseline plus the Phase 1 foundation work.</li>
+            <li>The GUI shell launches locally and shows the initial operator/admin sections.</li>
+            <li>No secrets are present in the repository and configuration templates are in place.</li>
+            <li>The Phase 1 GUI stack decision is explicit and reflected in the implementation baseline.</li>
+            <li>Editable policy and configuration surfaces exist for safe local settings and non-secret operator controls.</li>
+            <li>Ignored local configuration paths are established so secret-bearing files cannot be committed accidentally through normal workflow.</li>
+            <li>The PRD clearly distinguishes authoritative local policy state from informational UI state.</li>
+            <li>The approved Phase 0 constraints are visible in the product foundation rather than only in documents.</li>
+            <li>The product is ready for safe Phase 2 Coinbase read-only integration work.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Risks</h2>
+        <div class="callout risk">
+          <h3>Phase 1 Risks</h3>
+          <ul>
+            <li>Choosing a GUI approach that works poorly across Ubuntu and Windows can create avoidable rework.</li>
+            <li>Weak secret handling in Phase 1 would contaminate later phases and future resale readiness.</li>
+            <li>An under-structured codebase would force later refactoring before Coinbase integration and testing.</li>
+            <li>Overbuilding the GUI shell now could delay more important Phase 2 integration work.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Recommended Next Step</h2>
+        <p>Proceed to the Phase 1 technical requirements document. That document should convert this approved product intent into concrete architecture, project structure, GUI technology, secret handling, and implementation/test-planning guidance.</p>
+      </article>
+
+      <div class="footer">
+        VectorQuay Phase 1 PRD • Approved baseline • Author/Owner: Brad Malia
+      </div>
+    </section>
+  </main>
+</body>
+</html>

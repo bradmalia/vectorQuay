@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 1 Technical Requirements</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Technical Requirements Document</p>
+          <h1>Phase 1 Technical Requirements</h1>
+          <p class="subtitle">Repository, application-shell, local settings, and security baseline requirements for the first implementation phase.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v1.0</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Approved</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Executive Summary</h2>
+          <p>Phase 1 technical work turns the approved Phase 1 PRD into a concrete implementation baseline. It defines the repository structure, Avalonia application shape, local settings model, secret-handling boundaries, shell-view architecture, and delivery requirements needed before Phase 2 Coinbase read-only integration begins.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Primary Output</h2>
+          <p>A runnable Ubuntu-first .NET/Avalonia application shell with deterministic local configuration and safe persistence boundaries, ready for Phase 2 exchange integration.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>1. Scope</h2>
+        <ul>
+          <li>Translate the approved Phase 1 PRD into concrete technical implementation requirements.</li>
+          <li>Define the repository and solution structure for the first production-quality baseline.</li>
+          <li>Define the application-shell architecture for the Avalonia GUI.</li>
+          <li>Define local settings, secret loading, configuration precedence, and ignored-file boundaries.</li>
+          <li>Define the technical contract for the reserved Phase 1 screens without over-implementing later-phase trading behavior.</li>
+          <li>Define the build, run, validation, logging, and documentation expectations required to close Phase 1 cleanly.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>2. Out of Scope</h2>
+        <ul>
+          <li>Live Coinbase order placement or cancellation.</li>
+          <li>Paper trading.</li>
+          <li>Production strategy logic, signal scoring, or portfolio optimization.</li>
+          <li>AI-driven trading, news analysis, or live source ingestion.</li>
+          <li>Background asset-discovery jobs beyond shell reservation and placeholder refresh affordances.</li>
+          <li>Automated self-update installation.</li>
+          <li>Container-first packaging or deployment automation.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>3. Technical Objectives</h2>
+        <ul>
+          <li>Create a maintainable private-repository baseline that can support later resale and credential isolation.</li>
+          <li>Establish Avalonia UI on .NET 8 as the implementation baseline for Ubuntu-first local operation with a Windows 11 compatibility path.</li>
+          <li>Define a deterministic local configuration model with app-managed non-secret settings and external secrets.</li>
+          <li>Define shell navigation, view models, and placeholder states for the approved Phase 1 screens.</li>
+          <li>Preserve the approved product boundaries from Phase 0, including screened live trading universe rules and future dynamic asset discovery.</li>
+          <li>Keep later-phase features visible in the shell without implying they are operational in Phase 1.</li>
+          <li>Produce a technical baseline that can accept Phase 2 Coinbase read-only integration without reworking core application structure.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>4. Technical Deliverables</h2>
+        <ul>
+          <li>Phase 1 technical requirements document.</li>
+          <li>Private GitHub repository with approved Phase 0 and Phase 1 document baseline committed.</li>
+          <li>.NET solution and project scaffold for the GUI shell and shared application foundation.</li>
+          <li>Runnable Avalonia shell application.</li>
+          <li>Configuration templates, ignored local settings path, and ignored secret-file path.</li>
+          <li>Documented build-and-run workflow for Ubuntu primary development.</li>
+          <li>Updated context and decision-log artifacts for future sessions.</li>
+          <li>Phase 1 unit, integration, and regression test plans.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>5. Repository and Source-Control Requirements</h2>
+        <ul>
+          <li>Phase 1 must create the private GitHub repository as the canonical source-control home for VectorQuay.</li>
+          <li>The repository must contain the approved Phase 0 documentation baseline as the first project record.</li>
+          <li>The repository must establish a coherent top-level structure for source, tests, docs, assets, and configuration templates.</li>
+          <li>The default branch must be documented and used consistently for the baseline implementation path.</li>
+          <li>The ignored-files policy must explicitly exclude local secrets, local app-managed settings, machine-specific artifacts, and generated outputs not intended for version control.</li>
+          <li>The repository must remain compatible with future resale and BYO-credentials distribution rather than assuming one operator or one machine forever.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>6. Solution and Application Architecture</h2>
+        <section class="two-col">
+          <article class="section-card">
+            <h2>Solution Baseline</h2>
+            <ul>
+              <li>Create a primary .NET solution targeting .NET 8.</li>
+              <li>Separate the GUI shell from shared domain/configuration logic so Phase 2 integration work does not crowd the UI layer.</li>
+              <li>Preserve room for future test projects, service adapters, and data-access layers without flattening everything into the GUI project.</li>
+              <li>Use naming that matches product language already approved in the PRD.</li>
+            </ul>
+          </article>
+
+          <article class="section-card">
+            <h2>GUI Stack</h2>
+            <ul>
+              <li>Use Avalonia UI on .NET 8 as the default Phase 1 implementation stack.</li>
+              <li>Do not require Docker for build, run, or local configuration.</li>
+              <li>Preserve a Windows-compatible project shape while treating Ubuntu as the primary environment.</li>
+              <li>Reserve later packaging choices rather than overcommitting to self-updating installers in Phase 1.</li>
+            </ul>
+          </article>
+        </section>
+      </article>
+
+      <article class="section-card">
+        <h2>6A. Proposed Project Structure</h2>
+        <ul>
+          <li>Phase 1 should establish a solution shape equivalent to:
+            <code>src/VectorQuay.App</code> for the Avalonia shell,
+            <code>src/VectorQuay.Core</code> for shared domain and settings logic,
+            and one or more future-ready test projects under <code>tests/</code>.
+          </li>
+          <li>The GUI shell project should not absorb all configuration, domain, and future integration logic directly.</li>
+          <li>Documentation, templates, assets, and context artifacts should remain outside the application project tree in stable repository locations.</li>
+          <li>The actual file and project names may vary slightly, but the separation of shell, shared logic, tests, docs, and templates must be preserved.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>7. Shell Navigation and View Architecture</h2>
+        <ul>
+          <li>The shell must implement the approved top-level navigation consistently across the application.</li>
+          <li>The approved Phase 1 PRD mock screens remain the visual and structural UI reference for the shell; this TRD defines the technical interpretation, state behavior, persistence rules, and implementation boundaries for those screens.</li>
+          <li>The Phase 1 shell must include the approved views: Home, Configuration, Assets, Policies, Portfolio, Activity, Performance, Risk &amp; Thresholds, Sources, Alerts, and About.</li>
+          <li>Every approved top-level screen must have a stable view model and placeholder rendering path, even where real data is deferred.</li>
+          <li>Top-level navigation state must be centralized rather than reimplemented separately inside each view.</li>
+          <li>Reserved later-phase behavior must be communicated as inactive, placeholder, or future-ready rather than silently omitted.</li>
+          <li>The shell must support clear “not configured”, “inactive”, and “not connected” states without implying live trading or paper trading readiness.</li>
+          <li>The Phase 1 shell must not expose or imply supported operator flows for bank funding, bank withdrawal, payment-method management, external wallet transfer, staking, Web3/on-chain actions, margin, borrowing, derivatives, or other non-trade-only account actions.</li>
+          <li>Branding, version, and owner attribution must appear consistently across the shell through the application title/window metadata, shared navigation or header chrome, the Home status surface, and the About screen.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>7A. UI State and Interaction Model</h2>
+        <ul>
+          <li>Phase 1 should use an MVVM-style separation between views, view models, and shared application services.</li>
+          <li>Navigation state, settings state, validation state, and placeholder shell state should be centralized rather than embedded directly in view code.</li>
+          <li>Editable controls must distinguish clearly between:
+            read-only derived values,
+            editable non-secret operator settings,
+            and unavailable future functionality.
+          </li>
+          <li>Meaningful operator actions such as Save, Validate, Reset to Default, and profile switching should route through explicit command handlers rather than ad hoc code-behind mutations.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>8. Screen-by-Screen Technical Requirements</h2>
+        <section class="two-col">
+          <article class="section-card">
+            <h2>Home / Status</h2>
+            <ul>
+              <li>Render a dashboard view with application state, connection state placeholders, recent activity placeholders, alerts area, and top candidate placeholders.</li>
+              <li>Display software version, last-updated cues, and inactive-trading state clearly.</li>
+              <li>Do not depend on live Coinbase data in Phase 1.</li>
+            </ul>
+          </article>
+
+          <article class="section-card">
+            <h2>Configuration</h2>
+            <ul>
+              <li>Render editable non-secret settings and secret-source status without exposing actual secret values.</li>
+              <li>Show non-editable values as disabled or greyed-out, including detected platform and the locked Phase 1 valuation currency of USD.</li>
+              <li>Phase 1 must treat USD as the preferred initial quote-currency and routing path for the current production-account posture, while preserving USDC as an approved secondary quote/routing asset for later enforcement and integration work.</li>
+              <li>Support save and validate actions against deterministic local settings rules.</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="two-col">
+          <article class="section-card">
+            <h2>Assets</h2>
+            <ul>
+              <li>Show the approved initial candidate class and DOGE conditional watchlist note.</li>
+              <li>Support filter placeholders for asset and state plus a default rank/order by trade priority.</li>
+              <li>Reserve manual refresh UI and future automatic discovery state without implementing discovery jobs in Phase 1.</li>
+            </ul>
+          </article>
+
+          <article class="section-card">
+            <h2>Policies</h2>
+            <ul>
+              <li>Support operator-safe local editing of approved candidate notes, protected-asset modes, and related non-secret policy state.</li>
+              <li>Provide row selection, checkbox-based multi-select or equivalent row-state clarity, filters, and selected-policy details in the shell.</li>
+              <li>Use clear operator-facing labels such as Do Not Buy, Do Not Sell, and Do Not Trade or their approved equivalents.</li>
+              <li>Phase 1 policy edits must persist as authoritative local operator policy state, but the shell must make clear that GUI edits do not bypass later technical enforcement boundaries.</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="two-col">
+          <article class="section-card">
+            <h2>Portfolio and Performance</h2>
+            <ul>
+              <li>Reserve portfolio holdings, allocation, KPI, and chart areas as placeholder UI sections.</li>
+              <li>Reserve selectable time ranges of 24H, 7D, 30D, 90D, 1Y, and ALL for performance without implying live metric calculation in Phase 1.</li>
+              <li>Retain standard metric names such as PnL, Win Rate, and Drawdown while supporting tooltip or inline-help affordances later.</li>
+            </ul>
+          </article>
+
+          <article class="section-card">
+            <h2>Activity</h2>
+            <ul>
+              <li>Implement the shell shape for a single decision-led activity view rather than separate trade-history and decision-trace screens.</li>
+              <li>Reserve filtering and sorting by timestamp/date range, asset, action, source, status, and decision outcome.</li>
+              <li>Support selected-row detail state, policy/risk check placeholders, and source-contribution placeholders without implementing real decision logic yet.</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="two-col">
+          <article class="section-card">
+            <h2>Risk &amp; Thresholds</h2>
+            <ul>
+              <li>Support the approved High Risk, Medium Risk, Low Risk, and Custom profile model in shell form.</li>
+              <li>Preset profiles must appear as recommended defaults; Custom must be the only editing mode for direct threshold value changes.</li>
+              <li>Switching from Custom to a preset must require confirmation when unsaved custom changes would be overwritten.</li>
+              <li>Reset to Default must restore the recommended/default state explicitly.</li>
+            </ul>
+          </article>
+
+          <article class="section-card">
+            <h2>Sources</h2>
+            <ul>
+              <li>Implement the unified source registry shell with tabs for All, Direct Sources, and Watchers.</li>
+              <li>Reserve filter controls, checkbox-based row selection or equivalent multi-select clarity, and selected-item details for direct sources and watchers in one view.</li>
+              <li>The reserved source state model must be locked in Phase 1 as Active, Observed, Ignored, Blocked, and Needs Review.</li>
+              <li>Support placeholder actions for weight editing, scope editing, history, automation settings, reliability review, and grouped state actions.</li>
+              <li>The technical model must reserve manual direct-source addition by URL or handle plus AI-assisted watcher creation from prompts, with both represented in the same registry structure.</li>
+              <li>AI-created watchers must enter the registry in Observed or Needs Review state by default until later-phase logic refines their lifecycle.</li>
+              <li>Keep ignore and block reversible; reactivate/unblock and reset-to-default must remain part of the reserved technical model.</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="two-col">
+          <article class="section-card">
+            <h2>Alerts</h2>
+            <ul>
+              <li>Reserve recent-alert history plus notification preference controls for categories, severities, channels, and quiet hours.</li>
+              <li>Do not implement outbound email or SMS delivery in Phase 1.</li>
+            </ul>
+          </article>
+
+          <article class="section-card">
+            <h2>About</h2>
+            <ul>
+              <li>Show version, attribution, documentation references, and configured release-source update controls in shell form.</li>
+              <li>Support an owner-configurable manual tip section that is clearly disconnected from bot trading behavior and may be disabled in resale builds.</li>
+            </ul>
+          </article>
+        </section>
+      </article>
+
+      <article class="section-card">
+        <h2>9. Configuration, Settings, and Secrets</h2>
+        <div class="callout gate">
+          <h3>Source of Truth</h3>
+          <ul>
+            <li>Non-secret operator settings and policy edits must persist through application-managed local settings.</li>
+            <li>Checked-in files must remain templates only.</li>
+            <li>Secrets must remain external to source control.</li>
+          </ul>
+        </div>
+        <ul>
+          <li>Configuration precedence must be deterministic and documented in code and docs.</li>
+          <li>The Phase 1 baseline must use this precedence order unless an approved later decision changes it:
+            application defaults,
+            checked-in templates,
+            application-managed local non-secret settings,
+            external secret file values,
+            and environment variables as the highest-precedence secret override.
+          </li>
+          <li>The application must be able to start safely when secrets are missing, while clearly surfacing the missing state to the operator.</li>
+          <li>Secret values must never be rendered in plain text in normal UI states.</li>
+          <li>Logs and validation errors must redact or avoid secret values.</li>
+          <li>Local override paths and ignored files must be documented and enforced through source-control ignore rules.</li>
+          <li>The technical baseline must preserve BYO-credentials support for future resale and multi-user distribution.</li>
+          <li>The checked-in template for non-secret configuration must live in a stable repository path such as <code>config/templates/appsettings.template.json</code> and must never be treated as the live operator settings file.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>9A. Local Storage Paths</h2>
+        <ul>
+          <li>For Ubuntu-first operation, the application-managed non-secret settings file must be stored at <code>${XDG_CONFIG_HOME:-~/.config}/VectorQuay/settings.json</code>.</li>
+          <li>For Ubuntu-first operation, the external secret file must be stored at <code>${XDG_CONFIG_HOME:-~/.config}/VectorQuay/secrets.env</code>.</li>
+          <li>The non-secret settings file format must be JSON, and the external secret file format must be simple key/value environment-style entries.</li>
+          <li>The Phase 1 secret contract must reserve at least <code>VECTORQUAY_COINBASE_API_KEY</code>, <code>VECTORQUAY_COINBASE_API_SECRET</code>, and <code>VECTORQUAY_OPENAI_API_KEY</code> as supported secret names.</li>
+          <li>Environment variables with the same names must override values supplied through the external secret file.</li>
+          <li>The application should surface the existence and health of those sources in the UI without exposing raw secret values.</li>
+          <li>For Windows compatibility, the design must map the same settings model onto the local application-data equivalent rather than hard-coding Ubuntu-specific path logic into business or UI code.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>10. Build, Run, and Validation Requirements</h2>
+        <ul>
+          <li>Phase 1 must define one clear documented workflow to restore, build, and run the application on Ubuntu.</li>
+          <li>The baseline application must launch without live Coinbase connectivity.</li>
+          <li>Validation commands and expected operator setup steps must be documented in the repository.</li>
+          <li>The application must expose understandable startup and validation failures rather than crashing without explanation.</li>
+          <li>The build and run path must not require Docker.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>10A. Validation Contract</h2>
+        <ul>
+          <li>Validation must cover at least:
+            settings file readability,
+            secret-source presence detection,
+            shell startup viability,
+            and placeholder-view navigation integrity.
+          </li>
+          <li>Validation results should distinguish between blocking failures, warnings, and informational inactive states.</li>
+          <li>The Phase 1 shell should be able to report “not configured yet” as a valid state rather than treating it as a crash condition.</li>
+          <li>The documented validation flow must verify at minimum that:
+            the application launches successfully with no secrets present,
+            every approved top-level view can be opened,
+            non-secret policy and configuration edits persist across restart,
+            logs and validation output do not reveal secret values,
+            and local ignored-file rules cover the application-managed settings file and external secret file.
+          </li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>11. Logging, Errors, and Operator Safety</h2>
+        <ul>
+          <li>Phase 1 logging must support troubleshooting of config, startup, and shell-state issues without exposing secrets.</li>
+          <li>Validation and startup errors must be understandable in operator-facing language where appropriate.</li>
+          <li>The shell must clearly distinguish between inactive placeholders and genuinely configured functionality.</li>
+          <li>No screen should imply that live trading, paper trading, or live source ingestion is active in Phase 1.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>12. Documentation and Context Preservation</h2>
+        <ul>
+          <li>Phase 1 must preserve roadmap, Phase 0 closeout, PRD, and TRD alignment in-repo.</li>
+          <li>Implementation decisions made during Phase 1 must be stored in durable project context or decision-log artifacts.</li>
+          <li>The actual private GitHub repository URL should be recorded in project context or technical metadata after repository creation, not embedded as a product requirement.</li>
+          <li>The repository must remain understandable without dependence on prior chat history.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>13. Technical Decision Outputs Required</h2>
+        <ul>
+          <li>What exact solution/project structure will be used for the Avalonia shell and shared application logic?</li>
+          <li>The application-managed non-secret settings contract is locked as JSON at <code>${XDG_CONFIG_HOME:-~/.config}/VectorQuay/settings.json</code>.</li>
+          <li>The ignored secret-file contract is locked as <code>${XDG_CONFIG_HOME:-~/.config}/VectorQuay/secrets.env</code> with environment-variable override support for future Coinbase and OpenAI credentials.</li>
+          <li>What build and run commands will be the standard Ubuntu development workflow?</li>
+          <li>What validation flow will confirm that configuration, shell startup, and placeholder navigation are working?</li>
+          <li>What project context files will be updated as the implementation baseline is created?</li>
+          <li>The source-registry state contract is locked as Active, Observed, Ignored, Blocked, and Needs Review.</li>
+          <li>The performance-range contract is locked as 24H, 7D, 30D, 90D, 1Y, and ALL.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>14. Security and Secrets</h2>
+        <ul>
+          <li>No real secrets may be committed to the repository, screenshots, sample settings, or logs.</li>
+          <li>Only non-secret templates may be checked in.</li>
+          <li>Secret-source status may be shown in the GUI, but the secret values themselves must not be exposed in routine UI or logs.</li>
+          <li>Owner-configurable features such as the tip section must never gain implicit access to exchange funds or bot execution paths.</li>
+          <li>Update checking must target a configured release source and must not assume a private GitHub-only consumer path for future resale builds.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>14A. Update and Release Boundary</h2>
+        <ul>
+          <li>Phase 1 must implement a real manual update check in the About view against GitHub Releases as the initial configured release source, showing current version, latest available version, and user-facing download/open actions when an update is available.</li>
+          <li>Any update-check implementation path introduced later must depend on a configurable release-source abstraction rather than private-repository assumptions embedded in UI logic.</li>
+          <li>The Phase 1 update flow must remain manual-only and must not perform silent self-updating, background installation, or forced restart behavior.</li>
+          <li>Version display should use a coherent application version contract across screens and docs.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>15. Non-Functional Technical Requirements</h2>
+        <ul>
+          <li>The codebase must remain maintainable and testable rather than shortcut prototype code.</li>
+          <li>The shell must remain visually consistent with the approved branding and document mocks.</li>
+          <li>The technical baseline must be understandable to future sessions without chat dependence.</li>
+          <li>The design must preserve later expansion for Coinbase integration, dynamic asset discovery, source intelligence, alerts, and release management.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>16. Entry and Exit Criteria</h2>
+        <div class="callout gate">
+          <h3>Entry Criteria</h3>
+          <ul>
+            <li>Approved roadmap v4 exists.</li>
+            <li>Approved Phase 0 closeout exists.</li>
+            <li>Approved Phase 1 PRD exists.</li>
+          </ul>
+        </div>
+        <div class="callout gate">
+          <h3>Exit Criteria</h3>
+          <ul>
+            <li>The private GitHub repository exists and contains the approved documentation baseline plus the Phase 1 scaffold.</li>
+            <li>The .NET solution and Avalonia application shell exist and run locally on Ubuntu.</li>
+            <li>App-managed local settings and external secret boundaries are implemented and documented.</li>
+            <li>All approved Phase 1 shell views exist in placeholder or inactive-ready form.</li>
+            <li>The build, run, and validation workflow is documented and repeatable.</li>
+            <li>Ignored-file rules and configuration-template boundaries are established.</li>
+            <li>Phase 1 unit, integration, and regression test plans exist.</li>
+            <li>Project context and decision-log artifacts are updated for future sessions.</li>
+            <li>The application can be launched from the documented workflow using checked-in templates plus local settings/secrets conventions without ad hoc setup steps.</li>
+            <li>Editable policy and configuration surfaces behave coherently, persist non-secret operator changes across restart, and communicate invalid or incomplete states clearly.</li>
+            <li>Missing-secret and not-yet-configured states are handled gracefully and visibly in the UI.</li>
+            <li>The approved Phase 0 constraints and Phase 1 product boundaries are visible in the shell rather than existing only in documents.</li>
+            <li>The About view performs a real manual update check against the configured release source without introducing self-updating behavior.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>17. Risks and Unknowns</h2>
+        <div class="callout risk">
+          <h3>Key Technical Risks</h3>
+          <ul>
+            <li>Configuration persistence and secret boundaries can become muddled if app-managed settings and template files are not separated cleanly from the start.</li>
+            <li>The shell can over-implement later-phase behavior if placeholder and inactive states are not enforced explicitly.</li>
+            <li>Cross-platform UI concerns can create rework if Ubuntu-first assumptions are not validated early in the Avalonia baseline.</li>
+            <li>Release/update handling can become too coupled to private-repo assumptions if the configured release-source model is ignored.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>18. Recommendation</h2>
+        <p>Proceed with Phase 1 implementation using the approved Avalonia/.NET 8 shell baseline, strict external secret handling, app-managed non-secret settings, and a placeholder-first operator UI that preserves later-phase expansion without pretending unimplemented features are active.</p>
+      </article>
+
+      <div class="footer">
+        VectorQuay Phase 1 Technical Requirements • Approved baseline • Author/Owner: Brad Malia
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Roadmap v4</title>
+  <link rel="stylesheet" href="./templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">VectorQuay Roadmap</p>
+          <h1>Roadmap v4</h1>
+          <p class="subtitle">Phase + Gate model for aggressive but controlled portfolio growth on Coinbase spot.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v4</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Approved</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Executive Summary</h2>
+          <p>The product objective is to maximize fee-adjusted portfolio growth as fast as possible through informed autonomous trading, while remaining inside hard safety, capital, and operational limits. This roadmap keeps growth as the primary objective without allowing speed or AI enthusiasm to bypass survivability.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Approved Direction</h2>
+          <p>Build a safe deterministic trading core first, validate it through backtesting and paper trading, then add bounded AI signals only after the baseline proves it can grow capital responsibly.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Phase Governance Rule</h2>
+        <ul>
+          <li>Each phase must complete its definition package before implementation begins for that phase.</li>
+          <li>The minimum definition package for a phase is: approved PRD, approved technical requirements, required test plans or test suites, and explicit gate or acceptance criteria.</li>
+          <li>Implementation must execute against the approved phase artifacts rather than using implementation work to discover first-order product scope.</li>
+          <li>A later phase does not need to finish its PRD before an earlier phase is implemented, but no phase may begin implementation until its own definition package is complete and approved.</li>
+          <li>A phase gate is not considered closed until implementation, documentation, and required validation or test work all satisfy that phase's exit criteria.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 0: Objective, Feasibility, and Trading Constraints</h2>
+        <ul>
+          <li>Define the primary business objective: maximize fee-adjusted account growth.</li>
+          <li>Define secondary control objectives: limit drawdown, avoid catastrophic loss, maintain operational safety, and preserve enough capital to continue trading.</li>
+          <li>Confirm product boundaries and prohibited actions.</li>
+          <li>Verify Coinbase support for spot-only trading, account/API capabilities, minimum trade sizes, and fee impact at approximately $50 starting capital.</li>
+          <li>Define hard account rules: no bank withdrawals, no bank deposits, trade only Coinbase-listed assets, use only existing Coinbase balances.</li>
+          <li>Define initial allowed asset universe and aggressiveness modes.</li>
+        </ul>
+        <div class="callout gate">
+          <h3>Gate A: Feasibility and Objective Fit</h3>
+          <ul>
+            <li>At least one realistic strategy path exists for small-capital growth.</li>
+            <li>Coinbase constraints do not make the approach non-viable.</li>
+            <li>The objective and risk limits are approved.</li>
+            <li>Aggressiveness modes are defined clearly.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 1: Repository, Security, Context, and GUI Shell</h2>
+        <ul>
+          <li>Create the VectorQuay repo and documentation structure.</li>
+          <li>Add project context, decision log, PRDs, technical requirements, and test plans.</li>
+          <li>Implement secure configuration and secret handling with zero secrets in source control.</li>
+          <li>Build the initial GUI shell with branding, ownership attribution, strategy mode placement, and operator-control placeholders.</li>
+        </ul>
+        <div class="callout gate">
+          <h3>Gate B: Safe Build Foundation</h3>
+          <ul>
+            <li>The project runs locally.</li>
+            <li>Secrets are externalized.</li>
+            <li>The GUI shell is usable.</li>
+            <li>Documentation structure is established.</li>
+            <li>The app can support future strategy tuning without structural rework.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 2: Coinbase Read-Only Integration and Capital Rules</h2>
+        <ul>
+          <li>Connect to Coinbase in read-only mode first.</li>
+          <li>Pull balances, tradable products, market prices, and account state.</li>
+          <li>Implement policy restrictions before enabling any live order path.</li>
+          <li>Confirm the bot can only operate with existing Coinbase funds.</li>
+          <li>Add GUI views for balances, tradable assets, connection health, restrictions, and capital allocation.</li>
+        </ul>
+        <div class="callout gate">
+          <h3>Gate C: Data and Restriction Confidence</h3>
+          <ul>
+            <li>Account data is accurate.</li>
+            <li>Restrictions are enforced correctly.</li>
+            <li>Market and product data is reliable enough for decisioning.</li>
+            <li>The system accurately understands available capital.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 3: Storage, Audit Trail, and Recovery</h2>
+        <ul>
+          <li>Persist market data, account states, signals, proposed trades, and execution records.</li>
+          <li>Build a replayable decision trail for every action.</li>
+          <li>Implement safe restart and recovery behavior.</li>
+          <li>Ensure the system can recover from interruption without losing track of positions or prior decisions.</li>
+        </ul>
+        <div class="callout gate">
+          <h3>Gate D: Operational Integrity</h3>
+          <ul>
+            <li>State is durable.</li>
+            <li>Startup recovery is safe.</li>
+            <li>Decisions are explainable.</li>
+            <li>Prior state can be reconstructed.</li>
+            <li>Auditability is complete enough for debugging and evaluation.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 4: Deterministic Growth Strategy and Risk Engine</h2>
+        <ul>
+          <li>Build a non-LLM baseline strategy focused on growth.</li>
+          <li>Separate signal generation, trade scoring, risk approval, and order execution.</li>
+          <li>Implement configurable aggressiveness profiles.</li>
+          <li>Add hard controls for position size, exposure, daily loss, turnover, stale data, reconciliation failure, API failure, and kill switch.</li>
+          <li>Require all candidate trades to pass profitability and risk screening before execution.</li>
+        </ul>
+        <div class="callout gate">
+          <h3>Gate E: Aggressive Strategy Safety</h3>
+          <ul>
+            <li>Strategy is capable of pursuing growth aggressively.</li>
+            <li>Risk rules cannot be bypassed.</li>
+            <li>Aggressive mode remains inside hard limits.</li>
+            <li>Trade approval stays deterministic and auditable.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 5: Backtesting and Growth Evaluation</h2>
+        <ul>
+          <li>Build backtesting and replay tooling.</li>
+          <li>Evaluate fee-adjusted growth, growth speed, drawdown, turnover, slippage sensitivity, and performance versus buy-and-hold.</li>
+          <li>Compare conservative, balanced, and aggressive modes.</li>
+          <li>Reject strategies that depend on unrealistic fills or narrow historical windows.</li>
+        </ul>
+        <div class="callout gate">
+          <h3>Gate F: Strategy Qualification</h3>
+          <ul>
+            <li>The strategy beats or justifies itself against passive holding.</li>
+            <li>Growth is meaningful after fees.</li>
+            <li>Aggressive modes do not create unacceptable drawdown.</li>
+            <li>Results are reproducible across multiple periods and regimes.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 6: Paper Trading and Live-Market Validation</h2>
+        <ul>
+          <li>Run paper trading on live market data using the same trading pipeline intended for production.</li>
+          <li>Measure growth rate, signal quality, execution timing assumptions, stability, drawdown, fee drag, and regime sensitivity.</li>
+          <li>Evaluate whether faster trading actually improves net growth at the available capital level.</li>
+        </ul>
+        <div class="callout gate">
+          <h3>Gate G: Production Readiness</h3>
+          <ul>
+            <li>Paper trading demonstrates acceptable growth behavior.</li>
+            <li>Operational stability is proven.</li>
+            <li>Aggressive settings remain controlled.</li>
+            <li>Enough evidence exists that live trading is justified.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 7: Limited Live Rollout</h2>
+        <ul>
+          <li>Enable live trading in stages.</li>
+          <li>Start with very small position sizes using the existing balance.</li>
+          <li>Reconcile balances and orders continuously.</li>
+          <li>Expose kill switch and aggressiveness mode in the GUI.</li>
+          <li>Track performance against the paper-trading baseline and passive-hold benchmark.</li>
+        </ul>
+        <div class="callout gate">
+          <h3>Gate H: Live Growth Validation</h3>
+          <ul>
+            <li>Live execution behaves as expected.</li>
+            <li>Growth remains positive or strategically justified after fees.</li>
+            <li>Losses and drawdowns remain within limits.</li>
+            <li>No uncontrolled behavior occurs.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 8: Optional AI and External Signal Layer</h2>
+        <ul>
+          <li>Add ChatGPT only after the deterministic growth engine is proven.</li>
+          <li>Use AI for news interpretation, catalyst detection, regime classification, trade ranking, and sentiment synthesis.</li>
+          <li>External sources such as Reddit, X/Twitter, and crypto news remain optional and must be source-scored.</li>
+          <li>AI may improve information quality, but it must not bypass deterministic controls.</li>
+        </ul>
+        <div class="callout gate">
+          <h3>Gate I: AI Performance Qualification</h3>
+          <ul>
+            <li>AI measurably improves trade selection or timing.</li>
+            <li>AI improves growth without destabilizing the system.</li>
+            <li>AI can be disabled without harming the core product.</li>
+            <li>Source quality and freshness justify ongoing use.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 9: Dynamic Asset Discovery and Universe Management</h2>
+        <ul>
+          <li>Continuously discover all Coinbase-listed spot assets through scheduled product synchronization.</li>
+          <li>Classify assets into lifecycle states such as discovered, observed, watchlist, eligible, active, and blocked.</li>
+          <li>Apply dynamic screening based on quote-currency policy, tradability status, liquidity, spread, fee impact, and risk classification.</li>
+          <li>Detect new Coinbase listings automatically and place them into observation/watch states before live eligibility is considered.</li>
+          <li>Allow the analysis universe to include all Coinbase-listed spot assets while keeping the live trading universe restricted to a dynamically approved subset.</li>
+        </ul>
+        <div class="callout gate">
+          <h3>Gate J: Dynamic Universe Readiness</h3>
+          <ul>
+            <li>Automated asset discovery is reliable.</li>
+            <li>New listings are ingested without becoming immediately tradable by default.</li>
+            <li>The live trading universe is evidence-driven and auditable.</li>
+            <li>Risk classification and blocked-state rules are enforced consistently.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 10: Optimization, Observability, and Productization</h2>
+        <ul>
+          <li>Add dashboards, alerts, diagnostics, and health reporting.</li>
+          <li>Improve tuning workflows for aggressiveness, asset selection, and signal weighting.</li>
+          <li>Add decision-trace and source-override management so operators can inspect why trades were accepted or rejected, see source contributions and weights, and adjust or reset source-level overrides safely.</li>
+          <li>Prepare the product for future reuse or sale with bring-your-own-credentials, zero embedded secrets, repeatable setup, and configurable policy controls.</li>
+        </ul>
+        <div class="callout gate">
+          <h3>Gate J: Product Readiness</h3>
+          <ul>
+            <li>The system is observable.</li>
+            <li>Decision rationale and source influence are explainable and auditable.</li>
+            <li>Setup is repeatable.</li>
+            <li>Customer-specific secrets stay external.</li>
+            <li>Documentation is complete.</li>
+            <li>The product can be reused without being tightly coupled to one operator or machine.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 11: Deferred Expansion</h2>
+        <ul>
+          <li>Profit-withdrawal rules.</li>
+          <li>Additional strategy classes.</li>
+          <li>Broader intelligence sources.</li>
+          <li>Future multi-exchange support.</li>
+        </ul>
+        <div class="callout approval">
+          <h3>Recommendation</h3>
+          <p>This approved roadmap makes growth the explicit product objective while preserving hard controls around survivability, auditability, and operational discipline.</p>
+        </div>
+      </article>
+
+      <div class="footer">
+        VectorQuay Roadmap v4 • Approved baseline • Author/Owner: Brad Malia
+      </div>
+    </section>
+  </main>
+</body>
+</html>

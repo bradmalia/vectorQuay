@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 0 Decision Memo</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Decision Memo</p>
+          <h1>Phase 0 Decision Memo</h1>
+          <p class="subtitle">Management checkpoint summarizing the completed Phase 0 feasibility work for VectorQuay.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v1.0</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">In Review</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Decision</h2>
+          <p><strong>Proceed with narrower scope.</strong> VectorQuay should move into Phase 1, but under a disciplined initial operating model shaped by the Phase 0 research findings.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Headline</h2>
+          <p>VectorQuay is technically feasible on Coinbase Advanced spot, but current production-account economics make a roughly $47 to $50 starting balance fragile rather than comfortably viable.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>What Was Confirmed</h2>
+        <ul>
+          <li>Coinbase Advanced Trade is the correct v1 API surface.</li>
+          <li>The approved trade-only, spot-only product direction is compatible with the chosen Coinbase API surface.</li>
+          <li>Authenticated read-only research works against both a temporary Coinbase account and the actual intended production account.</li>
+          <li>The actual production account currently reports <code>pricing_tier = Intro 1</code>, <code>taker_fee_rate = 0.012</code>, <code>maker_fee_rate = 0.006</code>, and total balance of about <code>$47.26</code>.</li>
+          <li>For the liquid major pairs examined, spreads are tight enough that fees matter more than spread at the current capital level.</li>
+          <li>The actual production account currently favors <code>USD</code> as the initial quote-currency path because a USD wallet is present while a USDC wallet was not observed in the returned account set at the time of inspection.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>What This Means</h2>
+        <div class="callout approval">
+          <h3>Phase 0 Conclusion</h3>
+          <p>VectorQuay is <strong>technically feasible and operationally coherent</strong>. The product should continue. However, the current confirmed fee state means the initial live operating model should be narrow, selective, and low-turnover rather than broad or aggressively high-frequency.</p>
+        </div>
+
+        <div class="callout risk">
+          <h3>Economic Constraint</h3>
+          <p>The production account’s confirmed <code>Intro 1</code> fee tier makes the starting balance economically fragile. The main Phase 0 issue is no longer technical feasibility. It is whether the current fee burden is acceptable for the approved business goal at this capital level.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Approved Initial Asset Posture</h2>
+        <div class="callout approval">
+          <h3>Approved Initial-Candidate Class</h3>
+          <ul>
+            <li><code>BTC-USD</code></li>
+            <li><code>ETH-USD</code></li>
+            <li><code>SOL-USD</code></li>
+            <li><code>XRP-USD</code></li>
+            <li><code>ADA-USD</code></li>
+            <li><code>LINK-USD</code></li>
+            <li><code>LTC-USD</code></li>
+            <li><code>XLM-USD</code></li>
+            <li><code>BCH-USD</code></li>
+            <li><code>UNI-USD</code></li>
+          </ul>
+          <p>Approved <code>USDC</code> equivalents remain eligible where they were screened successfully, but <code>USD</code> remains the preferred initial routing path for the current production account.</p>
+        </div>
+
+        <div class="callout gate">
+          <h3>Conditional Watchlist</h3>
+          <ul>
+            <li><code>DOGE-USD</code></li>
+            <li><code>DOGE-USDC</code></li>
+          </ul>
+        </div>
+
+        <div class="callout risk">
+          <h3>Default Exclusion Rule</h3>
+          <p>All other assets remain excluded from the initial live trading universe unless later evidence shows they satisfy the approved quote-currency, tradability, market-quality, size, increment, and fee-viability rules.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Boundaries Preserved</h2>
+        <ul>
+          <li>All Coinbase-listed spot assets may be eligible for analysis in future phases.</li>
+          <li>Only a dynamically screened subset may be eligible for live trading.</li>
+          <li>Blockchain activity is preserved as a future signal-source research area.</li>
+          <li>MEV-style, mempool-priority, or miner and validator fee-bidding tactics remain out of scope for Coinbase Advanced spot execution.</li>
+          <li><code>No trade</code> remains a valid system action if no asset passes screening.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 1 Entry Recommendation</h2>
+        <ul>
+          <li>Proceed into Phase 1 using Coinbase Advanced only.</li>
+          <li>Keep v1 live-trading assumptions narrow: spot only, trade only, USD and USDC quotes only, with the approved 10-asset candidate class as the initial screening universe.</li>
+          <li>Design for dynamic asset discovery later, but do not enable all assets for live trading by default.</li>
+          <li>Assume low-turnover, maker-friendly behavior is more defensible than taker-heavy behavior at the current fee tier.</li>
+          <li>Preserve the option to revisit the effective capital floor later if aggressive growth remains the business priority.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Recommended Next Step</h2>
+        <p>Begin <strong>Phase 1 PRD</strong> using this decision memo and the full Phase 0 findings as the implementation-planning baseline.</p>
+      </article>
+
+      <div class="footer">
+        VectorQuay Phase 0 Decision Memo • Approved baseline • Author/Owner: Brad Malia
+      </div>
+    </section>
+  </main>
+</body>
+</html>

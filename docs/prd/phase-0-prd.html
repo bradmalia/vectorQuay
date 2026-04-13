@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 0 PRD</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Product Requirements Document</p>
+          <h1>Phase 0 PRD</h1>
+          <p class="subtitle">Objective, feasibility, and trading constraints for the first go/no-go decision.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v1.0</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Approved</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Executive Summary</h2>
+          <p>Phase 0 exists to determine whether VectorQuay should proceed into implementation. It converts the approved roadmap into a product framing exercise that validates feasibility, clarifies restrictions, and defines the conditions required before any engineering work moves into trading system implementation.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Phase Goal</h2>
+          <p>Prove that the product objective, exchange constraints, initial capital, and operator rules are coherent enough to justify building the platform.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Purpose</h2>
+        <p>Phase 0 establishes whether VectorQuay should proceed into implementation. This phase exists to validate that the product goal, starting capital, exchange constraints, and risk boundaries are coherent enough to justify building the system.</p>
+      </article>
+
+      <article class="section-card">
+        <h2>Product Goal</h2>
+        <p>VectorQuay aims to maximize fee-adjusted portfolio growth as fast as possible through informed autonomous trading on Coinbase spot markets, while remaining inside hard safety, capital, and operational limits.</p>
+      </article>
+
+      <article class="section-card">
+        <h2>Asset Universe Direction</h2>
+        <p>VectorQuay should be architected to support continuous discovery and analysis of all Coinbase-listed spot assets over time. However, live trading eligibility must remain restricted to a dynamically screened and explicitly approved subset based on liquidity, spread, fee impact, risk classification, and policy rules.</p>
+      </article>
+
+      <article class="section-card">
+        <h2>Background</h2>
+        <p>The product will begin with approximately $50 in existing Coinbase-held ETH and may autonomously rebalance that capital into other Coinbase-listed spot assets. The bot must not move funds to or from the user’s bank account in v1. The product is intended to run locally, provide a GUI administration experience, and remain suitable for future resale through bring-your-own-credentials design.</p>
+      </article>
+
+      <section class="two-col">
+        <article class="section-card">
+          <h2>In Scope</h2>
+          <ul>
+            <li>Confirm exact product boundaries and prohibited actions.</li>
+            <li>Validate Coinbase spot-only feasibility for the starting account conditions.</li>
+            <li>Validate fee, minimum order size, and tradable-asset constraints at approximately $50 initial capital.</li>
+            <li>Define tradable-pair viability rules, including quote-currency restrictions, liquidity thresholds, spread tolerances, and minimum-order compatibility.</li>
+            <li>Define measurable objectives, risk boundaries, and aggressiveness modes.</li>
+            <li>Define the initial asset-allowlist policy for v1 planning.</li>
+            <li>Define how future dynamic asset discovery should expand the analysis universe without making all assets immediately tradable.</li>
+            <li>Establish go/no-go criteria for implementation.</li>
+          </ul>
+        </article>
+
+        <article class="section-card">
+          <h2>Out of Scope</h2>
+          <ul>
+            <li>Building trading logic.</li>
+            <li>Connecting to Coinbase APIs beyond research and feasibility analysis.</li>
+            <li>Implementing AI-driven decisioning.</li>
+            <li>Implementing paper trading or live trading.</li>
+            <li>Automating bank deposits or withdrawals.</li>
+            <li>Supporting non-Coinbase exchanges.</li>
+          </ul>
+        </article>
+      </section>
+
+      <article class="section-card">
+        <h2>Users and Stakeholders</h2>
+        <ul>
+          <li>Primary operator and owner: Brad Malia.</li>
+          <li>Future potential customers of a resale-ready version.</li>
+          <li>Future engineering and operator users who will need clear documentation, controls, and recoverability.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Product Constraints</h2>
+        <ul>
+          <li>Coinbase spot only for v1.</li>
+          <li>Bot may trade only Coinbase-listed assets.</li>
+          <li>Bot is a trade-only account actor for v1.</li>
+          <li>Bot may use only funds already available in the Coinbase account.</li>
+          <li>No bank withdrawals to add funds.</li>
+          <li>No bank deposits out of Coinbase for v1.</li>
+          <li>The bot may not add, modify, or remove bank accounts or payment methods.</li>
+          <li>The bot may not transfer assets to external wallets or external destinations.</li>
+          <li>Initial capital is approximately $50, currently in ETH.</li>
+          <li>The bot may sell ETH and rotate capital into other approved assets.</li>
+          <li>Asset-to-asset rotation must occur only through approved quote-currency trading flows.</li>
+          <li>For v1, approved quote currencies must be explicitly limited to USD and USDC unless Phase 0 feasibility findings narrow the policy further.</li>
+          <li>Phase 0 closeout may approve a screened initial candidate class within that USD/USDC policy. The current approved Phase 0 closeout set is BTC, ETH, SOL, XRP, ADA, LINK, LTC, XLM, BCH, and UNI, with DOGE retained as a conditional watchlist asset.</li>
+          <li>All Coinbase-listed spot assets may be eligible for analysis in future phases, but live trading must remain allowlist- or screening-controlled.</li>
+          <li>A human operator may designate assets as protected or leave-alone assets with explicit protection modes.</li>
+          <li>For v1, portfolio valuation, reporting, and benchmark comparisons must use USD as the reference currency.</li>
+          <li>For v1, USDC is allowed both as an approved routing asset and as an optional defensive capital-allocation state.</li>
+          <li>The application must run on Ubuntu and maintain a compatibility path for Windows 11.</li>
+          <li>Admin controls must be exposed through a GUI application.</li>
+          <li>No user-specific secrets may be stored in the repository.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Allowed and Prohibited Account Actions</h2>
+        <div class="callout approval">
+          <h3>Allowed in v1</h3>
+          <ul>
+            <li>Read balances, orders, fills, supported products, and market data.</li>
+            <li>Place Coinbase spot buy and sell orders.</li>
+            <li>Cancel bot-owned open orders only.</li>
+            <li>Reconcile balances, positions, and order outcomes.</li>
+            <li>Rotate from one crypto asset into another through approved quote-currency trading flows.</li>
+            <li>Respect operator-designated protected or leave-alone assets according to their configured protection mode.</li>
+          </ul>
+        </div>
+        <div class="callout risk">
+          <h3>Prohibited in v1</h3>
+          <ul>
+            <li>Bank deposits, bank withdrawals, or payment-method changes, including adding new bank accounts.</li>
+            <li>Crypto withdrawals, wallet transfers, or transfers to any external wallet or external destination.</li>
+            <li>Staking, Web3 interactions, or any on-chain wallet operations.</li>
+            <li>Margin, borrowing, derivatives, futures, or perpetuals.</li>
+            <li>Recurring buys, non-strategy conversion flows, or profit-sweep automation.</li>
+            <li>Cancelling or modifying human-owned orders without explicit human approval.</li>
+            <li>Violating the configured protection mode of any operator-designated protected or leave-alone asset.</li>
+            <li>Any account action unrelated to market data, balances, orders, fills, or risk enforcement.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Permissions Matrix</h2>
+        <table style="width:100%; border-collapse:collapse; font-size:10.5pt;">
+          <thead>
+            <tr>
+              <th style="text-align:left; padding:10px; border-bottom:1px solid #e3e6f6; color:#262b5b;">Action</th>
+              <th style="text-align:left; padding:10px; border-bottom:1px solid #e3e6f6; color:#262b5b;">Status</th>
+              <th style="text-align:left; padding:10px; border-bottom:1px solid #e3e6f6; color:#262b5b;">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Read balances</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Allowed</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Required for account awareness and risk checks.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Read orders and fills</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Allowed</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Required for reconciliation and order-state tracking.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Read supported products and market data</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Allowed</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Required for decisioning and feasibility validation.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Place spot buy orders</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Allowed</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Only within approved strategy, risk, and asset rules.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Place spot sell orders</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Allowed</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Only within approved strategy, risk, and asset rules.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Cancel bot-owned open orders</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Allowed</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Only for orders positively identified as bot-owned.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Cancel human-owned open orders</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Allowed with human approval only</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Default behavior is prohibited without explicit operator approval.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Rotate one crypto asset into another</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Allowed</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Must occur only through approved quote-currency flows, limited to USD and USDC for v1 unless narrowed.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Trade protected asset in no-buy mode</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Partially allowed</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Bot may sell or hold, but may not buy additional quantity.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Trade protected asset in no-sell mode</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Partially allowed</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Bot may buy or hold, but may not sell existing quantity.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Trade protected asset in fully excluded mode</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Prohibited</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Bot may neither buy nor sell the asset.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Bank deposits</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Prohibited</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">No automatic funding from bank accounts.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Bank withdrawals</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Prohibited</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">No automatic transfer of funds out to bank accounts.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Add, modify, or remove bank accounts/payment methods</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Prohibited</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Explicitly disallowed in v1.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Transfer assets to external wallet or destination</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Prohibited</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Explicitly disallowed in v1.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Staking</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Prohibited</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Outside trade-only account policy.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Web3 or on-chain interactions</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Prohibited</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Outside trade-only account policy.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Margin, borrowing, derivatives, futures, or perpetuals</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Prohibited</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Spot-only v1 policy.</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Recurring buys or profit-sweep automation</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Prohibited</td>
+              <td style="padding:10px; border-bottom:1px solid #e3e6f6;">Outside approved strategy engine and deferred from v1.</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="section-card">
+        <h2>Operational Control Rules</h2>
+        <ul>
+          <li>Bot-owned orders must be identified through bot-generated order metadata such as client order identifiers or equivalent markers.</li>
+          <li>Any order not carrying a bot-owned identifier must be treated as human-owned by default.</li>
+          <li>Protected assets must support explicit operator-selected modes: no buy, no sell, or fully excluded.</li>
+          <li>If the bot detects unexpected human trading activity or unknown active orders, Phase 0 must define whether the correct v1 behavior is pause, restricted mode, or continue-with-ignore before implementation begins.</li>
+          <li>Phase 0 must produce a clear operator override policy for mixed human/bot account activity.</li>
+        </ul>
+      </article>
+
+      <section class="two-col">
+        <article class="section-card">
+          <h2>Functional Requirements</h2>
+          <ul>
+            <li>Document the explicit business objective and how success will be measured.</li>
+            <li>Document hard restrictions on account and funding behavior.</li>
+            <li>Document the explicit allowed and prohibited account-action matrix for v1.</li>
+            <li>Document the rule that bot-owned orders may be cancelled by the bot, but human-owned orders may not be cancelled without explicit human approval.</li>
+            <li>Document the operator-controlled protected-asset policy so selected assets can be marked as no buy, no sell, or fully excluded.</li>
+            <li>Document the order-ownership classification rule so bot-owned and human-owned orders can be distinguished deterministically.</li>
+            <li>Document required bot behavior when unexpected human activity or unknown orders are detected.</li>
+            <li>Document the distinction between the analysis universe and the live trading universe.</li>
+            <li>Determine whether Coinbase rules and economics permit meaningful trading at the starting capital level.</li>
+            <li>Define initial quote-currency policy and pair-routing rules, with v1 limited to USD and USDC unless feasibility findings require a narrower scope.</li>
+            <li>Define minimum liquidity, maximum spread, and minimum-order compatibility rules for the initial tradable universe.</li>
+            <li>Document the approved initial screened candidate set produced by Phase 0 findings and distinguish it from conditional watchlist assets and default-excluded assets.</li>
+            <li>Define whether USDC is permitted as a strategic defensive holding in addition to being a routing asset.</li>
+            <li>Define aggressiveness profiles for future strategy work: conservative, balanced, and aggressive.</li>
+            <li>Define the initial asset-allowlist policy for v1 planning.</li>
+            <li>Produce a mandatory end-of-phase decision outcome with supporting rationale: proceed as planned, proceed with narrower scope, proceed with higher required capital, or stop.</li>
+          </ul>
+        </article>
+
+        <article class="section-card">
+          <h2>Non-Functional Requirements</h2>
+          <ul>
+            <li>All findings must be documented in version-controlled project documentation.</li>
+            <li>All constraints must be written clearly enough to become future acceptance criteria.</li>
+            <li>The output must be understandable without relying on chat transcript history.</li>
+            <li>Documentation must support future resale and multi-user productization decisions.</li>
+          </ul>
+        </article>
+      </section>
+
+      <article class="section-card">
+        <h2>Success Metrics</h2>
+        <ul>
+          <li>Primary metric defined: fee-adjusted account growth.</li>
+          <li>Secondary metrics defined: drawdown, turnover, slippage sensitivity, and growth versus passive hold.</li>
+          <li>Initial aggressiveness modes documented.</li>
+          <li>Coinbase feasibility conclusion reached for the starting capital level.</li>
+          <li>Tradable-pair viability rules are defined for the initial asset universe.</li>
+          <li>The future dynamic asset discovery direction is documented without weakening v1 live-trading controls.</li>
+          <li>Explicit account-action permission matrix is approved.</li>
+          <li>Order ownership classification and mixed human/bot control behavior are defined.</li>
+          <li>Protected-asset semantics are defined as no buy, no sell, or fully excluded.</li>
+          <li>USD is confirmed as the v1 reporting and valuation currency.</li>
+          <li>A mandatory end-of-phase decision outcome is produced and approved.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Key Risks to Resolve</h2>
+        <div class="callout risk">
+          <h3>Phase 0 Risks</h3>
+          <ul>
+            <li>The starting capital may be too small for profitable or meaningful execution after fees.</li>
+            <li>Coinbase minimum order sizes may make certain strategies impossible.</li>
+            <li>Frequent trading may destroy returns at low capital due to fees and spread.</li>
+            <li>“Maximize profits quickly” may create pressure toward unsafe aggressiveness without explicit controls.</li>
+            <li>Future resale goals may be compromised if the early design becomes too single-user or environment-specific.</li>
+          </ul>
+        </div>
+      </article>
+
+      <section class="two-col">
+        <article class="section-card">
+          <h2>Deliverables</h2>
+          <ul>
+            <li>Approved Phase 0 PRD.</li>
+            <li>Phase 0 technical requirements document.</li>
+            <li>Phase 0 unit test plan.</li>
+            <li>Phase 0 integration test plan.</li>
+            <li>Phase 0 regression test plan.</li>
+            <li>Documented feasibility findings and go/no-go criteria.</li>
+            <li>Documented account-action permission matrix.</li>
+            <li>Documented initial quote-currency and tradable-pair viability policy.</li>
+            <li>Documented distinction between analysis-universe breadth and live-trading eligibility.</li>
+            <li>Documented order-ownership and mixed-control policy.</li>
+            <li>Documented protected-asset mode policy.</li>
+            <li>Documented end-of-phase decision outcome.</li>
+          </ul>
+        </article>
+
+        <article class="section-card">
+          <h2>Open Decisions</h2>
+          <ul>
+            <li>The exact initial v1 asset allowlist still needs to be finalized.</li>
+            <li>The exact quantitative thresholds for acceptable drawdown and turnover still need to be set.</li>
+            <li>The minimum capital level for a viable live rollout may need revision after feasibility analysis.</li>
+          </ul>
+        </article>
+      </section>
+
+      <article class="section-card">
+        <h2>Acceptance Criteria</h2>
+        <div class="callout approval">
+          <h3>Approval Conditions</h3>
+          <ul>
+            <li>The product objective is explicitly defined and approved.</li>
+            <li>Hard trading and funding restrictions are documented and approved.</li>
+            <li>The v1 allowed and prohibited account-action matrix is documented and approved.</li>
+            <li>The initial quote-currency and tradable-pair viability policy is documented.</li>
+            <li>The future dynamic asset discovery direction is documented without implying that all assets are immediately tradable.</li>
+            <li>The order-ownership model and mixed human/bot activity policy are documented.</li>
+            <li>The protected-asset mode policy is documented.</li>
+            <li>Coinbase feasibility questions for the initial capital level are identified clearly enough to investigate in the technical requirements phase.</li>
+            <li>Initial aggressiveness modes are defined.</li>
+            <li>Go/no-go decision criteria and required end-of-phase decision outcomes are documented.</li>
+            <li>The document is suitable as the baseline input to the Phase 0 technical requirements document.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Recommendation</h2>
+        <p>Proceed to the Phase 0 technical requirements document. That document should convert this approved product intent into a concrete research, architecture, feasibility, documentation, and test planning package.</p>
+      </article>
+
+      <div class="footer">
+        VectorQuay Phase 0 PRD • Approved baseline • Author/Owner: Brad Malia
+      </div>
+    </section>
+  </main>
+</body>
+</html>

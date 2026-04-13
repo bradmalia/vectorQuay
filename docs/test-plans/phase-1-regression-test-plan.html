@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 1 Regression Test Plan</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Regression Test Plan</p>
+          <h1>Phase 1 Regression Test Plan</h1>
+          <p class="subtitle">Baseline-preservation plan for approved Phase 1 shell behavior, configuration rules, and Phase 0 carry-forward constraints.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v1.0</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Approved</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Purpose</h2>
+          <p>This plan protects the approved Phase 1 baseline from accidental scope expansion, policy drift, or weakening of Phase 0 carry-forward constraints during implementation and later revisions.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Test Goal</h2>
+          <p>Prevent the Phase 1 shell and configuration baseline from silently changing into something broader, riskier, or less reusable than the approved documents allow.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Regression Protection Areas</h2>
+        <ul>
+          <li>Coinbase Advanced only baseline.</li>
+          <li>Spot-only and trade-only shell posture.</li>
+          <li>No bank, wallet, staking, Web3, margin, or derivatives surfaces.</li>
+          <li>Zero-secrets-in-repo and BYO-credentials support.</li>
+          <li>USD valuation and preferred initial routing posture.</li>
+          <li>USDC secondary routing/defensive allowance.</li>
+          <li>Locked local settings paths and precedence order.</li>
+          <li>Approved candidate class and DOGE watchlist treatment.</li>
+          <li>Dynamic discovery later without all-assets-by-default live eligibility.</li>
+          <li>Protected-asset and local-operator-policy boundaries.</li>
+          <li>Manual-only update flow and no self-updating behavior.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Environment and Evidence</h2>
+        <ul>
+          <li>Run regression review whenever Phase 1 requirements, shell structure, config paths, or protected policy areas change materially.</li>
+          <li>Primary review inputs: approved roadmap, Phase 0 decision memo, approved Phase 1 PRD, approved Phase 1 TRD, and the latest implementation/test result artifacts.</li>
+          <li>Expected evidence: comparison checklist, identified drift items if any, approval notes for intentional changes, and a durable result record under <code>docs/test-results/phase-1-regression-results.md</code> or equivalent.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Regression Test Cases</h2>
+        <div class="callout gate">
+          <h3>RTP1-01: Exchange-Surface Preservation</h3>
+          <p>Verify that the Phase 1 baseline does not introduce a non-Coinbase exchange path or imply multi-exchange support without explicit approval.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP1-02: Trade-Only Shell Preservation</h3>
+          <p>Verify that later revisions do not introduce operator flows for account actions outside the approved trade-only boundary.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP1-03: Secrets and Template Preservation</h3>
+          <p>Verify that real credentials never move into the repo, checked-in templates do not become live settings sources, and redaction protections remain intact.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP1-04: Quote and Valuation Rule Preservation</h3>
+          <p>Verify that USD remains the locked Phase 1 valuation currency and preferred initial routing posture unless a later approved scope change explicitly alters it.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP1-05: USDC Secondary Allowance Preservation</h3>
+          <p>Verify that later revisions do not silently remove USDC as an approved secondary quote/routing asset without explicit approval.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP1-05A: Settings Path and Precedence Preservation</h3>
+          <p>Verify that the locked <code>settings.json</code> path, <code>secrets.env</code> path, and the approved precedence order including environment-variable overrides are not silently changed.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP1-06: Asset-Universe Baseline Preservation</h3>
+          <p>Verify that the approved initial candidate class and DOGE watchlist note remain visible and are not replaced by an unrestricted all-assets posture.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP1-07: Dynamic Discovery Boundary Preservation</h3>
+          <p>Verify that future dynamic discovery remains reserved without implying automatic live tradability for newly discovered assets.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP1-08: Protected-Asset Boundary Preservation</h3>
+          <p>Verify that local policy editing does not weaken the requirement that later technical enforcement layers remain authoritative.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP1-09: Source Registry State Preservation</h3>
+          <p>Verify that the locked source-state model and reversible state actions are not weakened or collapsed in later revisions.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP1-10: Update Flow Boundary Preservation</h3>
+          <p>Verify that the manual GitHub Releases update check does not expand into silent self-update, background install, or forced restart behavior without explicit approval.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP1-11: Placeholder-State Preservation</h3>
+          <p>Verify that Phase 1 placeholders continue to communicate inactive or future-ready status rather than implying real trading or live-ingestion capability.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP1-12: Resale-Friendly Baseline Preservation</h3>
+          <p>Verify that later revisions do not introduce one-operator, one-machine assumptions that undermine future resale or reusable installation goals.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Method</h2>
+        <ul>
+          <li>Run regression review whenever the Phase 1 baseline or any protected policy area changes materially.</li>
+          <li>Compare new revisions against the approved roadmap, Phase 0 carry-forward decisions, Phase 1 PRD, and Phase 1 TRD baselines.</li>
+          <li>Where implementation exists, compare current behavior and test-result evidence against the last approved result set rather than relying on document review alone.</li>
+          <li>Store results in a durable review artifact under <code>docs/test-results/</code>.</li>
+          <li>Reject any silent scope expansion or weakened control boundary that lacks explicit approval.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Exit Criteria</h2>
+        <ul>
+          <li>All protected Phase 1 baseline decisions remain intact.</li>
+          <li>No later revision weakens Phase 0 carry-forward constraints without explicit approval.</li>
+          <li>Any approved change to the baseline remains documented and traceable.</li>
+        </ul>
+      </article>
+
+      <div class="footer">
+        VectorQuay Phase 1 Regression Test Plan • Approved baseline • Author/Owner: Brad Malia
+      </div>
+    </section>
+  </main>
+</body>
+</html>

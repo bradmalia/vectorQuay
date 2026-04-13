@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 1 Unit Test Plan</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Unit Test Plan</p>
+          <h1>Phase 1 Unit Test Plan</h1>
+          <p class="subtitle">Component-level validation for configuration, shell state, placeholder views, and safety boundaries in the Phase 1 baseline.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v1.0</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Approved</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Purpose</h2>
+          <p>Phase 1 unit testing validates the smallest technical contracts in the approved shell baseline: configuration precedence, local persistence, redaction behavior, view-model state, and reserved-feature guardrails.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Test Goal</h2>
+          <p>Prove that individual Phase 1 components behave deterministically and safely before broader integration testing begins.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Validation Areas</h2>
+        <ul>
+          <li>Configuration precedence and effective-value resolution.</li>
+          <li>Local settings serialization and persistence.</li>
+          <li>Secret-source detection and redaction.</li>
+          <li>Shell navigation and top-level view state.</li>
+          <li>Placeholder-state rendering contracts.</li>
+          <li>Policy-edit and threshold-profile state transitions.</li>
+          <li>Source-registry state handling.</li>
+          <li>Manual update-check result mapping.</li>
+          <li>Unsupported account-surface exclusion.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Environment and Fixtures</h2>
+        <ul>
+          <li>Primary execution environment: Ubuntu-first local development environment with the Phase 1 .NET 8 solution and test projects present.</li>
+          <li>Expected test command baseline: <code>dotnet test</code> executed from the repository root or solution root.</li>
+          <li>Until the exact test project names are finalized in implementation planning, the command forms in this document should be read as patterns using the eventual core-test and app-test project paths under <code>tests/</code>.</li>
+          <li>Required fixture set:
+            deterministic application defaults fixture,
+            checked-in template fixture,
+            temporary <code>settings.json</code> fixture,
+            temporary <code>secrets.env</code> fixture,
+            environment-variable override fixture,
+            release-source response fixtures for update-check mapping,
+            and log-capture fixture for redaction assertions.
+          </li>
+          <li>Test runs must isolate local settings and secret fixtures from the real operator paths by using temporary directories and process-scoped environment-variable overrides.</li>
+          <li>Expected evidence: unit-test summary output, failing-test details if any, and a durable result record under <code>docs/test-results/phase-1-unit-results.md</code> or equivalent.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Unit-Level Checks</h2>
+        <div class="callout gate">
+          <h3>UTP1-01: Configuration Precedence Resolution</h3>
+          <p>Verify that defaults, checked-in templates, application-managed local settings, external secret files, and environment-variable overrides resolve in the approved order.</p>
+          <p><strong>Execution:</strong> run the unit suite that loads controlled fixtures for each precedence layer and asserts the effective values.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Command pattern:</strong> <code>dotnet test tests/&lt;core-test-project&gt; --filter UTP1_01</code></p>
+          <p><strong>Expected evidence:</strong> test output shows the effective-value assertions for default-only, template-plus-local-settings, secret-file, and environment-override cases all passing.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP1-02: Settings File Read and Write</h3>
+          <p>Verify that non-secret operator settings persist to <code>settings.json</code> and reload without schema drift or silent loss of values.</p>
+          <p><strong>Execution:</strong> write representative settings to a temporary file, reload them through the Phase 1 settings component, and compare the effective model.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Command pattern:</strong> <code>dotnet test tests/&lt;core-test-project&gt; --filter UTP1_02</code></p>
+          <p><strong>Expected evidence:</strong> persisted values and reloaded values match, and no checked-in template file is modified.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP1-03: Secret Presence Detection</h3>
+          <p>Verify that missing, partial, and present secret states are detected correctly without exposing secret contents.</p>
+          <p><strong>Execution:</strong> exercise the detection logic with empty, partial, complete, and environment-override fixtures.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Command pattern:</strong> <code>dotnet test tests/&lt;core-test-project&gt; --filter UTP1_03</code></p>
+          <p><strong>Expected evidence:</strong> the component reports the correct state class and never includes raw secret values in assertion output.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP1-04: Redaction and Error Safety</h3>
+          <p>Verify that logs, validation messages, and exception paths redact or omit secret values and sensitive file contents.</p>
+          <p><strong>Execution:</strong> inject known sentinel values into secret fixtures, force validation and parse errors, and assert that captured logs/messages do not contain the sentinel values.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Command pattern:</strong> <code>dotnet test tests/&lt;core-test-project&gt; --filter UTP1_04</code></p>
+          <p><strong>Expected evidence:</strong> sentinel values do not appear in captured logs, messages, or serialized error objects.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP1-05: Shell Navigation State</h3>
+          <p>Verify that the shell can select and retain each approved top-level view through centralized navigation state.</p>
+          <p><strong>Execution:</strong> instantiate the shell-navigation model and iterate through all approved destinations.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Command pattern:</strong> <code>dotnet test tests/&lt;app-test-project&gt; --filter UTP1_05</code></p>
+          <p><strong>Expected evidence:</strong> all eleven approved destinations are recognized and retained without duplicate or orphaned entries.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP1-06: Placeholder State Semantics</h3>
+          <p>Verify that placeholder, inactive, not configured, and not connected states are distinguishable in view-model state and do not collapse into the same generic condition.</p>
+          <p><strong>Execution:</strong> construct view-model states for each approved condition and assert that their labels, flags, and severity classifications differ as intended.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Command pattern:</strong> <code>dotnet test tests/&lt;app-test-project&gt; --filter UTP1_06</code></p>
+          <p><strong>Expected evidence:</strong> test output shows distinct state mappings for each condition and no ambiguous fallback state.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP1-07: Policy Edit Persistence</h3>
+          <p>Verify that approved candidate notes, watchlist notes, protected-asset modes, and other non-secret policy edits persist as local operator state.</p>
+          <p><strong>Execution:</strong> mutate representative policy objects, save them through the local settings path, reload them, and compare the effective policy state.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Command pattern:</strong> <code>dotnet test tests/&lt;core-test-project&gt; --filter UTP1_07</code></p>
+          <p><strong>Expected evidence:</strong> approved candidate notes, DOGE watchlist note, and protected-asset mode values round-trip without loss.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP1-08: Risk Profile Transition Rules</h3>
+          <p>Verify that preset profiles remain read-only defaults, Custom is the only direct-edit mode, unsaved overwrite confirmation is required, and Reset to Default restores the recommended state.</p>
+          <p><strong>Execution:</strong> exercise profile transitions, edit attempts under preset mode, overwrite confirmation logic, and reset flows in the threshold-state model.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Command pattern:</strong> <code>dotnet test tests/&lt;app-test-project&gt; --filter UTP1_08</code></p>
+          <p><strong>Expected evidence:</strong> preset-edit attempts are rejected, overwrite confirmation is requested when required, and reset restores the approved recommended baseline.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP1-09: Source Registry State Model</h3>
+          <p>Verify that the reserved source states <code>Active</code>, <code>Observed</code>, <code>Ignored</code>, <code>Blocked</code>, and <code>Needs Review</code> are represented consistently and reversible actions map to the correct target state.</p>
+          <p><strong>Execution:</strong> run state-transition tests for each reserved source state and each reversible action.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Command pattern:</strong> <code>dotnet test tests/&lt;app-test-project&gt; --filter UTP1_09</code></p>
+          <p><strong>Expected evidence:</strong> all reserved states exist in the model, invalid transitions fail, and reversible actions land in the correct target state.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP1-10: AI-Created Watcher Defaults</h3>
+          <p>Verify that AI-created watchers enter the registry in <code>Observed</code> or <code>Needs Review</code> rather than an implicitly trusted active state.</p>
+          <p><strong>Execution:</strong> construct watcher-creation inputs flagged as AI-created and assert their default state and trust flags.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Command pattern:</strong> <code>dotnet test tests/&lt;app-test-project&gt; --filter UTP1_10</code></p>
+          <p><strong>Expected evidence:</strong> no AI-created watcher defaults to <code>Active</code>.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP1-11: Quote and Valuation Defaults</h3>
+          <p>Verify that USD remains the locked Phase 1 valuation currency and preferred initial routing posture while USDC remains recognized as an approved secondary quote/routing asset.</p>
+          <p><strong>Execution:</strong> assert default configuration/model values for valuation currency, preferred route, and approved secondary route.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Command pattern:</strong> <code>dotnet test tests/&lt;core-test-project&gt; --filter UTP1_11</code></p>
+          <p><strong>Expected evidence:</strong> valuation currency resolves to USD, USD is preferred, and USDC is allowed but not primary.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP1-12: Manual Update Result Mapping</h3>
+          <p>Verify that manual update-check responses from GitHub Releases map cleanly to current-version, latest-version, update-available, and no-update states without implying self-update capability.</p>
+          <p><strong>Execution:</strong> replay release-source fixtures for no release, current version, newer version, malformed response, and network-failure scenarios.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Command pattern:</strong> <code>dotnet test tests/&lt;app-test-project&gt; --filter UTP1_12</code></p>
+          <p><strong>Expected evidence:</strong> valid responses map correctly, malformed responses surface understandable failures, and no state implies automatic installation.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP1-13: Invalid Settings and Secret Fixtures</h3>
+          <p>Verify that malformed <code>settings.json</code>, malformed <code>secrets.env</code>, and missing required keys produce understandable validation outcomes and do not crash the process.</p>
+          <p><strong>Execution:</strong> load intentionally invalid fixture files through the validation components and assert blocking-failure, warning, or informational classification as appropriate.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Command pattern:</strong> <code>dotnet test tests/&lt;core-test-project&gt; --filter UTP1_13</code></p>
+          <p><strong>Expected evidence:</strong> each invalid fixture produces the expected validation classification and redacted message text.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP1-14: Unsupported Surface Metadata Exclusion</h3>
+          <p>Verify that shell navigation metadata and top-level view registration do not include bank funding, withdrawal, wallet transfer, staking, Web3, margin, borrowing, or derivatives surfaces.</p>
+          <p><strong>Execution:</strong> inspect the registered Phase 1 destinations and supported command identifiers in component-level tests.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Command pattern:</strong> <code>dotnet test tests/&lt;app-test-project&gt; --filter UTP1_14</code></p>
+          <p><strong>Expected evidence:</strong> unsupported account-action surfaces are absent from navigation and command registries.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Method</h2>
+        <ul>
+          <li>Implement automated unit tests in the Phase 1 test project structure under <code>tests/</code>.</li>
+          <li>Prefer pure component and view-model tests over UI automation for this layer.</li>
+          <li>Use controlled test doubles for file-system, release-source, and secret-source interactions where practical.</li>
+          <li>Maintain stable test naming so the documented <code>--filter</code> commands remain usable as focused execution commands.</li>
+          <li>Record unit-test results in a durable artifact under <code>docs/test-results/</code> when Phase 1 execution begins.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Exit Criteria</h2>
+        <ul>
+          <li>All critical Phase 1 state-management and configuration contracts have dedicated unit coverage.</li>
+          <li>Secrets and redaction behavior are validated at the component level.</li>
+          <li>No placeholder-state, negative validation path, or profile-transition rule remains untested.</li>
+          <li>Unsupported account-action surfaces are protected by automated component-level tests.</li>
+        </ul>
+      </article>
+
+      <div class="footer">
+        VectorQuay Phase 1 Unit Test Plan • Approved baseline • Author/Owner: Brad Malia
+      </div>
+    </section>
+  </main>
+</body>
+</html>

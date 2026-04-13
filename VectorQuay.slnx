@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/VectorQuay.App/VectorQuay.App.csproj" />
+    <Project Path="src/VectorQuay.Core/VectorQuay.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/VectorQuay.Core.Tests/VectorQuay.Core.Tests.csproj" />
+  </Folder>
+</Solution>

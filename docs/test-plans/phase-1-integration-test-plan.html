@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 1 Integration Test Plan</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Integration Test Plan</p>
+          <h1>Phase 1 Integration Test Plan</h1>
+          <p class="subtitle">Cross-layer validation for the repository baseline, Avalonia shell, local settings model, and approved Phase 1 operator flows.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v1.0</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Approved</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Purpose</h2>
+          <p>This plan verifies that the Phase 1 implementation works as a coherent baseline across repository structure, configuration loading, shell startup, view navigation, persistence, and release-check behavior.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Test Goal</h2>
+          <p>Prove that the approved Phase 1 baseline is runnable, safe, and structurally ready for Phase 2 Coinbase read-only integration.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Scope</h2>
+        <ul>
+          <li>Validate repository and project-structure completeness.</li>
+          <li>Validate shell startup on Ubuntu-first local workflow.</li>
+          <li>Validate local settings and external-secret boundaries.</li>
+          <li>Validate navigation across all approved top-level screens.</li>
+          <li>Validate policy/configuration persistence and placeholder-state behavior.</li>
+          <li>Validate real manual GitHub Releases update checks.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Out of Scope</h2>
+        <ul>
+          <li>Live Coinbase API integration.</li>
+          <li>Live order placement or cancellation.</li>
+          <li>Paper trading.</li>
+          <li>Outbound email or SMS delivery.</li>
+          <li>Automatic asset-discovery jobs.</li>
+          <li>Self-updating installation behavior.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Integration Test Areas</h2>
+        <ul>
+          <li>Repository-to-build workflow alignment.</li>
+          <li>Configuration template to live settings-path alignment.</li>
+          <li>Secret-source detection to UI status alignment.</li>
+          <li>Shell navigation to approved PRD mock structure alignment.</li>
+          <li>Policy and settings edits to persistence-layer alignment.</li>
+          <li>Version display to release-check alignment.</li>
+          <li>Approved product boundaries to shell affordance alignment.</li>
+          <li>Ignored-file enforcement and repo-safety alignment.</li>
+          <li>Validation-command behavior and evidence capture alignment.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Environment and Fixtures</h2>
+        <ul>
+          <li>Primary execution environment: Ubuntu-first local workstation with .NET 8 SDK installed and the Phase 1 solution present.</li>
+          <li>Primary command baseline:
+            <code>dotnet restore</code>,
+            <code>dotnet build</code>,
+            <code>dotnet test</code>,
+            and the documented shell run command such as <code>dotnet run --project src/VectorQuay.App</code>.
+          </li>
+          <li>Required fixture set:
+            clean repo checkout,
+            temporary local settings directory,
+            temporary <code>secrets.env</code> variations,
+            environment-variable override fixture,
+            placeholder release-source fixture or controlled GitHub Releases test target,
+            and representative non-secret policy/configuration edits.
+          </li>
+          <li>Until the exact integration-test project name exists, any <code>dotnet test</code> command that references an integration-test project should be interpreted as a command pattern using the eventual integration-test project path under <code>tests/</code>.</li>
+          <li>Windows-compatibility strategy without a Windows machine:
+            treat this as a structural compatibility check rather than a full runtime compatibility test,
+            require a RID-neutral project design review,
+            require successful non-Windows build/test execution,
+            and when the implementation exists, run a compatibility smoke command such as <code>dotnet publish src/VectorQuay.App -c Release -r win-x64 --self-contained false</code> if the chosen packaging path supports it.
+          </li>
+          <li>Expected evidence: saved command transcript, build/test summaries, screenshots or textual captures of key shell states, and a durable result record under <code>docs/test-results/phase-1-integration-results.md</code> or equivalent.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Test Cases</h2>
+        <div class="callout gate">
+          <h3>ITP1-01: Repository Scaffold Integrity</h3>
+          <p>Verify that the repository contains the approved source, test, docs, assets, and configuration-template structure.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Pass condition:</strong> project layout matches the approved Phase 1 baseline without collapsing core and app concerns into a single unmanaged structure.</p>
+          <p><strong>Expected evidence:</strong> captured repository checklist mapped to the approved structure.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP1-02: Ubuntu Restore, Build, and Run</h3>
+          <p>Verify that the documented Ubuntu workflow restores dependencies, builds successfully, and launches the shell application.</p>
+          <p><strong>Automation:</strong> Required for restore and build; shell launch may be verified through automation or a controlled manual run until UI automation exists.</p>
+          <p><strong>Command:</strong> <code>dotnet restore</code>, <code>dotnet build</code>, and the documented shell launch command.</p>
+          <p><strong>Pass condition:</strong> no ad hoc undocumented steps are required.</p>
+          <p><strong>Expected evidence:</strong> captured command output showing successful restore, build, and launch.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP1-03: Safe Startup With Missing Secrets</h3>
+          <p>Verify that the application starts with no secrets present and presents an understandable not-configured state rather than failing hard.</p>
+          <p><strong>Automation:</strong> Required for startup/validation classification; UI-state capture may be manual until shell automation exists.</p>
+          <p><strong>Fixture:</strong> no <code>secrets.env</code> file and no relevant environment variables.</p>
+          <p><strong>Command:</strong> documented shell launch command plus any documented validation command.</p>
+          <p><strong>Pass condition:</strong> shell launch succeeds and secret-source status is visible without revealing secret values.</p>
+          <p><strong>Expected evidence:</strong> startup output and UI capture or textual state record showing not-configured status.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP1-04: Secret File and Environment Override Integration</h3>
+          <p>Verify that external secret-file values are recognized and same-name environment variables override them in the effective runtime state.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> temporary <code>secrets.env</code> plus process-scoped environment variables with conflicting values.</p>
+          <p><strong>Command pattern:</strong> documented validation command and focused integration test command such as <code>dotnet test tests/&lt;integration-test-project&gt; --filter ITP1_04</code>.</p>
+          <p><strong>Pass condition:</strong> effective configuration reflects the approved precedence contract.</p>
+          <p><strong>Expected evidence:</strong> result artifact records the resolved source precedence without exposing raw secrets.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP1-05: Top-Level Navigation Coverage</h3>
+          <p>Verify that Home, Configuration, Assets, Policies, Portfolio, Activity, Performance, Risk &amp; Thresholds, Sources, Alerts, and About all render through the shared shell.</p>
+          <p><strong>Automation:</strong> Required for destination enumeration; guided manual verification is acceptable for visual rendering until UI automation exists.</p>
+          <p><strong>Command:</strong> shell launch command plus focused navigation automation or guided manual run with a checklist artifact.</p>
+          <p><strong>Pass condition:</strong> each screen is reachable and stable through centralized navigation.</p>
+          <p><strong>Expected evidence:</strong> navigation checklist with pass/fail entry for every approved top-level destination.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP1-06: Policy and Configuration Persistence</h3>
+          <p>Verify that non-secret configuration and policy edits persist across application restart through the application-managed local settings file.</p>
+          <p><strong>Automation:</strong> Required for persistence verification; UI interaction may be manual until automation exists.</p>
+          <p><strong>Fixture:</strong> representative configuration changes plus policy changes for approved candidate notes, DOGE watchlist note, and protected-asset modes.</p>
+          <p><strong>Command:</strong> shell run, save action, restart, and focused persistence verification command or checklist.</p>
+          <p><strong>Pass condition:</strong> edits remain after restart and checked-in templates remain unchanged.</p>
+          <p><strong>Expected evidence:</strong> before/after state capture and confirmation that only the temporary application-managed settings file changed.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP1-07: Reserved-State Presentation</h3>
+          <p>Verify that inactive, placeholder, not configured, and not connected states remain visually and semantically distinct across the shell.</p>
+          <p><strong>Automation:</strong> Required for state classification; manual capture is acceptable for the rendered visual proof until UI automation exists.</p>
+          <p><strong>Fixture:</strong> controlled startup modes that trigger each approved state.</p>
+          <p><strong>Pass condition:</strong> the shell does not imply live trading, paper trading, or live source ingestion is active.</p>
+          <p><strong>Expected evidence:</strong> state checklist or screenshots/text captures showing each condition distinctly.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP1-08: Unsupported Account-Surface Exclusion</h3>
+          <p>Verify that the shell does not expose supported flows for bank funding, withdrawals, payment-method changes, external wallet transfers, staking/Web3, margin, borrowing, or derivatives.</p>
+          <p><strong>Automation:</strong> Required for navigation/registration checks; manual screen inspection is acceptable as supplemental evidence.</p>
+          <p><strong>Pass condition:</strong> no Phase 1 screen contradicts the approved trade-only shell boundary.</p>
+          <p><strong>Expected evidence:</strong> reviewed navigation map and screen checklist showing these surfaces are absent.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP1-09: Source Registry Contract</h3>
+          <p>Verify that the Sources view preserves the locked tabs, state model, selection behavior, and watcher/direct-source registry treatment.</p>
+          <p><strong>Automation:</strong> Required for state and selection assertions; manual review may supplement rendering evidence.</p>
+          <p><strong>Pass condition:</strong> sources and watchers share one registry model and AI-created watchers default to a non-trusted state.</p>
+          <p><strong>Expected evidence:</strong> source-registry walkthrough record showing tabs, selection behavior, and default watcher state.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP1-10: Manual GitHub Releases Update Check</h3>
+          <p>Verify that the About view performs a real manual check against the configured GitHub Releases source and presents current version, latest available version, and download/open affordances.</p>
+          <p><strong>Automation:</strong> Required for release-response handling; manual About-screen verification is acceptable for rendered state until UI automation exists.</p>
+          <p><strong>Fixture:</strong> configured GitHub Releases test target or controlled response fixture.</p>
+          <p><strong>Command:</strong> shell launch plus manual update-check action; supplement with focused integration command such as <code>dotnet test tests/&lt;integration-test-project&gt; --filter ITP1_10</code> where available.</p>
+          <p><strong>Pass condition:</strong> update discovery works without silent install or forced restart behavior.</p>
+          <p><strong>Expected evidence:</strong> About view capture or textual state record with current version, latest version, and manual download/open affordance.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP1-11: Branding and Version Consistency</h3>
+          <p>Verify that branding, owner attribution, and coherent version display appear consistently in shell metadata, Home, and About surfaces.</p>
+          <p><strong>Automation:</strong> Required for version-value consistency where accessible programmatically; manual evidence is acceptable for rendered branding review.</p>
+          <p><strong>Pass condition:</strong> no screen or build artifact presents conflicting version or attribution information.</p>
+          <p><strong>Expected evidence:</strong> artifact record showing matching title/window metadata, Home version, and About version values.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP1-12: Ignored-File Enforcement</h3>
+          <p>Verify that the application-managed settings file and external secret file are covered by the repo’s ignore rules and do not appear as normal commit candidates.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> temporary creation of representative local settings and secret files in the approved paths or mapped test-equivalent paths.</p>
+          <p><strong>Command:</strong> <code>git status --short</code> after fixture creation, plus any documented ignore-verification step.</p>
+          <p><strong>Pass condition:</strong> ignored local files do not appear as tracked or addable artifacts in normal workflow.</p>
+          <p><strong>Expected evidence:</strong> captured <code>git status --short</code> output showing no accidental inclusion of the protected files.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP1-13: Save, Validate, and Reset Command Flows</h3>
+          <p>Verify that meaningful operator actions required by the Phase 1 shell contract perform the correct behavior and surface the correct result states.</p>
+          <p><strong>Automation:</strong> Required for underlying behavior verification; manual UI interaction is acceptable for rendered confirmation until UI automation exists.</p>
+          <p><strong>Fixture:</strong> editable non-secret configuration, editable policy state, and threshold-profile state with unsaved changes.</p>
+          <p><strong>Command:</strong> shell launch with focused interaction checklist or automation covering Save, Validate, Reset to Default, and overwrite-confirmation flows.</p>
+          <p><strong>Pass condition:</strong> Save persists correctly, Validate returns understandable classifications, Reset restores defaults, and overwrite confirmation appears when required.</p>
+          <p><strong>Expected evidence:</strong> interaction log or captured checklist with outcome for each operator action.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP1-14: Negative Validation Paths</h3>
+          <p>Verify that malformed <code>settings.json</code>, malformed <code>secrets.env</code>, and invalid release-source responses surface understandable failures rather than crashes.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> intentionally invalid settings, invalid secret file, and invalid GitHub Releases payload.</p>
+          <p><strong>Command pattern:</strong> documented validation command and focused integration test command such as <code>dotnet test tests/&lt;integration-test-project&gt; --filter ITP1_14</code>.</p>
+          <p><strong>Pass condition:</strong> failures are classified and understandable, and the shell or validator remains controlled.</p>
+          <p><strong>Expected evidence:</strong> result artifact captures each negative path with classification and redacted message text.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP1-15: Windows Compatibility Smoke Strategy</h3>
+          <p>Verify Windows compatibility to the extent possible without a Windows machine by treating this as a structural compatibility check and, when supported by the implementation, performing a Windows RID publish smoke test.</p>
+          <p><strong>Automation:</strong> Required for the publish smoke command when applicable; structural review is required in all cases.</p>
+          <p><strong>Command:</strong> <code>dotnet publish src/VectorQuay.App -c Release -r win-x64 --self-contained false</code> after the implementation exists, or document why the command is not yet applicable.</p>
+          <p><strong>Pass condition:</strong> the project structure and dependency choices do not show an obvious Windows-blocking assumption, and the publish smoke test succeeds if the project has reached a stage where publish is applicable.</p>
+          <p><strong>Expected evidence:</strong> publish output or an explicit documented exception describing why only structural compatibility evidence is available at the current implementation stage.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Method</h2>
+        <ul>
+          <li>Perform repository and runtime validation against the approved Phase 1 PRD and TRD.</li>
+          <li>Use a controlled local test environment with temporary settings and secret sources outside the repo.</li>
+          <li>Capture the exact commands used in the result artifact so the validation is repeatable by a later session.</li>
+          <li>Capture pass/fail outcomes and defects in a durable result artifact under <code>docs/test-results/</code>.</li>
+          <li>Resolve any integration contradiction before Phase 1 is considered complete.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Exit Criteria</h2>
+        <ul>
+          <li>The documented build and run workflow succeeds on the primary environment.</li>
+          <li>All approved Phase 1 views render through the shell and preserve the required states and boundaries.</li>
+          <li>Configuration, persistence, validation, ignored-file enforcement, and manual update-check flows work coherently end to end.</li>
+          <li>The executed commands, fixtures, and evidence are recorded clearly enough for a later session to reproduce the run.</li>
+        </ul>
+      </article>
+
+      <div class="footer">
+        VectorQuay Phase 1 Integration Test Plan • Approved baseline • Author/Owner: Brad Malia
+      </div>
+    </section>
+  </main>
+</body>
+</html>

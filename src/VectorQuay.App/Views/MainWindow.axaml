@@ -1,0 +1,781 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:VectorQuay.App.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        d:DesignWidth="1440"
+        d:DesignHeight="920"
+        x:Class="VectorQuay.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="VectorQuay"
+        MinWidth="1200"
+        MinHeight="840"
+        Background="#FFFFFF">
+
+    <Window.Styles>
+        <Style Selector="Button.nav">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#D7DBF4"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style Selector="Button.nav:pointerover">
+            <Setter Property="Background" Value="#33407C"/>
+        </Style>
+        <Style Selector="Button.nav.active">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="#33407C"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#DFE4FB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="16"/>
+        </Style>
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#5F6794"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid ColumnDefinitions="220,*" Background="#FFFFFF">
+        <Border Grid.Column="0" Background="#262B5B">
+            <Grid RowDefinitions="Auto,*" Margin="0">
+                <StackPanel Margin="20,20,20,12" Spacing="18">
+                    <Image Width="168"
+                           Height="72"
+                           HorizontalAlignment="Left"
+                           Stretch="Uniform"
+                           Source="avares://VectorQuay.App/Assets/Brand/vectorquay-logo-shell.png"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Margin="16,0,16,20" Spacing="2">
+                    <Button Classes="nav" Classes.active="{Binding IsHomeSection}" Command="{Binding SetSectionCommand}" CommandParameter="Home" Content="Home"/>
+                    <Button Classes="nav" Classes.active="{Binding IsConfigurationSection}" Command="{Binding SetSectionCommand}" CommandParameter="Configuration" Content="Configuration"/>
+                    <Button Classes="nav" Classes.active="{Binding IsAssetsSection}" Command="{Binding SetSectionCommand}" CommandParameter="Assets" Content="Assets"/>
+                    <Button Classes="nav" Classes.active="{Binding IsPoliciesSection}" Command="{Binding SetSectionCommand}" CommandParameter="Policies" Content="Policies"/>
+                    <Button Classes="nav" Classes.active="{Binding IsPortfolioSection}" Command="{Binding SetSectionCommand}" CommandParameter="Portfolio" Content="Portfolio"/>
+                    <Button Classes="nav" Classes.active="{Binding IsActivitySection}" Command="{Binding SetSectionCommand}" CommandParameter="Activity" Content="Activity"/>
+                    <Button Classes="nav" Classes.active="{Binding IsPerformanceSection}" Command="{Binding SetSectionCommand}" CommandParameter="Performance" Content="Performance"/>
+                    <Button Classes="nav" Classes.active="{Binding IsRiskSection}" Command="{Binding SetSectionCommand}" CommandParameter="Risk &amp; Thresholds" Content="Risk &amp; Thresholds"/>
+                    <Button Classes="nav" Classes.active="{Binding IsSourcesSection}" Command="{Binding SetSectionCommand}" CommandParameter="Sources" Content="Sources"/>
+                    <Button Classes="nav" Classes.active="{Binding IsAlertsSection}" Command="{Binding SetSectionCommand}" CommandParameter="Alerts" Content="Alerts"/>
+                    <Button Classes="nav" Classes.active="{Binding IsAboutSection}" Command="{Binding SetSectionCommand}" CommandParameter="About" Content="About"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Column="1" Background="#F6F8FF">
+            <ScrollViewer>
+                <StackPanel Margin="24" Spacing="16">
+                    <Border Background="#FFF4D6" BorderBrush="#F1D48A" BorderThickness="1" CornerRadius="12" Padding="10,12">
+                        <TextBlock Foreground="#6A4D00" FontSize="13" Text="Global Alerts Area: reserved for future warnings, errors, and important operator notifications." TextWrapping="Wrap"/>
+                    </Border>
+
+                    <StackPanel IsVisible="{Binding IsHomeSection}" Spacing="16">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                            <StackPanel Spacing="2">
+                                <TextBlock FontSize="12" Foreground="#5F6794" Text="{Binding AppVersion, StringFormat=Version {0}}"/>
+                                <TextBlock FontSize="26" FontWeight="Bold" Foreground="#262B5B" Text="Dashboard"/>
+                            </StackPanel>
+                            <Border Background="#EEF2FF" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="999" Padding="10,8" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                <TextBlock Text="Trading Inactive" FontWeight="SemiBold" Foreground="#2B357F"/>
+                            </Border>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="14">
+                            <Border Classes="card">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Classes="label" Text="App Health"/>
+                                    <TextBlock FontSize="20" FontWeight="Bold" Foreground="#262B5B" Text="Ready"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Classes="card">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Classes="label" Text="Coinbase"/>
+                                    <TextBlock FontSize="20" FontWeight="Bold" Foreground="#262B5B" Text="Not Connected"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Classes="card">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Classes="label" Text="Application State"/>
+                                    <TextBlock FontSize="20" FontWeight="Bold" Foreground="#262B5B" Text="{Binding ShellStatus}"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="1.1*,0.9*" ColumnSpacing="14">
+                            <Border Classes="card">
+                                <StackPanel Spacing="10">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Portfolio Snapshot"/>
+                                        <TextBlock Grid.Column="1" Classes="label" Text="Last Updated: Placeholder"/>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,*,*">
+                                        <StackPanel>
+                                            <TextBlock Classes="label" Text="Total Value"/>
+                                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="#262B5B" Text="Example Value"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Classes="label" Text="Open Positions"/>
+                                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="#262B5B" Text="Placeholder"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Classes="label" Text="USD Available"/>
+                                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="#262B5B" Text="Placeholder"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Classes="card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Top Candidates"/>
+                                    <ItemsControl ItemsSource="{Binding AssetRows}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:AssetRowViewModel">
+                                                <TextBlock>
+                                                    <Run Text="{Binding Asset}"/>
+                                                    <Run Text=" · "/>
+                                                    <Run Text="{Binding State}"/>
+                                                    <Run Text=" · "/>
+                                                    <Run Text="{Binding Priority}"/>
+                                                </TextBlock>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="14" RowSpacing="14">
+                            <Border Classes="card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Recent Activity"/>
+                                    <ItemsControl ItemsSource="{Binding ActivityItems}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Classes="card">
+                                <StackPanel Spacing="8">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="System Summary"/>
+                                        <TextBlock Grid.Column="1" Classes="label" Text="Last Updated: Placeholder"/>
+                                    </Grid>
+                                    <TextBlock Text="{Binding ShellMessage}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel IsVisible="{Binding IsConfigurationSection}" Spacing="16">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Image Width="26"
+                                   Height="26"
+                                   Stretch="Uniform"
+                                   Source="avares://VectorQuay.App/Assets/Brand/vectorquay-mark-shell.png"/>
+                            <TextBlock FontSize="24" FontWeight="Bold" Foreground="#262B5B" Text="Configuration"/>
+                        </StackPanel>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
+                            <Border Classes="card" Background="#F7F9FF">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="label" Text="Coinbase Key Source"/>
+                                    <Border Background="White" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="10" Padding="10,12">
+                                        <TextBlock Text="{Binding CoinbaseApiKeyStatus}"/>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Classes="card" Background="#F7F9FF">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="label" Text="OpenAI Key Source"/>
+                                    <Border Background="White" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="10" Padding="10,12">
+                                        <TextBlock Text="{Binding OpenAiApiKeyStatus}"/>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Row="1" Classes="card" Background="#F7F9FF">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="label" Text="Detected Platform"/>
+                                    <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12">
+                                        <TextBlock Foreground="#6B7287" Text="Linux (Detected)"/>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Row="1" Grid.Column="1" Classes="card" Background="#F7F9FF">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="label" Text="Valuation Currency"/>
+                                    <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12">
+                                        <TextBlock Foreground="#6B7287" Text="USD (Locked for v1)"/>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <Border Classes="card">
+                            <StackPanel Spacing="12">
+                                <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Editable Non-Secret Settings"/>
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Classes="label" Text="Application State"/>
+                                        <TextBox Text="{Binding ShellStatus}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="6">
+                                        <TextBlock Classes="label" Text="GitHub Releases Feed URL"/>
+                                        <TextBox Text="{Binding ReleaseFeedUrl}" PlaceholderText="Leave blank until a real VectorQuay release feed exists"/>
+                                    </StackPanel>
+                                </Grid>
+                                <CheckBox Content="Allow USDC secondary routing in later phases" IsChecked="{Binding UsdcSecondaryEnabled}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button Content="Save" Command="{Binding SaveSettingsCommand}" Background="#262B5B" Foreground="White"/>
+                                    <Button Content="Validate" Command="{Binding ValidateSettingsCommand}" Background="#EEF2FF" Foreground="#2B357F"/>
+                                    <Button Content="Reset" Command="{Binding ResetToSavedCommand}" Background="#EEF2FF" Foreground="#2B357F"/>
+                                </StackPanel>
+                                <Border Background="#F7F9FF" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="10" Padding="10,12">
+                                    <TextBlock Text="{Binding SettingsActionMessage}" TextWrapping="Wrap" Foreground="#424A76"/>
+                                </Border>
+                                <TextBlock Classes="label" Text="Last Updated: Placeholder"/>
+                                <Border Background="#FFFFFF" BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="10" Padding="10,12">
+                                    <TextBlock Text="{Binding ValidationSummary}" TextWrapping="Wrap" Foreground="#424A76"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel IsVisible="{Binding IsAssetsSection}" Spacing="16">
+                        <Border Classes="card" Background="#F7F9FF">
+                            <StackPanel Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Image Width="24"
+                                           Height="18"
+                                           Stretch="Uniform"
+                                           Source="avares://VectorQuay.App/Assets/Brand/vectorquay-mark-shell.png"/>
+                                    <TextBlock FontSize="22" FontWeight="Bold" Foreground="#262B5B" Text="Asset Universe"/>
+                                </StackPanel>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Classes="label" Text="Filters: Asset / State"/>
+                                    <TextBlock Grid.Column="1" Classes="label" Text="Default Sort: Trade Priority"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Classes="label" Text="Last Discovery Scan: Placeholder"/>
+                                    <TextBlock Grid.Column="1" Foreground="#2B357F" FontWeight="SemiBold" Text="Refresh Universe"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="*,*,*,2*" Margin="0,4,0,0">
+                                    <TextBlock FontWeight="Bold" Text="Asset"/>
+                                    <TextBlock Grid.Column="1" FontWeight="Bold" Text="State"/>
+                                    <TextBlock Grid.Column="2" FontWeight="Bold" Text="Priority"/>
+                                    <TextBlock Grid.Column="3" FontWeight="Bold" Text="Notes"/>
+                                </Grid>
+                                <ItemsControl ItemsSource="{Binding AssetRows}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:AssetRowViewModel">
+                                            <Border BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="0,8">
+                                                <Grid ColumnDefinitions="*,*,*,2*">
+                                                    <TextBlock Text="{Binding Asset}"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding State}"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Priority}"/>
+                                                    <TextBlock Grid.Column="3" Text="{Binding Notes}" TextWrapping="Wrap"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Classes="label" Text="Newly discovered assets should appear automatically in a non-tradable state until screened. Operators should also be able to trigger a manual discovery refresh." TextWrapping="Wrap"/>
+                                <TextBlock Classes="label" Text="Last Screening Update: Placeholder"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel IsVisible="{Binding IsPoliciesSection}" Spacing="16">
+                        <Border Classes="card" Background="#F7F9FF">
+                            <StackPanel Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Image Width="24"
+                                           Height="24"
+                                           Stretch="Uniform"
+                                           Source="avares://VectorQuay.App/Assets/Brand/vectorquay-mark-shell.png"/>
+                                    <TextBlock FontSize="22" FontWeight="Bold" Foreground="#262B5B" Text="Policies"/>
+                                </StackPanel>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Classes="label" Text="Filters: Search / Asset / Mode / State"/>
+                                    <TextBlock Grid.Column="1" Classes="label" Text="Default Sort: Most Recently Updated"/>
+                                </Grid>
+                                <TextBlock Classes="label" Text="Select one rule to edit details, or select multiple rules for future bulk actions."/>
+                                <Grid ColumnDefinitions="1.1*,0.9*" ColumnSpacing="14">
+                                    <Border Classes="card">
+                                        <StackPanel Spacing="10">
+                                            <Grid ColumnDefinitions="72,110,150,*" ColumnSpacing="10" Margin="0,0,0,8">
+                                                <TextBlock FontWeight="Bold" Text="Select"/>
+                                                <TextBlock Grid.Column="1" FontWeight="Bold" Text="Asset"/>
+                                                <TextBlock Grid.Column="2" FontWeight="Bold" Text="Mode"/>
+                                                <TextBlock Grid.Column="3" FontWeight="Bold" Text="Notes"/>
+                                            </Grid>
+                                            <ItemsControl ItemsSource="{Binding PolicyRules}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:PolicyRuleViewModel">
+                                                        <Button Command="{Binding $parent[Window].DataContext.SelectPolicyRuleCommand}" CommandParameter="{Binding .}" Background="Transparent" BorderThickness="0" Padding="0" HorizontalContentAlignment="Stretch">
+                                                            <Border BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="0,8">
+                                                                <Grid ColumnDefinitions="72,110,150,*" ColumnSpacing="10">
+                                                                    <CheckBox IsChecked="{Binding IsSelected}" IsEnabled="False" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                                                                    <TextBlock Grid.Column="1" Text="{Binding Asset}"/>
+                                                                    <TextBlock Grid.Column="2" Text="{Binding Mode}"/>
+                                                                    <TextBlock Grid.Column="3" Text="{Binding Notes}" TextWrapping="Wrap"/>
+                                                                </Grid>
+                                                            </Border>
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <TextBlock Classes="label" Text="Last Policy Update: Placeholder"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <Button Content="Add Rule" Background="#262B5B" Foreground="White"/>
+                                                <Button Content="Edit" Background="#EEF2FF" Foreground="#2B357F"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="1" Classes="card">
+                                        <StackPanel Spacing="8">
+                                            <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Selected Policy Details"/>
+                                            <TextBlock Classes="label" Text="{Binding SelectedPolicyRule.Asset, StringFormat=Asset: {0}, TargetNullValue=Asset: None}"/>
+                                            <TextBlock Classes="label" Text="{Binding SelectedPolicyRule.Mode, StringFormat=Mode: {0}, TargetNullValue=Mode: None}"/>
+                                            <TextBlock Classes="label" Text="{Binding SelectedPolicyRule.Notes, StringFormat=Notes: {0}, TargetNullValue=Notes: None}"/>
+                                            <TextBlock Classes="label" Text="Source: Operator rule"/>
+                                            <TextBlock Classes="label" Text="Last Updated: Placeholder"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <Button Content="Edit Rule" Background="#EEF2FF" Foreground="#2B357F"/>
+                                                <Button Content="Remove" Background="#EEF2FF" Foreground="#2B357F"/>
+                                                <Button Content="Reset Default" Background="#EEF2FF" Foreground="#2B357F"/>
+                                            </StackPanel>
+                                            <Separator/>
+                                            <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
+                                                <StackPanel Spacing="6">
+                                                    <TextBlock Classes="label" Text="BTC Protected Mode"/>
+                                                    <ComboBox ItemsSource="{Binding ProtectedAssetModes}" SelectedItem="{Binding ProtectedBtcMode}"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Spacing="6">
+                                                    <TextBlock Classes="label" Text="ETH Protected Mode"/>
+                                                    <ComboBox ItemsSource="{Binding ProtectedAssetModes}" SelectedItem="{Binding ProtectedEthMode}"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel IsVisible="{Binding IsPortfolioSection}" Spacing="16">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Image Width="24"
+                                   Height="18"
+                                   Stretch="Uniform"
+                                   Source="avares://VectorQuay.App/Assets/Brand/vectorquay-mark-shell.png"/>
+                            <TextBlock FontSize="26" FontWeight="Bold" Foreground="#262B5B" Text="Portfolio"/>
+                        </StackPanel>
+                        <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="12">
+                            <Border Classes="card"><StackPanel><TextBlock Classes="label" Text="Total Value"/><TextBlock FontSize="20" FontWeight="Bold" Text="Example Value"/></StackPanel></Border>
+                            <Border Grid.Column="1" Classes="card"><StackPanel><TextBlock Classes="label" Text="Change"/><TextBlock FontSize="20" FontWeight="Bold" Text="24H Placeholder"/></StackPanel></Border>
+                            <Border Grid.Column="2" Classes="card"><StackPanel><TextBlock Classes="label" Text="Active Assets"/><TextBlock FontSize="20" FontWeight="Bold" Text="3"/></StackPanel></Border>
+                            <Border Grid.Column="3" Classes="card"><StackPanel><TextBlock Classes="label" Text="Trade Count"/><TextBlock FontSize="20" FontWeight="Bold" Text="0"/></StackPanel></Border>
+                        </Grid>
+                        <Grid ColumnDefinitions="1.1*,0.9*" ColumnSpacing="14">
+                            <Border Classes="card"><StackPanel><TextBlock FontWeight="Bold" Text="Allocation"/><Border Height="170" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="12" Background="#FBFCFF"><TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="Future allocation view" Foreground="#5F6794"/></Border></StackPanel></Border>
+                            <Border Grid.Column="1" Classes="card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontWeight="Bold" Text="Current Holdings"/>
+                                    <Grid ColumnDefinitions="*,*" Margin="0,0,0,6">
+                                        <TextBlock FontWeight="Bold" Text="Asset"/>
+                                        <TextBlock Grid.Column="1" FontWeight="Bold" Text="Value"/>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,*" Margin="0,0,0,4">
+                                        <TextBlock Text="ETH"/>
+                                        <TextBlock Grid.Column="1" Text="Placeholder"/>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,*" Margin="0,0,0,4">
+                                        <TextBlock Text="USD"/>
+                                        <TextBlock Grid.Column="1" Text="Placeholder"/>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,*">
+                                        <TextBlock Text="Other"/>
+                                        <TextBlock Grid.Column="1" Text="Placeholder"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel IsVisible="{Binding IsActivitySection}" Spacing="16">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Image Width="24"
+                                   Height="18"
+                                   Stretch="Uniform"
+                                   Source="avares://VectorQuay.App/Assets/Brand/vectorquay-mark-shell.png"/>
+                            <TextBlock FontSize="26" FontWeight="Bold" Foreground="#262B5B" Text="Activity"/>
+                        </StackPanel>
+                        <Border Classes="card">
+                            <StackPanel Spacing="10">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Classes="label" Text="Filters: Date Range / Asset / Action / Source / Outcome"/>
+                                    <TextBlock Grid.Column="1" Classes="label" Text="Sort: Timestamp (Newest First)"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="*,*,*,*,*,*" Margin="0,0,0,6">
+                                    <TextBlock FontWeight="Bold" Text="Timestamp"/>
+                                    <TextBlock Grid.Column="1" FontWeight="Bold" Text="Asset / Pair"/>
+                                    <TextBlock Grid.Column="2" FontWeight="Bold" Text="Action"/>
+                                    <TextBlock Grid.Column="3" FontWeight="Bold" Text="Amount"/>
+                                    <TextBlock Grid.Column="4" FontWeight="Bold" Text="Outcome"/>
+                                    <TextBlock Grid.Column="5" FontWeight="Bold" Text="Confidence"/>
+                                </Grid>
+                                <Border Background="#EEF2FF" CornerRadius="10" Padding="8">
+                                    <Grid ColumnDefinitions="*,*,*,*,*,*">
+                                        <TextBlock Text="Placeholder"/>
+                                        <TextBlock Grid.Column="1" Text="BTC-USD"/>
+                                        <TextBlock Grid.Column="2" Text="Buy"/>
+                                        <TextBlock Grid.Column="3" Text="Placeholder"/>
+                                        <TextBlock Grid.Column="4" Text="Selected"/>
+                                        <TextBlock Grid.Column="5" Text="Placeholder"/>
+                                    </Grid>
+                                </Border>
+                                <Border Background="#FFFFFF" CornerRadius="10" Padding="8" BorderBrush="#DFE4FB" BorderThickness="1">
+                                    <Grid ColumnDefinitions="*,*,*,*,*,*">
+                                        <TextBlock Text="Placeholder"/>
+                                        <TextBlock Grid.Column="1" Text="ETH-USD"/>
+                                        <TextBlock Grid.Column="2" Text="Sell"/>
+                                        <TextBlock Grid.Column="3" Text="Placeholder"/>
+                                        <TextBlock Grid.Column="4" Text="Rejected"/>
+                                        <TextBlock Grid.Column="5" Text="Placeholder"/>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Classes="label" Text="Selected row shown below. Viewing Decision: BTC-USD Buy · Amount Placeholder · Timestamp Placeholder"/>
+                        <Border Classes="card" Background="#F7F9FF"><StackPanel><TextBlock FontWeight="Bold" Text="Decision Details"/><TextBlock Text="Reserved for future rationale summary, confidence score, and pass/fail checks from the strategy and risk engine." TextWrapping="Wrap"/></StackPanel></Border>
+                        <Border Classes="card"><StackPanel><TextBlock FontWeight="Bold" Text="Policy and Risk Checks"/><TextBlock Classes="label" Text="Reserved for future permissions, protected-asset checks, sizing checks, and risk-gate results tied to this exact decision." TextWrapping="Wrap"/></StackPanel></Border>
+                        <Border Classes="card">
+                            <StackPanel Spacing="8">
+                                <Grid ColumnDefinitions="*,*,*" Margin="0,0,0,6">
+                                    <TextBlock FontWeight="Bold" Text="Source"/>
+                                    <TextBlock Grid.Column="1" FontWeight="Bold" Text="Signal"/>
+                                    <TextBlock Grid.Column="2" FontWeight="Bold" Text="Weight"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="*,*,*" Margin="0,0,0,4">
+                                    <TextBlock Text="Market Trend"/>
+                                    <TextBlock Grid.Column="1" Text="Positive"/>
+                                    <TextBlock Grid.Column="2" Text="Default"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="*,*,*" Margin="0,0,0,4">
+                                    <TextBlock Text="Influencer A"/>
+                                    <TextBlock Grid.Column="1" Text="Negative"/>
+                                    <TextBlock Grid.Column="2" Text="Override"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="*,*,*">
+                                    <TextBlock Text="News Feed B"/>
+                                    <TextBlock Grid.Column="1" Text="Positive"/>
+                                    <TextBlock Grid.Column="2" Text="Default"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel IsVisible="{Binding IsPerformanceSection}" Spacing="16">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Image Width="24"
+                                   Height="18"
+                                   Stretch="Uniform"
+                                   Source="avares://VectorQuay.App/Assets/Brand/vectorquay-mark-shell.png"/>
+                            <TextBlock FontSize="26" FontWeight="Bold" Foreground="#262B5B" Text="Performance"/>
+                        </StackPanel>
+                        <TextBlock Classes="label" Text="Last Updated: Placeholder"/>
+                        <WrapPanel>
+                            <Border Classes="card" Padding="6,4" Background="#EEF2FF"><TextBlock Foreground="#2B357F" Text="24H"/></Border>
+                            <Border Classes="card" Padding="6,4"><TextBlock Text="7D"/></Border>
+                            <Border Classes="card" Padding="6,4"><TextBlock Text="30D"/></Border>
+                            <Border Classes="card" Padding="6,4"><TextBlock Text="90D"/></Border>
+                            <Border Classes="card" Padding="6,4"><TextBlock Text="1Y"/></Border>
+                            <Border Classes="card" Padding="6,4"><TextBlock Text="ALL"/></Border>
+                        </WrapPanel>
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                            <Border Classes="card"><StackPanel><TextBlock Classes="label" Text="PnL"/><TextBlock FontSize="20" FontWeight="Bold" Text="Placeholder"/></StackPanel></Border>
+                            <Border Grid.Column="1" Classes="card"><StackPanel><TextBlock Classes="label" Text="Win Rate"/><TextBlock FontSize="20" FontWeight="Bold" Text="Placeholder"/></StackPanel></Border>
+                            <Border Grid.Column="2" Classes="card"><StackPanel><TextBlock Classes="label" Text="Drawdown"/><TextBlock FontSize="20" FontWeight="Bold" Text="Placeholder"/></StackPanel></Border>
+                        </Grid>
+                        <Border Classes="card" Height="180"><TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="Future KPI / performance chart area" Foreground="#5F6794"/></Border>
+                    </StackPanel>
+
+                    <StackPanel IsVisible="{Binding IsRiskSection}" Spacing="16">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Image Width="24"
+                                   Height="18"
+                                   Stretch="Uniform"
+                                   Source="avares://VectorQuay.App/Assets/Brand/vectorquay-mark-shell.png"/>
+                            <TextBlock FontSize="26" FontWeight="Bold" Foreground="#262B5B" Text="Risk &amp; Thresholds"/>
+                        </StackPanel>
+                        <TextBlock Classes="label" Text="Last Updated: Placeholder"/>
+                        <WrapPanel>
+                            <Button Content="High Risk" Command="{Binding ApplyRiskProfileCommand}" CommandParameter="High Risk"/>
+                            <Button Content="Medium Risk" Command="{Binding ApplyRiskProfileCommand}" CommandParameter="Medium Risk"/>
+                            <Button Content="Low Risk" Command="{Binding ApplyRiskProfileCommand}" CommandParameter="Low Risk"/>
+                            <Button Content="Custom" Command="{Binding ApplyRiskProfileCommand}" CommandParameter="Custom"/>
+                        </WrapPanel>
+                        <Border Classes="card" Background="#F7F9FF">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="{Binding SelectedRiskProfile, StringFormat=Selected Profile: {0}}"/>
+                                <TextBlock Classes="label" Text="{Binding RiskProfileMessage}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
+                            <Border Classes="card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Operator-Safe Controls"/>
+                                    <TextBlock Classes="label" Text="{Binding SelectedRiskProfile, StringFormat=Direct editing mode: {0}}" />
+                                    <TextBlock Classes="label" Text="Threshold fields are editable only when Custom is selected." TextWrapping="Wrap"/>
+                                    <TextBlock Classes="label" Text="Max Daily Loss"/>
+                                    <TextBox Text="{Binding CustomDailyLossPct}" IsEnabled="{Binding CanEditRiskThresholds}"/>
+                                    <TextBlock Classes="label" Text="Max Position Size"/>
+                                    <TextBox Text="{Binding CustomMaxPositionPct}" IsEnabled="{Binding CanEditRiskThresholds}"/>
+                                    <TextBlock Classes="label" Text="Max Portfolio Exposure / Turnover"/>
+                                    <TextBox Text="{Binding CustomTurnoverPct}" IsEnabled="{Binding CanEditRiskThresholds}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Classes="card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Advanced Thresholds"/>
+                                    <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12"><TextBlock Foreground="#6B7287" Text="Spread Tolerance · Visible / Read-Only Placeholder"/></Border>
+                                    <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12"><TextBlock Foreground="#6B7287" Text="Liquidity Minimum · Visible / Read-Only Placeholder"/></Border>
+                                    <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12"><TextBlock Foreground="#6B7287" Text="Confidence Cutoff · Visible / Read-Only Placeholder"/></Border>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Content="Save" Command="{Binding SaveSettingsCommand}" Background="#262B5B" Foreground="White"/>
+                            <Button Content="Switch to Custom" Command="{Binding ApplyRiskProfileCommand}" CommandParameter="Custom" Background="#EEF2FF" Foreground="#2B357F"/>
+                            <Button Content="Reset to Default" Command="{Binding ResetRiskDefaultsCommand}" Background="#EEF2FF" Foreground="#2B357F"/>
+                        </StackPanel>
+                        <Border Background="#F7F9FF" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="10" Padding="10,12">
+                            <TextBlock Text="{Binding SettingsActionMessage}" TextWrapping="Wrap" Foreground="#424A76"/>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel IsVisible="{Binding IsSourcesSection}" Spacing="16">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Image Width="24"
+                                   Height="18"
+                                   Stretch="Uniform"
+                                   Source="avares://VectorQuay.App/Assets/Brand/vectorquay-mark-shell.png"/>
+                            <TextBlock FontSize="26" FontWeight="Bold" Foreground="#262B5B" Text="Sources"/>
+                        </StackPanel>
+                        <Border Classes="card">
+                            <StackPanel Spacing="8">
+                                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                                    <Border Classes="card"><StackPanel><TextBlock Classes="label" Text="Active Sources"/><TextBlock FontSize="20" FontWeight="Bold" Text="Placeholder"/></StackPanel></Border>
+                                    <Border Grid.Column="1" Classes="card"><StackPanel><TextBlock Classes="label" Text="Observed Watchers"/><TextBlock FontSize="20" FontWeight="Bold" Text="Placeholder"/></StackPanel></Border>
+                                    <Border Grid.Column="2" Classes="card"><StackPanel><TextBlock Classes="label" Text="Needs Review"/><TextBlock FontSize="20" FontWeight="Bold" Text="Placeholder"/></StackPanel></Border>
+                                </Grid>
+                                <WrapPanel>
+                                    <Border Classes="card" Padding="6,4" Background="#EEF2FF"><TextBlock Foreground="#2B357F" Text="All"/></Border>
+                                    <Border Classes="card" Padding="6,4"><TextBlock Text="Direct Sources"/></Border>
+                                    <Border Classes="card" Padding="6,4"><TextBlock Text="Watchers"/></Border>
+                                </WrapPanel>
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,6">
+                                    <TextBlock Classes="label" Text="Filters: Search / Type / State / Asset / More Filters"/>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                                        <Button Content="Add Source" Background="#262B5B" Foreground="White"/>
+                                        <Button Content="Add Watcher" Background="#EEF2FF" Foreground="#2B357F"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid ColumnDefinitions="80,280,140,140,140" ColumnSpacing="10" Margin="0,0,0,6">
+                                    <TextBlock FontWeight="Bold" Text="Select"/>
+                                    <TextBlock Grid.Column="1" FontWeight="Bold" Text="Source"/>
+                                    <TextBlock Grid.Column="2" FontWeight="Bold" Text="Type"/>
+                                    <TextBlock Grid.Column="3" FontWeight="Bold" Text="State"/>
+                                    <TextBlock Grid.Column="4" FontWeight="Bold" Text="Weight"/>
+                                </Grid>
+                                <ItemsControl ItemsSource="{Binding SourceEntries}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:SourceEntryViewModel">
+                                            <Border BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="0,8">
+                                                <Grid ColumnDefinitions="80,280,140,140,140" ColumnSpacing="10">
+                                                    <CheckBox IsChecked="False" IsEnabled="False" HorizontalAlignment="Left"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="Bold" TextWrapping="Wrap"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Type}" TextWrapping="Wrap"/>
+                                                    <TextBlock Grid.Column="3" Text="{Binding State}" TextWrapping="Wrap"/>
+                                                    <TextBlock Grid.Column="4" Text="Default" TextWrapping="Wrap"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Classes="label" Text="Click a row or checkbox to Select Source details, or select multiple rows for future bulk actions." TextWrapping="Wrap"/>
+                                <Border Classes="card" Background="#FFFFFF">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Selected: Market Trend"/>
+                                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                                            <Border Classes="card" Background="#F7F9FF">
+                                                <StackPanel Spacing="6">
+                                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Identity"/>
+                                                    <TextBlock Classes="label" Text="Type: Direct Feed"/>
+                                                    <TextBlock Classes="label" Text="State: Active"/>
+                                                    <TextBlock Classes="label" Text="Reliability: Reviewed"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Grid.Column="1" Classes="card" Background="#F7F9FF">
+                                                <StackPanel Spacing="6">
+                                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Scope"/>
+                                                    <TextBlock Classes="label" Text="BTC, ETH, SOL"/>
+                                                    <TextBlock Classes="label" Text="Signals: Trend / Momentum"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Grid.Column="2" Classes="card" Background="#F7F9FF">
+                                                <StackPanel Spacing="6">
+                                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Influence"/>
+                                                    <TextBlock Classes="label" Text="Weight: Default"/>
+                                                    <TextBlock Classes="label" Text="Last Contribution: Placeholder"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Button Content="Edit Weight" Background="#262B5B" Foreground="White"/>
+                                            <Button Content="Edit Scope" Background="#EEF2FF" Foreground="#2B357F"/>
+                                            <Button Content="More Actions" Background="#EEF2FF" Foreground="#2B357F"/>
+                                        </StackPanel>
+                                        <TextBlock Classes="label" Text="More Actions: Ignore / Block / Reactivate / Reset Default" TextWrapping="Wrap"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Button Content="View History" Background="#EEF2FF" Foreground="#2B357F"/>
+                                            <Button Content="Automation Settings" Background="#EEF2FF" Foreground="#2B357F"/>
+                                        </StackPanel>
+                                        <TextBlock Classes="label" Text="History should show lifecycle events, override changes, and recent contributions. AI-created watchers should begin as Observed or Needs Review. State actions should remain reversible." TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel IsVisible="{Binding IsAlertsSection}" Spacing="16">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Image Width="24"
+                                   Height="18"
+                                   Stretch="Uniform"
+                                   Source="avares://VectorQuay.App/Assets/Brand/vectorquay-mark-shell.png"/>
+                            <TextBlock FontSize="26" FontWeight="Bold" Foreground="#262B5B" Text="Alerts"/>
+                        </StackPanel>
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                            <Border Classes="card"><StackPanel><TextBlock Classes="label" Text="Open Alerts"/><TextBlock FontSize="20" FontWeight="Bold" Text="Placeholder"/></StackPanel></Border>
+                            <Border Grid.Column="1" Classes="card"><StackPanel><TextBlock Classes="label" Text="Muted Rules"/><TextBlock FontSize="20" FontWeight="Bold" Text="Placeholder"/></StackPanel></Border>
+                            <Border Grid.Column="2" Classes="card"><StackPanel><TextBlock Classes="label" Text="Last Delivery Test"/><TextBlock FontSize="20" FontWeight="Bold" Text="Not Run"/></StackPanel></Border>
+                        </Grid>
+                        <Border Classes="card">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="Bold" Text="Recent Alerts"/>
+                                <ItemsControl ItemsSource="{Binding AlertItems}"/>
+                            </StackPanel>
+                        </Border>
+                        <Grid ColumnDefinitions="1.1*,0.9*" ColumnSpacing="12">
+                            <Border Classes="card">
+                                <StackPanel Spacing="8">
+                                    <Grid ColumnDefinitions="2*,*,*" Margin="0,0,0,6">
+                                        <TextBlock FontWeight="Bold" Text="Rule"/>
+                                        <TextBlock Grid.Column="1" FontWeight="Bold" Text="Severity"/>
+                                        <TextBlock Grid.Column="2" FontWeight="Bold" Text="Destination"/>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="2*,*,*" Margin="0,0,0,4">
+                                        <TextBlock Text="Missing Coinbase secret"/>
+                                        <TextBlock Grid.Column="1" Text="Warning"/>
+                                        <TextBlock Grid.Column="2" Text="In-App"/>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="2*,*,*" Margin="0,0,0,4">
+                                        <TextBlock Text="Settings validation failure"/>
+                                        <TextBlock Grid.Column="1" Text="Error"/>
+                                        <TextBlock Grid.Column="2" Text="In-App + Email"/>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="2*,*,*">
+                                        <TextBlock Text="Update feed unavailable"/>
+                                        <TextBlock Grid.Column="1" Text="Info"/>
+                                        <TextBlock Grid.Column="2" Text="In-App"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Classes="card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontWeight="Bold" Text="Notification Preferences"/>
+                                    <TextBlock Text="In-App Alerts: Enabled"/>
+                                    <TextBlock Text="Email Alerts: Enabled"/>
+                                    <TextBlock Text="SMS Alerts: Disabled"/>
+                                    <TextBlock Text="Quiet Hours: Placeholder"/>
+                                    <TextBlock Classes="label" Text="Escalation rules and external transports remain operator-configured placeholders in Phase 1." TextWrapping="Wrap"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <Button Content="Edit Preferences" Background="#262B5B" Foreground="White"/>
+                                        <Button Content="Test Alert" Background="#EEF2FF" Foreground="#2B357F"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel IsVisible="{Binding IsAboutSection}" Spacing="16">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Image Width="24"
+                                   Height="18"
+                                   Stretch="Uniform"
+                                   Source="avares://VectorQuay.App/Assets/Brand/vectorquay-mark-shell.png"/>
+                            <TextBlock FontSize="26" FontWeight="Bold" Foreground="#262B5B" Text="About"/>
+                        </StackPanel>
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Margin="0,0,0,2">
+                            <Image Width="34"
+                                   Height="24"
+                                   Stretch="Uniform"
+                                   Source="avares://VectorQuay.App/Assets/Brand/vectorquay-mark-shell.png"/>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock FontSize="24" FontWeight="Bold" Foreground="#262B5B" Text="VectorQuay"/>
+                                <TextBlock Classes="label" Text="Indigo Signal · Author/Owner: Brad Malia"/>
+                            </StackPanel>
+                        </Grid>
+                        <Border Classes="card" Background="#F7F9FF">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontWeight="Bold" Text="About This Application"/>
+                                <TextBlock Text="Phase 1 local administration shell for the VectorQuay Coinbase spot trading platform." TextWrapping="Wrap"/>
+                                <TextBlock Classes="label" Text="{Binding AppVersion, StringFormat=Version: {0} placeholder · Trading Status: Inactive}" TextWrapping="Wrap"/>
+                                <TextBlock Classes="label" Text="Documentation: Roadmap, PRD, TRD, and test plans linked here in later implementation." TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="card">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontWeight="Bold" Text="Updates"/>
+                                <TextBlock Classes="label" Text="{Binding AppVersion, StringFormat=Current Version: {0} · Latest Available: Placeholder}" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="Check for Updates" Command="{Binding CheckForUpdatesCommand}" Background="#262B5B" Foreground="White"/>
+                                    <Button Content="Download Update" Background="#EEF2FF" Foreground="#2B357F"/>
+                                    <Button Content="View Release" Background="#EEF2FF" Foreground="#2B357F"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding UpdateStatus}" TextWrapping="Wrap"/>
+                                <TextBlock Classes="label" Text="Phase 1 includes a real manual update check in the shell. Safe version checks and download/open behavior should work against a configured release source before any in-app self-update behavior is considered." TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="card">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontWeight="Bold" Text="Support the Author"/>
+                                <Grid ColumnDefinitions="96,*" ColumnSpacing="14">
+                                    <Border Width="96" Height="96" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="12" Background="#F7F9FF">
+                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#5F6794" Text="QR Code"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Spacing="8">
+                                        <TextBlock Classes="label" Text="Manual crypto tip only. Not connected to bot trading behavior. This section should be owner-configurable and may be disabled or omitted in resale-oriented builds." TextWrapping="Wrap"/>
+                                        <Border BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="10" Background="#F7F9FF" Padding="8,10">
+                                            <TextBlock Foreground="#262B5B" Text="Wallet Address Placeholder"/>
+                                        </Border>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Button Content="Copy Address" Background="#262B5B" Foreground="White"/>
+                                            <Button Content="Supported Assets" Background="#EEF2FF" Foreground="#2B357F"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Window>

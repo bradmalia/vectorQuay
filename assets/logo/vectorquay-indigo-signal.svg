@@ -1,0 +1,11 @@
+<svg width="520" height="360" viewBox="0 0 520 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="520" height="360" rx="28" fill="#F5F5FC"/>
+  <g transform="translate(52 42)">
+    <circle cx="78" cy="86" r="58" stroke="#A5AEDB" stroke-width="12"/>
+    <path d="M112 120L146 154" stroke="#A5AEDB" stroke-width="12" stroke-linecap="round"/>
+    <path d="M36 58H120M36 86H120M36 114H120M50 44V128M78 44V128M106 44V128" stroke="#E3E6F6" stroke-width="4"/>
+    <path d="M0 0H30L74 124L118 0H148L94 164H54L0 0Z" fill="#262B5B"/>
+    <text x="0" y="220" fill="#262B5B" font-size="54" font-family="Segoe UI, Arial, sans-serif" font-weight="700" letter-spacing="0.5">VectorQuay</text>
+    <text x="2" y="246" fill="#6973A4" font-size="17" font-family="Segoe UI, Arial, sans-serif" letter-spacing="5.5">INDIGO SIGNAL</text>
+  </g>
+</svg>

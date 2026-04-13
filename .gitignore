@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+.idea/
+
+# Local environment and secret material
+.env
+*.secrets.env
+config/local/
+
+# App-managed user files live outside the repository by default:
+# ${XDG_CONFIG_HOME:-~/.config}/VectorQuay/settings.json
+# ${XDG_CONFIG_HOME:-~/.config}/VectorQuay/secrets.env
