@@ -2,6 +2,8 @@ namespace VectorQuay.Core.Configuration;
 
 public sealed class AppSettings
 {
+    public const string DefaultReleaseFeedUrl = "https://api.github.com/repos/bradmalia/vectorQuay/releases/latest";
+
     public GeneralSettings General { get; set; } = new();
 
     public PolicySettings Policy { get; set; } = new();
@@ -19,7 +21,7 @@ public sealed class AppSettings
                 ApplicationState = "Pre-Integration",
                 ValuationCurrency = "USD",
                 AllowUsdcSecondary = true,
-                ReleaseFeedUrl = string.Empty,
+                ReleaseFeedUrl = DefaultReleaseFeedUrl,
             },
             Policy = new PolicySettings
             {
@@ -87,7 +89,7 @@ public sealed class GeneralSettings
 
     public bool AllowUsdcSecondary { get; set; } = true;
 
-    public string ReleaseFeedUrl { get; set; } = string.Empty;
+    public string ReleaseFeedUrl { get; set; } = AppSettings.DefaultReleaseFeedUrl;
 }
 
 public sealed class PolicySettings

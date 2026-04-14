@@ -37,6 +37,10 @@ public sealed class SettingsService
         var localSettings = TryReadSettings(_paths.SettingsPath, "local settings", validationNotes) ?? templateSettings;
 
         localSettings.General.ValuationCurrency = "USD";
+        if (string.IsNullOrWhiteSpace(localSettings.General.ReleaseFeedUrl))
+        {
+            localSettings.General.ReleaseFeedUrl = AppSettings.DefaultReleaseFeedUrl;
+        }
 
         var secretsFromFile = LoadSecrets(validationNotes);
 
@@ -58,6 +62,10 @@ public sealed class SettingsService
     {
         Directory.CreateDirectory(Path.GetDirectoryName(_paths.SettingsPath)!);
         settings.General.ValuationCurrency = "USD";
+        if (string.IsNullOrWhiteSpace(settings.General.ReleaseFeedUrl))
+        {
+            settings.General.ReleaseFeedUrl = AppSettings.DefaultReleaseFeedUrl;
+        }
         File.WriteAllText(_paths.SettingsPath, JsonSerializer.Serialize(settings, JsonOptions));
     }
 

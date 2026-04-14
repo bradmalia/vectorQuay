@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=VectorQuay
+Comment=VectorQuay Coinbase spot trading shell
+Exec=/home/brad/vectorquay/scripts/vectorquay-launch.sh
+Icon=vectorquay
+Terminal=false
+Categories=Office;Finance;
+StartupNotify=true

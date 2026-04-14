@@ -89,15 +89,17 @@ public sealed class SettingsServiceTests
     }
 
     [Fact]
-    public void Validate_ReturnsWarningWhenReleaseFeedIsMissing()
+    public void Load_NormalizesBlankReleaseFeedUrlToDefault()
     {
-        var service = new SettingsService(CreateTestPaths());
+        var paths = CreateTestPaths();
         var settings = AppSettings.CreateDefault();
         settings.General.ReleaseFeedUrl = string.Empty;
+        File.WriteAllText(paths.SettingsPath, JsonSerializer.Serialize(settings));
 
-        var messages = service.Validate(settings);
+        var service = new SettingsService(paths);
+        var snapshot = service.Load();
 
-        Assert.Contains(messages, message => message.Contains("no GitHub Releases feed is configured", StringComparison.Ordinal));
+        Assert.Equal(AppSettings.DefaultReleaseFeedUrl, snapshot.Settings.General.ReleaseFeedUrl);
     }
 
     [Fact]
