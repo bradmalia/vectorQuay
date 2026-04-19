@@ -6,6 +6,7 @@ public sealed class SettingsService
 {
     private static readonly HashSet<string> AllowedProtectedModes = new(StringComparer.Ordinal)
     {
+        "Allow Full Trade",
         "Do Not Buy",
         "Do Not Sell",
         "Do Not Trade",
@@ -35,6 +36,7 @@ public sealed class SettingsService
         var validationNotes = new List<string>();
         var templateSettings = TryReadSettings(_paths.TemplatePath, "template settings", validationNotes) ?? defaultSettings;
         var localSettings = TryReadSettings(_paths.SettingsPath, "local settings", validationNotes) ?? templateSettings;
+        NormalizePolicySettings(localSettings.Policy);
 
         localSettings.General.ValuationCurrency = "USD";
         if (string.IsNullOrWhiteSpace(localSettings.General.ReleaseFeedUrl))
@@ -62,6 +64,7 @@ public sealed class SettingsService
     {
         Directory.CreateDirectory(Path.GetDirectoryName(_paths.SettingsPath)!);
         settings.General.ValuationCurrency = "USD";
+        NormalizePolicySettings(settings.Policy);
         if (string.IsNullOrWhiteSpace(settings.General.ReleaseFeedUrl))
         {
             settings.General.ReleaseFeedUrl = AppSettings.DefaultReleaseFeedUrl;
@@ -117,12 +120,25 @@ public sealed class SettingsService
 
         if (!AllowedProtectedModes.Contains(settings.Policy.ProtectedBtcMode))
         {
-            messages.Add("Blocking: BTC protected mode must be one of Do Not Buy, Do Not Sell, or Do Not Trade.");
+            messages.Add("Blocking: BTC protected mode must be one of Allow Full Trade, Do Not Buy, Do Not Sell, or Do Not Trade.");
         }
 
         if (!AllowedProtectedModes.Contains(settings.Policy.ProtectedEthMode))
         {
-            messages.Add("Blocking: ETH protected mode must be one of Do Not Buy, Do Not Sell, or Do Not Trade.");
+            messages.Add("Blocking: ETH protected mode must be one of Allow Full Trade, Do Not Buy, Do Not Sell, or Do Not Trade.");
+        }
+
+        foreach (var assetPolicy in settings.Policy.AssetPolicies)
+        {
+            if (string.IsNullOrWhiteSpace(assetPolicy.Asset))
+            {
+                messages.Add("Blocking: asset policies must include a non-empty asset symbol.");
+            }
+
+            if (!AllowedProtectedModes.Contains(assetPolicy.Mode))
+            {
+                messages.Add($"Blocking: {assetPolicy.Asset} policy mode must be one of Allow Full Trade, Do Not Buy, Do Not Sell, or Do Not Trade.");
+            }
         }
 
         if (settings.Risk.CustomMaxPositionPct <= 0 ||
@@ -224,5 +240,64 @@ public sealed class SettingsService
             Name = name,
             Source = SecretSource.Missing,
         };
+    }
+
+    private static void NormalizePolicySettings(PolicySettings policy)
+    {
+        policy.ApprovedCandidates = policy.ApprovedCandidates
+            .Where(asset => !string.IsNullOrWhiteSpace(asset))
+            .Select(asset => asset.Trim().ToUpperInvariant())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var normalizedPolicies = new Dictionary<string, AssetPolicySettings>(StringComparer.OrdinalIgnoreCase);
+        foreach (var assetPolicy in policy.AssetPolicies)
+        {
+            if (string.IsNullOrWhiteSpace(assetPolicy.Asset))
+            {
+                continue;
+            }
+
+            var asset = assetPolicy.Asset.Trim().ToUpperInvariant();
+            var mode = AllowedProtectedModes.Contains(assetPolicy.Mode) ? assetPolicy.Mode : "Allow Full Trade";
+            normalizedPolicies[asset] = new AssetPolicySettings
+            {
+                Asset = asset,
+                Mode = mode,
+                Notes = assetPolicy.Notes?.Trim() ?? string.Empty,
+            };
+        }
+
+        foreach (var asset in policy.ApprovedCandidates)
+        {
+            if (!normalizedPolicies.ContainsKey(asset))
+            {
+                normalizedPolicies[asset] = new AssetPolicySettings
+                {
+                    Asset = asset,
+                    Mode = asset switch
+                    {
+                        "BTC" => policy.ProtectedBtcMode,
+                        "ETH" => policy.ProtectedEthMode,
+                        _ => "Allow Full Trade",
+                    },
+                    Notes = string.Empty,
+                };
+            }
+        }
+
+        policy.AssetPolicies = normalizedPolicies.Values
+            .OrderBy(assetPolicy => assetPolicy.Asset, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (normalizedPolicies.TryGetValue("BTC", out var btcPolicy))
+        {
+            policy.ProtectedBtcMode = btcPolicy.Mode;
+        }
+
+        if (normalizedPolicies.TryGetValue("ETH", out var ethPolicy))
+        {
+            policy.ProtectedEthMode = ethPolicy.Mode;
+        }
     }
 }

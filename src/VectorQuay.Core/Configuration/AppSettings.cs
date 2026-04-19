@@ -42,6 +42,19 @@ public sealed class AppSettings
                 ProtectedBtcMode = "Do Not Sell",
                 ProtectedEthMode = "Do Not Trade",
                 OperatorNotes = "No trade remains a valid outcome when no candidate passes screening.",
+                AssetPolicies =
+                [
+                    new AssetPolicySettings { Asset = "BTC", Mode = "Do Not Sell", Notes = "USD preferred" },
+                    new AssetPolicySettings { Asset = "ETH", Mode = "Do Not Trade", Notes = "Initial holding" },
+                    new AssetPolicySettings { Asset = "SOL", Mode = "Allow Full Trade", Notes = string.Empty },
+                    new AssetPolicySettings { Asset = "XRP", Mode = "Allow Full Trade", Notes = string.Empty },
+                    new AssetPolicySettings { Asset = "ADA", Mode = "Allow Full Trade", Notes = string.Empty },
+                    new AssetPolicySettings { Asset = "LINK", Mode = "Allow Full Trade", Notes = string.Empty },
+                    new AssetPolicySettings { Asset = "LTC", Mode = "Allow Full Trade", Notes = string.Empty },
+                    new AssetPolicySettings { Asset = "XLM", Mode = "Allow Full Trade", Notes = string.Empty },
+                    new AssetPolicySettings { Asset = "BCH", Mode = "Allow Full Trade", Notes = string.Empty },
+                    new AssetPolicySettings { Asset = "UNI", Mode = "Allow Full Trade", Notes = string.Empty },
+                ],
             },
             Risk = new RiskSettings
             {
@@ -59,6 +72,7 @@ public sealed class AppSettings
                         Name = "Coinbase Advanced Trade",
                         Type = "Direct Source",
                         State = "Active",
+                        Weight = "Default",
                         Scope = "Approved exchange surface for later read-only integration",
                     },
                     new SourceEntrySettings
@@ -66,6 +80,7 @@ public sealed class AppSettings
                         Name = "Crypto News Watcher",
                         Type = "Watcher",
                         State = "Observed",
+                        Weight = "Baseline",
                         Scope = "Reserved AI-assisted watcher workflow for future signal expansion",
                     },
                     new SourceEntrySettings
@@ -73,6 +88,7 @@ public sealed class AppSettings
                         Name = "r/CryptoCurrency Monitor",
                         Type = "Watcher",
                         State = "Needs Review",
+                        Weight = "Review",
                         Scope = "Placeholder for future Reddit/topic watcher onboarding",
                     },
                 ],
@@ -103,6 +119,17 @@ public sealed class PolicySettings
     public string ProtectedEthMode { get; set; } = "Do Not Trade";
 
     public string OperatorNotes { get; set; } = string.Empty;
+
+    public List<AssetPolicySettings> AssetPolicies { get; set; } = [];
+}
+
+public sealed class AssetPolicySettings
+{
+    public string Asset { get; set; } = string.Empty;
+
+    public string Mode { get; set; } = "Allow Full Trade";
+
+    public string Notes { get; set; } = string.Empty;
 }
 
 public sealed class RiskSettings
@@ -128,6 +155,8 @@ public sealed class SourceEntrySettings
     public string Type { get; set; } = string.Empty;
 
     public string State { get; set; } = string.Empty;
+
+    public string Weight { get; set; } = "Default";
 
     public string Scope { get; set; } = string.Empty;
 }

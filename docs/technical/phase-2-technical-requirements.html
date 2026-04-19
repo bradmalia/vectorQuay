@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 2 Technical Requirements</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Technical Requirements Document</p>
+          <h1>Phase 2 Technical Requirements</h1>
+          <p class="subtitle">Read-only Coinbase integration, shell data binding, and capital-rule interpretation requirements.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v0.1</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Draft baseline</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Executive Summary</h2>
+          <p>Phase 2 technical work should introduce a read-only Coinbase integration layer that fits cleanly into the existing Phase 1 solution structure. The shell should start consuming truthful exchange data while preserving deterministic local settings behavior and a hard no-execution boundary.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Technical Goal</h2>
+          <p>Make Coinbase data available to the shell without letting exchange concerns leak across the entire app or imply live trade capability.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Implementation Boundaries</h2>
+        <ul>
+          <li>Continue using Avalonia on .NET 8 and the existing `src/VectorQuay.App`, `src/VectorQuay.Core`, and `tests/` solution shape.</li>
+          <li>Add Coinbase-specific code in a separate integration-focused area rather than crowding view models with HTTP and signature logic.</li>
+          <li>Preserve the existing secret-file contract at <code>${XDG_CONFIG_HOME:-~/.config}/VectorQuay/secrets.env</code> with environment-variable override precedence.</li>
+          <li>Use an explicit Coinbase credential contract. Phase 2 must require <code>VECTORQUAY_COINBASE_API_KEY</code> and <code>VECTORQUAY_COINBASE_API_SECRET</code> before the shell attempts authenticated refresh.</li>
+          <li>Do not add any write-capable Coinbase operations in Phase 2.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Required Technical Capabilities</h2>
+        <ul>
+          <li>Read-only Coinbase client capable of authenticated requests for account balances and tradable products.</li>
+          <li>Market-data retrieval sufficient for current valuation and product visibility.</li>
+          <li>A mapping layer that converts Coinbase responses into stable application models for Overview, Portfolio, Assets, and Configuration.</li>
+          <li>Deterministic failure classification for missing credentials, auth failures, network failures, rate limits, and partial-response conditions.</li>
+          <li>Explicit connection-health state with last successful refresh time and current error state.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Credential Contract</h2>
+        <ul>
+          <li>The required Coinbase secret names are <code>VECTORQUAY_COINBASE_API_KEY</code> and <code>VECTORQUAY_COINBASE_API_SECRET</code>.</li>
+          <li>The Coinbase API key used for Phase 2 must be provisioned with read-only permissions only.</li>
+          <li>The shell must classify credential state as missing, incomplete, or present without exposing secret values.</li>
+          <li>If the required Coinbase credential set is incomplete, the app must not attempt authenticated exchange refresh.</li>
+          <li>Credential failures must produce stable operator-facing error summaries and developer-readable diagnostics.</li>
+        </ul>
+      </article>
+
+      <section class="two-col">
+        <article class="section-card">
+          <h2>Architecture Requirements</h2>
+          <ul>
+            <li>Define Coinbase DTOs separately from view models.</li>
+            <li>Define app-facing read models separately from raw Coinbase payloads.</li>
+            <li>Keep signature/auth logic isolated and testable.</li>
+            <li>Keep view models dependent on app-facing models and services, not direct HTTP calls.</li>
+          </ul>
+        </article>
+
+        <article class="section-card">
+          <h2>Data Refresh Requirements</h2>
+          <ul>
+          <li>Support manual refresh from the shell.</li>
+          <li>Support one approved startup posture: attempt a safe startup refresh once when a complete Coinbase credential set is present.</li>
+          <li>Do not introduce silent background polling as part of the initial Phase 2 baseline unless a later approved revision defines cadence, rate-limit handling, and stale-state semantics explicitly.</li>
+          <li>Define stale, unavailable, never-loaded, and failed-refresh states distinctly in app-facing models.</li>
+          <li>Define rate-limit and retry behavior explicitly before implementation; default behavior should favor operator-visible failure over aggressive retry loops.</li>
+          <li>Failures must not crash the shell.</li>
+          <li>Current display must distinguish stale, unavailable, and never-loaded data.</li>
+          </ul>
+        </article>
+      </section>
+
+      <article class="section-card">
+        <h2>Screen Interpretation Requirements</h2>
+        <ul>
+          <li><strong>Overview:</strong> bind current account summary, connection health, and refresh cues to real data.</li>
+          <li><strong>Configuration:</strong> show credential-source status, connection result, valuation-currency lock, and read-only exchange setup interpretation.</li>
+          <li><strong>Assets:</strong> merge Coinbase product list with local approved/watch/restricted overlays.</li>
+          <li><strong>Portfolio:</strong> present holdings, valuation, and allocation from Coinbase read-only data without implying historical accounting beyond current state.</li>
+          <li><strong>Sources:</strong> show Coinbase as an active direct source; watcher rows remain shell placeholders.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Capital and Restriction Rules</h2>
+        <ul>
+          <li>The implementation must derive available capital only from existing Coinbase balances.</li>
+          <li>The shell must not imply off-platform deposits, bank funding, or external-wallet transfers as normal funding paths.</li>
+          <li>USD remains the locked valuation currency in the app-facing models.</li>
+          <li>USDC may appear in app-facing models as an approved secondary quote/routing asset but must not replace USD as the default interpretation.</li>
+          <li>Approved-candidate overlays and protected-asset policies remain locally authoritative and must be visible alongside Coinbase product data.</li>
+          <li>Exchange refresh must not overwrite or silently reinterpret local policy overlays.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Persistence Boundary</h2>
+        <ul>
+          <li>Phase 2 must not introduce durable storage of Coinbase payloads, derived market state, or account-history snapshots as a normal application behavior.</li>
+          <li>Read-only exchange data should remain in-memory and session-scoped unless a later approved phase explicitly adds persistence.</li>
+          <li>Existing local settings persistence remains allowed only for the Phase 1 non-secret configuration and policy contract.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Logging and Diagnostics</h2>
+        <ul>
+          <li>Log connection attempts and failures in a developer-readable way without exposing secret values.</li>
+          <li>Surface concise operator-facing error summaries in the shell.</li>
+          <li>Keep the app runnable even when Coinbase is unreachable or credentials are invalid.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Delivery Requirements</h2>
+        <ul>
+          <li>Build and run on the existing Ubuntu-first local environment with .NET 8.</li>
+          <li>Preserve Windows compatibility in the project structure and packaging assets.</li>
+          <li>Add or update tests under <code>tests/</code> for new Coinbase-facing logic and mapping rules.</li>
+          <li>Record Phase 2 validation artifacts under <code>docs/test-results/</code> when execution begins.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 2 Technical Completion Criteria</h2>
+        <ul>
+          <li>Read-only Coinbase services are isolated, testable, and wired into the shell cleanly.</li>
+          <li>The exact Coinbase credential contract and approved startup/manual refresh behavior are implemented without background polling.</li>
+          <li>Connection health, balances, products, and capital-rule interpretation work without crashing the UI.</li>
+          <li>No execution path exists.</li>
+          <li>The Phase 1 configuration and secret-handling guarantees remain intact.</li>
+        </ul>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

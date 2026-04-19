@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 2 Unit Test Plan</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Unit Test Plan</p>
+          <h1>Phase 2 Unit Test Plan</h1>
+          <p class="subtitle">Component-level validation for Coinbase read-only client behavior, mapping, and restriction interpretation.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v0.1</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Draft baseline</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <article class="section-card">
+        <h2>Purpose</h2>
+        <p>Phase 2 unit testing should prove that the smallest Coinbase-facing and mapping contracts behave deterministically before full shell integration is considered trustworthy.</p>
+      </article>
+
+      <article class="section-card">
+        <h2>Primary Coverage Targets</h2>
+        <ul>
+          <li>Credential-source resolution for Coinbase read-only use.</li>
+          <li>Coinbase auth-header and request-auth construction.</li>
+          <li>Balance-response mapping into app-facing portfolio models.</li>
+          <li>Product-response mapping into app-facing asset models.</li>
+          <li>Connection-health state classification.</li>
+          <li>Capital-rule interpretation from Coinbase balances.</li>
+          <li>Failure classification for missing credentials, auth failures, and partial payloads.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Required Unit Cases</h2>
+        <ul>
+          <li>UTP2-01: Coinbase credential resolution and precedence.</li>
+          <li>UTP2-02: Coinbase auth-header and request-auth formatting correctness.</li>
+          <li>UTP2-03: Account-balance payload mapping to current-value models.</li>
+          <li>UTP2-04: Product payload mapping to approved/watch/restricted asset rows.</li>
+          <li>UTP2-05: Connection-health classification for success, auth failure, network failure, and stale data.</li>
+          <li>UTP2-06: USD valuation lock with USDC secondary recognition preserved.</li>
+          <li>UTP2-07: Existing-funds-only capital interpretation.</li>
+          <li>UTP2-08: Partial or malformed Coinbase payload handling without unsafe fallback assumptions.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Contract</h2>
+        <div class="callout gate">
+          <h3>UTP2-01: Coinbase Credential Resolution and Precedence</h3>
+          <p>Verify that Coinbase credentials resolve deterministically from environment variables and the approved secret file, and that incomplete credential sets are classified safely.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> temporary secret-file variants and environment-variable overrides representing missing, incomplete, and complete credential states.</p>
+          <p><strong>Command:</strong> <code>dotnet test tests/&lt;phase-2-test-project&gt; --filter UTP2_01</code></p>
+          <p><strong>Pass condition:</strong> credential state is classified correctly and incomplete credentials do not appear equivalent to valid credentials.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP2-02: Request Auth Construction</h3>
+          <p>Verify that Coinbase auth-header and request-auth construction matches the required format for authenticated read-only requests.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> deterministic request example with known secret material and expected auth output.</p>
+          <p><strong>Pass condition:</strong> generated auth headers or signatures match the expected result exactly.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP2-03: Balance Mapping</h3>
+          <p>Verify that Coinbase balance payloads map into app-facing holdings, available-balance, and valuation models without dropping required fields silently.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> representative Coinbase balance payloads including USD and asset holdings.</p>
+          <p><strong>Pass condition:</strong> mapped models preserve quantities, symbols, and available-vs-held distinctions correctly.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP2-04: Product Overlay Mapping</h3>
+          <p>Verify that Coinbase product metadata maps cleanly into asset rows while preserving approved, watchlist, and restricted local overlays.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> representative product set containing approved assets, DOGE, and non-approved products.</p>
+          <p><strong>Pass condition:</strong> the overlay state remains locally authoritative and Coinbase refresh does not erase it.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP2-05: Connection-Health Classification</h3>
+          <p>Verify classification for successful refresh, auth failure, network failure, stale data, and never-loaded state.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Pass condition:</strong> each condition maps to a distinct and stable app-facing state.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP2-06: USD Valuation Lock</h3>
+          <p>Verify that USD remains the locked valuation currency while USDC remains recognized as an approved secondary asset where required.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Pass condition:</strong> Phase 2 read models never promote USDC to the default valuation currency.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP2-07: Existing-Funds-Only Capital Interpretation</h3>
+          <p>Verify that available capital derives only from returned Coinbase balances and never implies unsupported external funding paths.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Pass condition:</strong> no unit-tested interpretation path creates capital from off-platform assumptions.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP2-08: Malformed Payload Handling</h3>
+          <p>Verify that partial or malformed Coinbase payloads surface understandable failures rather than unsafe fallback assumptions.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Pass condition:</strong> malformed payloads fail safely and do not produce silently trusted account state.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Pass Condition</h2>
+        <p>All critical Phase 2 Coinbase read-only and mapping contracts have deterministic automated coverage and no unit-tested path implies write-capable exchange behavior.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

@@ -10,6 +10,10 @@ public sealed class VectorQuayPaths
 
     public required string TemplatePath { get; init; }
 
+    public required string CoinbaseApiKeyJsonPath { get; init; }
+
+    public required string CoinbaseApiKeyJsonTextPath { get; init; }
+
     public bool SettingsExists => File.Exists(SettingsPath);
 
     public bool SecretsExists => File.Exists(SecretsPath);
@@ -33,6 +37,8 @@ public sealed class VectorQuayPaths
             ConfigDirectory = configDirectory,
             SettingsPath = Path.Combine(configDirectory, "settings.json"),
             SecretsPath = Path.Combine(configDirectory, "secrets.env"),
+            CoinbaseApiKeyJsonPath = Path.Combine(configDirectory, "cdp_api_key.json"),
+            CoinbaseApiKeyJsonTextPath = Path.Combine(configDirectory, "cdp_api_key.json.txt"),
             TemplatePath = ResolveTemplatePath(baseDirectory),
         };
     }

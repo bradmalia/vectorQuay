@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 2 PRD</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Product Requirements Document</p>
+          <h1>Phase 2 PRD</h1>
+          <p class="subtitle">Coinbase read-only integration, account truth, and capital-rule enforcement baseline.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v0.1</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Draft baseline</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Executive Summary</h2>
+          <p>Phase 2 makes VectorQuay exchange-aware without enabling live order placement. It connects to Coinbase Advanced Trade in read-only mode, loads account balances and tradable products, shows connection health in the shell, and proves that the product understands available capital and Phase 0 restrictions before any execution path is considered.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Phase Goal</h2>
+          <p>Deliver a reliable Coinbase read-only baseline that turns the Phase 1 shell into a truthful operator console for balances, products, prices, account state, and capital restrictions.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Purpose</h2>
+        <p>Phase 1 created the product shell, local configuration model, and safety boundaries. Phase 2 must now connect those surfaces to real Coinbase data in a way that remains read-only, deterministic, and aligned with the approved v1 scope: Coinbase Advanced only, spot only, trade only, and existing-funds only.</p>
+      </article>
+
+      <article class="section-card">
+        <h2>Carry-Forward Decisions</h2>
+        <ul>
+          <li>Coinbase Advanced Trade remains the sole v1 exchange surface.</li>
+          <li>Spot-only and trade-only posture remain mandatory.</li>
+          <li>No bank funding, withdrawal, payment-method, external wallet, staking, Web3, margin, borrowing, or derivatives flows may appear as supported operator actions.</li>
+          <li>USD remains the preferred initial quote-currency and valuation path, with USDC preserved as an approved secondary routing asset.</li>
+          <li>Live trading remains restricted to a screened subset of assets; Phase 2 does not make every Coinbase-listed asset live-eligible.</li>
+          <li>No live order placement or cancellation may be implemented in this phase.</li>
+        </ul>
+      </article>
+
+      <section class="two-col">
+        <article class="section-card">
+          <h2>In Scope</h2>
+          <ul>
+            <li>Connect to Coinbase using read-only credentials loaded through the existing secret model.</li>
+            <li>Retrieve account balances, account state, tradable products, and current market prices needed for shell visibility.</li>
+            <li>Show connection health and last-refresh state in the GUI.</li>
+            <li>Populate Overview and Portfolio with real read-only Coinbase account data where available.</li>
+            <li>Populate Assets with real product-universe and approved-candidate status overlays.</li>
+            <li>Surface capital-rule visibility showing that only existing Coinbase funds are available for future trading.</li>
+            <li>Apply and display policy restrictions before any future execution path exists.</li>
+          </ul>
+        </article>
+
+        <article class="section-card">
+          <h2>Out of Scope</h2>
+          <ul>
+            <li>Live order placement, order cancellation, or paper trading.</li>
+            <li>Historical data storage beyond what is strictly needed for current read-only shell operation.</li>
+            <li>AI-generated signals, watchers, or dynamic asset discovery.</li>
+            <li>Backtesting, simulation, strategy scoring, or portfolio optimization.</li>
+            <li>Any silent background automation that changes external exchange state.</li>
+          </ul>
+        </article>
+      </section>
+
+      <article class="section-card">
+        <h2>Primary Product Outcomes</h2>
+        <ul>
+          <li>The shell can authenticate to Coinbase safely in read-only mode.</li>
+          <li>The operator can see accurate balances, products, prices, and connection state.</li>
+          <li>The product accurately distinguishes approved candidates, watch states, protected assets, and unavailable capital.</li>
+          <li>The shell remains visually clear that trading is still inactive even though read-only exchange data is live.</li>
+          <li>Phase 3 can begin storage and audit work without reworking the Coinbase integration boundary.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Primary Users and Stakeholders</h2>
+        <ul>
+          <li>Primary operator and owner: Brad Malia.</li>
+          <li>Future operator who needs truthful balance, product, and capital visibility before enabling any trading logic.</li>
+          <li>Future engineering work for persistence, audit, risk enforcement, and execution preparation.</li>
+        </ul>
+      </article>
+
+      <section class="two-col">
+        <article class="section-card">
+          <h2>Operator Problems Solved</h2>
+          <ul>
+            <li>The operator can verify whether Coinbase credentials are valid without risking any trade action.</li>
+            <li>The operator can see what the account actually holds instead of relying on mock shell data.</li>
+            <li>The operator can see which products are tradable, observed, screened, or restricted under Phase 0 decisions.</li>
+            <li>The operator can confirm the product understands existing capital and does not imply off-platform funding paths.</li>
+          </ul>
+        </article>
+
+        <article class="section-card">
+          <h2>Non-Goals</h2>
+          <ul>
+            <li>Do not optimize returns in this phase.</li>
+            <li>Do not infer readiness for live trading just because account data is visible.</li>
+            <li>Do not broaden scope from Coinbase read-only into execution or automation.</li>
+          </ul>
+        </article>
+      </section>
+
+      <article class="section-card">
+        <h2>Screen-Level Expectations</h2>
+        <ul>
+          <li><strong>Overview:</strong> show real connection state, last refresh cues, real balances, and read-only account summary while preserving the inactive-trading message.</li>
+          <li><strong>Configuration:</strong> show read-only connection setup status, credential-source status, release feed status, and non-secret settings actions.</li>
+          <li><strong>Assets:</strong> replace mock rows with Coinbase product data plus approved/watch/restricted overlays from local policy state.</li>
+          <li><strong>Policies:</strong> continue to show authoritative local policy state; do not imply that GUI edits bypass later enforcement.</li>
+          <li><strong>Portfolio:</strong> show real holdings, quantities, valuation, allocation, and stable available-vs-held balance concepts where Coinbase exposes them.</li>
+          <li><strong>Activity:</strong> remains a shell-oriented decision/activity surface in Phase 2 unless a simple read-only account-event view can be added without introducing persistence or misleading execution semantics. At minimum it must remain clearly inactive, consistent with current account truth, and must not imply that trade execution history is fully available.</li>
+          <li><strong>Performance:</strong> remains a reserved shell surface in Phase 2 until persisted history exists. It must continue to render safely, avoid contradicting current account values, and explicitly communicate that historical performance metrics are not yet authoritative.</li>
+          <li><strong>Risk &amp; Thresholds:</strong> remain local/operator-safe in Phase 2; no automated enforcement actions yet.</li>
+          <li><strong>Sources:</strong> Coinbase becomes the primary real direct source; watcher flows remain later-phase placeholders.</li>
+          <li><strong>Alerts:</strong> may surface connection and validation issues, but not autonomous trading alerts.</li>
+          <li><strong>About:</strong> continue to show version, update-check, and product metadata consistently.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 2 Functional Requirements</h2>
+        <ul>
+          <li>Support read-only Coinbase authentication through the existing secret-file and environment-variable contract, using Coinbase credentials provisioned with read-only permissions only.</li>
+          <li>Use the exact Coinbase secret names <code>VECTORQUAY_COINBASE_API_KEY</code> and <code>VECTORQUAY_COINBASE_API_SECRET</code> for Phase 2 read-only authentication.</li>
+          <li>Retrieve account balances and current portfolio state through one clear refresh posture: attempt a safe startup refresh when a complete Coinbase credential set is present, and always support operator-triggered manual refresh.</li>
+          <li>Retrieve product metadata needed to determine which Coinbase spot products are available for analysis and future trading.</li>
+          <li>Retrieve market-price data required for truthful current-value display.</li>
+          <li>Compute and display available capital using only existing Coinbase balances.</li>
+          <li>Preserve the approved candidate class and DOGE watchlist posture in the GUI despite broader product visibility.</li>
+          <li>Preserve local policy overlays as authoritative operator state; Coinbase refreshes must not overwrite, remove, or silently reinterpret local policy restrictions.</li>
+          <li>Show clear failure states for missing credentials, rejected authentication, API unavailability, partial data, and incompatible account/product conditions.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Success Criteria</h2>
+        <ul>
+          <li>The operator can launch the shell, connect read-only to Coinbase, and see truthful account state without any trade action being possible.</li>
+          <li>Balances and product data are accurate enough to support later decisioning and restriction work.</li>
+          <li>The product continues to present an inactive trading state and does not imply that execution is ready.</li>
+          <li>The approved Phase 0 and Phase 1 constraints remain visible in the product, not only in the documents.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 2 Is Complete When</h2>
+        <ul>
+          <li>Coinbase read-only integration works through the approved secret model.</li>
+          <li>The startup refresh posture and manual refresh behavior are implemented exactly as approved, with no silent background polling.</li>
+          <li>Overview, Assets, Portfolio, Configuration, and connection-health surfaces present truthful read-only data.</li>
+          <li>The system correctly distinguishes existing funds from unsupported funding paths.</li>
+          <li>Policy restrictions and approved-candidate overlays are visible before any execution path exists.</li>
+          <li>Phase 2 test plans pass and the product is ready for Phase 3 storage and audit work.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Risks</h2>
+        <div class="callout risk">
+          <h3>Phase 2 Risks</h3>
+          <ul>
+            <li>Misreading Coinbase balances or product flags would contaminate later execution logic.</li>
+            <li>Weak error handling around credentials or partial API responses would make the shell look more reliable than it is.</li>
+            <li>Allowing read-only connectivity to blur into execution semantics would create unsafe scope drift.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

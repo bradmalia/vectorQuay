@@ -6,26 +6,48 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Globalization;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using VectorQuay.App.Models;
+using VectorQuay.Core.Coinbase;
 using VectorQuay.Core.Configuration;
 
 namespace VectorQuay.App.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    private static readonly string[] AllocationPalette = ["#2F3C8C", "#5B7CFF", "#00A3A3", "#F59E0B", "#8B5CF6", "#E35D8F"];
+
     private readonly SettingsService _settingsService;
+    private readonly ICoinbaseReadOnlyService? _coinbaseService;
     private string? _pendingRiskConfirmationTarget;
+    private CoinbaseShellSnapshot? _latestCoinbaseSnapshot;
+    private List<AssetPolicySettings>? _launchPolicyBaseline;
+    private string? _launchProtectedBtcMode;
+    private string? _launchProtectedEthMode;
     private readonly List<AssetRowViewModel> _allAssetRows = [];
     private readonly List<PolicyRuleViewModel> _allPolicyRules = [];
     private readonly List<ActivityEntryViewModel> _allActivityEntries = [];
     private readonly List<AlertEntryViewModel> _allAlertEntries = [];
     private readonly List<AlertRuleViewModel> _allAlertRules = [];
+    private bool _isRefreshingActivityFilters;
 
     public MainWindowViewModel(SettingsService settingsService)
+        : this(settingsService, null, false)
+    {
+    }
+
+    public MainWindowViewModel(SettingsService settingsService, ICoinbaseReadOnlyService? coinbaseService, bool enableStartupRefresh)
     {
         _settingsService = settingsService;
+        _coinbaseService = coinbaseService;
         AssetRows = [];
+        TopTradeAssetItems = [];
+        RecentOverviewActivityItems = [];
+        AllocationSlices = [];
+        PortfolioHoldings = [];
         SourceEntries = [];
         VisibleSourceEntries = [];
         VisiblePolicyRules = [];
@@ -36,10 +58,27 @@ public partial class MainWindowViewModel : ViewModelBase
         AlertItems = [];
         ActivityItems = [];
         PolicyRules = [];
+        ActivityAssetOptions = [];
+        ActivityActionOptions = [];
+        ActivityOutcomeOptions = [];
         LoadFromSnapshot(_settingsService.Load());
+
+        if (enableStartupRefresh && _coinbaseService is not null)
+        {
+            ShellStatus = "Connection Pending";
+            _ = RefreshCoinbaseDataAsync(isStartup: true);
+        }
     }
 
     public ObservableCollection<AssetRowViewModel> AssetRows { get; }
+
+    public ObservableCollection<TopTradeAssetViewModel> TopTradeAssetItems { get; }
+
+    public ObservableCollection<OverviewActivityRowViewModel> RecentOverviewActivityItems { get; }
+
+    public ObservableCollection<AllocationSliceViewModel> AllocationSlices { get; }
+
+    public ObservableCollection<PortfolioHoldingViewModel> PortfolioHoldings { get; }
 
     public ObservableCollection<SourceEntryViewModel> SourceEntries { get; }
 
@@ -61,8 +100,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public ObservableCollection<PolicyRuleViewModel> PolicyRules { get; }
 
+    public ObservableCollection<string> ActivityAssetOptions { get; }
+
+    public ObservableCollection<string> ActivityActionOptions { get; }
+
+    public ObservableCollection<string> ActivityOutcomeOptions { get; }
+
     public IReadOnlyList<string> ProtectedAssetModes { get; } =
     [
+        "Allow Full Trade",
         "Do Not Buy",
         "Do Not Sell",
         "Do Not Trade",
@@ -131,7 +177,25 @@ public partial class MainWindowViewModel : ViewModelBase
     private string coinbaseApiSecretStatus = "Missing";
 
     [ObservableProperty]
+    private string coinbaseJsonKeyFileStatus = "Not Found";
+
+    [ObservableProperty]
+    private string coinbaseJsonKeyFilePath = string.Empty;
+
+    [ObservableProperty]
+    private string coinbaseJsonImportPath = string.Empty;
+
+    [ObservableProperty]
     private string openAiApiKeyStatus = "Missing";
+
+    [ObservableProperty]
+    private string openAiApiKeyEditor = string.Empty;
+
+    [ObservableProperty]
+    private string coinbaseConnectionSummary = "Not Connected";
+
+    [ObservableProperty]
+    private string coinbaseRefreshSummary = "No Coinbase refresh has run yet.";
 
     [ObservableProperty]
     private string releaseFeedUrl = string.Empty;
@@ -149,6 +213,66 @@ public partial class MainWindowViewModel : ViewModelBase
     private string settingsActionMessage = "Use Save, Validate, and Reset to manage local Phase 1 configuration safely.";
 
     [ObservableProperty]
+    private string connectionsActionMessage = "Configure Coinbase and OpenAI connectivity here.";
+
+    [ObservableProperty]
+    private string refreshCoinbaseButtonText = "Refresh Coinbase";
+
+    [ObservableProperty]
+    private string refreshUniverseButtonText = "Refresh Universe";
+
+    [ObservableProperty]
+    private string overviewAppHealth = "Ready";
+
+    [ObservableProperty]
+    private string overviewCoinbaseStatus = "Not Connected";
+
+    [ObservableProperty]
+    private string overviewTotalValue = "Awaiting Coinbase connection";
+
+    [ObservableProperty]
+    private string overviewOpenPositions = "Awaiting Coinbase connection";
+
+    [ObservableProperty]
+    private string overviewUsdAvailable = "Awaiting Coinbase connection";
+
+    [ObservableProperty]
+    private string overviewRefreshSummary = "No Coinbase refresh has run yet.";
+
+    [ObservableProperty]
+    private string allocationSummary = "Connect Coinbase to see current allocation.";
+
+    [ObservableProperty]
+    private string portfolioTotalValue = "Awaiting Coinbase connection";
+
+    [ObservableProperty]
+    private string portfolioUnrealizedSummary = "Read-only current-state view";
+
+    [ObservableProperty]
+    private string portfolioCashStableSummary = "Awaiting Coinbase connection";
+
+    [ObservableProperty]
+    private string portfolioLargestExposure = "Awaiting Coinbase connection";
+
+    [ObservableProperty]
+    private string portfolioProtectedAssetsSummary = "Awaiting approved assets";
+
+    [ObservableProperty]
+    private string portfolioCashShareSummary = "Awaiting Coinbase connection";
+
+    [ObservableProperty]
+    private string portfolioProtectedPolicyCount = "Awaiting approved assets";
+
+    [ObservableProperty]
+    private string portfolioRiskPostureSummary = "Awaiting Coinbase connection";
+
+    [ObservableProperty]
+    private string portfolioSelectedPositionSummary = "Select a live holding to inspect it in later phases.";
+
+    [ObservableProperty]
+    private string portfolioHistorySummary = "Historical portfolio tracking remains a later-phase feature.";
+
+    [ObservableProperty]
     private string riskProfileMessage = "Preset profiles are available now. Direct threshold edits are reserved for Custom mode.";
 
     [ObservableProperty]
@@ -162,6 +286,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private SourceEntryViewModel? selectedSourceEntry;
+
+    [ObservableProperty]
+    private string sourceNameEditor = string.Empty;
+
+    [ObservableProperty]
+    private string sourceScopeEditor = string.Empty;
+
+    [ObservableProperty]
+    private string sourceWeightEditor = "Default";
 
     [ObservableProperty]
     private string alertActionMessage = "Alert preference editing and delivery tests become interactive in a later phase.";
@@ -206,6 +339,15 @@ public partial class MainWindowViewModel : ViewModelBase
     private string policyModeFilter = "All Modes";
 
     [ObservableProperty]
+    private string selectedPolicyModeEditor = "Allow Full Trade";
+
+    [ObservableProperty]
+    private string selectedPolicyNotesEditor = string.Empty;
+
+    [ObservableProperty]
+    private bool areAllPoliciesSelected;
+
+    [ObservableProperty]
     private string activityAssetFilter = "All Assets";
 
     [ObservableProperty]
@@ -221,10 +363,34 @@ public partial class MainWindowViewModel : ViewModelBase
     private ActivityEntryViewModel? selectedActivityEntry;
 
     [ObservableProperty]
+    private string activityDetailTitle = "No activity selected";
+
+    [ObservableProperty]
+    private string activityDetailTimestamp = string.Empty;
+
+    [ObservableProperty]
+    private string activityDetailAmount = string.Empty;
+
+    [ObservableProperty]
+    private string activityDetailStatus = string.Empty;
+
+    [ObservableProperty]
+    private string activityDetailSummary = "Select a Coinbase account event to inspect its details.";
+
+    [ObservableProperty]
     private string performanceRange = "24H";
 
     [ObservableProperty]
     private string performanceRangeSummary = "24H shell view selected. Live performance history arrives in later phases.";
+
+    [ObservableProperty]
+    private string performanceTopHoldingsSummary = "Connect Coinbase to see the current holdings mix.";
+
+    [ObservableProperty]
+    private string performanceActivityMixSummary = "Connect Coinbase to see recent account-event mix.";
+
+    [ObservableProperty]
+    private string performanceReadModelSummary = "Performance remains a truthful read-only snapshot until time-series analytics are added.";
 
     [ObservableProperty]
     private string sourceSearchText = string.Empty;
@@ -237,6 +403,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private string alertDestinationFilter = "All Destinations";
+
+    [ObservableProperty]
+    private string advancedThresholdsSummary = "Advanced thresholds show what later execution controls will enforce. In Phase 2 they remain illustrative and profile-driven.";
+
+    [ObservableProperty]
+    private string advancedSpreadToleranceSummary = "0.40% spread tolerance";
+
+    [ObservableProperty]
+    private string advancedLiquidityMinimumSummary = "$250K minimum 24H liquidity";
+
+    [ObservableProperty]
+    private string advancedConfidenceCutoffSummary = "0.60 confidence cutoff";
 
     [ObservableProperty]
     private PolicyRuleViewModel? selectedPolicyRule;
@@ -263,7 +441,28 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool IsAboutSection => CurrentSection == "About";
 
+    public string StatusBarIndicatorBrush =>
+        CoinbaseConnectionSummary.Contains("Connected", StringComparison.OrdinalIgnoreCase)
+            ? "#2FA56B"
+            : CoinbaseConnectionSummary.Contains("Pending", StringComparison.OrdinalIgnoreCase) ||
+              CoinbaseApiKeyStatus.StartsWith("Present", StringComparison.OrdinalIgnoreCase) &&
+              CoinbaseApiSecretStatus.StartsWith("Present", StringComparison.OrdinalIgnoreCase)
+                ? "#C28A19"
+                : "#B85C5C";
+
+    public string StatusBarSummary => CoinbaseConnectionSummary;
+
+    public string StatusBarDetail => $"{CoinbaseRefreshSummary} · OpenAI: {OpenAiApiKeyStatus} · Version {AppVersion}";
+
     public bool CanEditRiskThresholds => SelectedRiskProfile == "Custom";
+
+    public bool IsHighRiskProfile => SelectedRiskProfile == "High Risk";
+
+    public bool IsMediumRiskProfile => SelectedRiskProfile == "Medium Risk";
+
+    public bool IsLowRiskProfile => SelectedRiskProfile == "Low Risk";
+
+    public bool IsCustomRiskProfile => SelectedRiskProfile == "Custom";
 
     public bool IsAllSourceView => SelectedSourceView == "All";
 
@@ -273,7 +472,36 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool HasSelectedSourceEntry => SelectedSourceEntry is not null;
 
+    public string SourceCountSummary => $"{VisibleSourceEntries.Count} shown · {SourceEntries.Count(entry => entry.IsDirectSource)} direct · {SourceEntries.Count(entry => entry.IsWatcher)} watchers";
+
+    public string SourceEditorSummary => SelectedSourceEntry is null
+        ? "Select a source or watcher to edit its local settings."
+        : $"Editing local settings for {SelectedSourceEntry.Name}.";
+
+    public bool HasPolicySelection => _allPolicyRules.Any(rule => rule.IsSelected);
+
+    public string AssetCountSummary => $"{AssetRows.Count} asset{(AssetRows.Count == 1 ? string.Empty : "s")} displayed";
+
+    public string PolicyCountSummary => $"{VisiblePolicyRules.Count} approved polic{(VisiblePolicyRules.Count == 1 ? "y" : "ies")} displayed";
+
+    public string ActivityEntryCountSummary => ActivityEntries.Count.ToString();
+
+    public bool HasActivityEntries => ActivityEntries.Count > 0;
+
+    public bool ShowNoActivityEntries => !HasActivityEntries;
+
+    public string ActivityCountSummary => ActivityEntries.Count switch
+    {
+        0 => "No Coinbase account events match the current filters.",
+        1 => "1 Coinbase account event shown",
+        var count => $"{count} Coinbase account events shown",
+    };
+
     public bool CanOpenUpdateActionUrl => !string.IsNullOrWhiteSpace(UpdateActionUrl);
+
+    public bool IsRefreshingCoinbase => RefreshCoinbaseButtonText != "Refresh Coinbase" || RefreshUniverseButtonText != "Refresh Universe";
+
+    public bool CanRefreshCoinbase => !IsRefreshingCoinbase;
 
     public bool IsPerformanceRange24H => PerformanceRange == "24H";
 
@@ -303,27 +531,17 @@ public partial class MainWindowViewModel : ViewModelBase
         ? "Last Contribution: No source selected"
         : $"Last Contribution: {SelectedSourceEntry.State} shell-only state, no live scoring yet";
 
-    public string SelectedActivityDecisionSummary => SelectedActivityEntry?.DecisionSummary ?? "Select an activity row to inspect a mock rationale summary.";
-
-    public string SelectedActivityPolicyRiskSummary => SelectedActivityEntry?.PolicyRiskSummary ?? "No activity row is selected yet.";
-
     public IReadOnlyList<ActivitySourceContributionViewModel> SelectedActivitySources => SelectedActivityEntry?.Sources ?? [];
 
     public IReadOnlyList<string> AssetStateOptions { get; } = ["All States", "Approved", "Watchlist", "Observed"];
 
     public IReadOnlyList<string> AssetSortOptions { get; } = ["Trade Priority", "Asset", "State"];
 
-    public IReadOnlyList<string> PolicyAssetOptions { get; } = ["All Assets", "BTC", "ETH"];
-
-    public IReadOnlyList<string> PolicyModeOptions { get; } = ["All Modes", "Do Not Buy", "Do Not Sell", "Do Not Trade"];
-
-    public IReadOnlyList<string> ActivityAssetOptions { get; } = ["All Assets", "BTC-USD", "ETH-USD"];
-
-    public IReadOnlyList<string> ActivityActionOptions { get; } = ["All Actions", "Buy", "Sell"];
-
-    public IReadOnlyList<string> ActivityOutcomeOptions { get; } = ["All Outcomes", "Selected", "Rejected"];
+    public IReadOnlyList<string> PolicyModeOptions { get; } = ["All Modes", "Allow Full Trade", "Do Not Buy", "Do Not Sell", "Do Not Trade"];
 
     public IReadOnlyList<string> SourceStateOptions { get; } = ["All States", "Active", "Observed", "Needs Review"];
+
+    public IReadOnlyList<string> SourceWeightOptions { get; } = ["Default", "Baseline", "Review", "Low", "Medium", "High", "Required"];
 
     public IReadOnlyList<string> AlertSeverityOptions { get; } = ["All Severities", "Info", "Warning", "Error"];
 
@@ -338,6 +556,15 @@ public partial class MainWindowViewModel : ViewModelBase
         SettingsPath = snapshot.Paths.SettingsPath;
         SecretsPath = snapshot.Paths.SecretsPath;
         TemplatePath = snapshot.Paths.TemplatePath;
+        CoinbaseJsonKeyFilePath = File.Exists(snapshot.Paths.CoinbaseApiKeyJsonPath)
+            ? snapshot.Paths.CoinbaseApiKeyJsonPath
+            : File.Exists(snapshot.Paths.CoinbaseApiKeyJsonTextPath)
+                ? snapshot.Paths.CoinbaseApiKeyJsonTextPath
+                : snapshot.Paths.CoinbaseApiKeyJsonPath;
+        CoinbaseJsonKeyFileStatus = File.Exists(snapshot.Paths.CoinbaseApiKeyJsonPath) || File.Exists(snapshot.Paths.CoinbaseApiKeyJsonTextPath)
+            ? "Detected"
+            : "Not Found";
+        CoinbaseJsonImportPath = CoinbaseJsonKeyFileStatus == "Detected" ? CoinbaseJsonKeyFilePath : string.Empty;
 
         ShellStatus = snapshot.Settings.General.ApplicationState;
         CurrentValuationCurrency = snapshot.Settings.General.ValuationCurrency;
@@ -349,6 +576,14 @@ public partial class MainWindowViewModel : ViewModelBase
         ProtectedBtcMode = snapshot.Settings.Policy.ProtectedBtcMode;
         ProtectedEthMode = snapshot.Settings.Policy.ProtectedEthMode;
         OperatorNotes = snapshot.Settings.Policy.OperatorNotes;
+        if (_launchPolicyBaseline is null)
+        {
+            _launchPolicyBaseline = snapshot.Settings.Policy.AssetPolicies
+                .Select(policy => new AssetPolicySettings { Asset = policy.Asset, Mode = policy.Mode, Notes = policy.Notes })
+                .ToList();
+            _launchProtectedBtcMode = snapshot.Settings.Policy.ProtectedBtcMode;
+            _launchProtectedEthMode = snapshot.Settings.Policy.ProtectedEthMode;
+        }
 
         SelectedRiskProfile = snapshot.Settings.Risk.ActiveProfile;
         CustomMaxPositionPct = snapshot.Settings.Risk.CustomMaxPositionPct.ToString("0.##");
@@ -359,6 +594,7 @@ public partial class MainWindowViewModel : ViewModelBase
         CoinbaseApiKeyStatus = DescribeSecretStatus(snapshot.SecretStatuses, SecretNames.CoinbaseApiKey);
         CoinbaseApiSecretStatus = DescribeSecretStatus(snapshot.SecretStatuses, SecretNames.CoinbaseApiSecret);
         OpenAiApiKeyStatus = DescribeSecretStatus(snapshot.SecretStatuses, SecretNames.OpenAiApiKey);
+        OpenAiApiKeyEditor = ResolveSecretEditorValue(snapshot.Paths.SecretsPath, SecretNames.OpenAiApiKey);
         ValidationSummary = string.Join(Environment.NewLine, snapshot.ValidationMessages);
 
         ValidationMessages.Clear();
@@ -370,11 +606,12 @@ public partial class MainWindowViewModel : ViewModelBase
         _allAssetRows.Clear();
         _allAssetRows.AddRange(BuildAssetRows(snapshot.Settings.Policy));
         RefreshAssetRows();
+        RefreshTopTradeAssets();
 
         SourceEntries.Clear();
         foreach (var entry in snapshot.Settings.Sources.Entries)
         {
-            SourceEntries.Add(new SourceEntryViewModel(entry.Name, entry.Type, entry.State, entry.Scope));
+            SourceEntries.Add(new SourceEntryViewModel(entry.Name, entry.Type, entry.State, entry.Scope, entry.Weight));
         }
         RefreshVisibleSourceEntries();
 
@@ -413,6 +650,26 @@ public partial class MainWindowViewModel : ViewModelBase
         AlertActionMessage = "Use the dropdowns and contact fields below to configure the local shell state for alerts.";
         ActivitySelectionMessage = "Select a row to inspect its mock decision details.";
         PerformanceRangeSummary = "24H shell view selected. Live performance history arrives in later phases.";
+        PerformanceTopHoldingsSummary = "Connect Coinbase to see the current holdings mix.";
+        PerformanceActivityMixSummary = "Connect Coinbase to see recent account-event mix.";
+        PerformanceReadModelSummary = "Performance remains a truthful read-only snapshot until time-series analytics are added.";
+        OverviewAppHealth = "Ready";
+        OverviewCoinbaseStatus = "Not Connected";
+        OverviewTotalValue = "Awaiting Coinbase connection";
+        OverviewOpenPositions = "Awaiting Coinbase connection";
+        OverviewUsdAvailable = "Awaiting Coinbase connection";
+        OverviewRefreshSummary = "No Coinbase refresh has run yet.";
+        AllocationSummary = "Connect Coinbase to see current allocation.";
+        PortfolioTotalValue = "Awaiting Coinbase connection";
+        PortfolioUnrealizedSummary = "Read-only current-state view";
+        PortfolioCashStableSummary = "Awaiting Coinbase connection";
+        PortfolioLargestExposure = "Awaiting Coinbase connection";
+        PortfolioProtectedAssetsSummary = string.Join(", ", _allPolicyRules.Where(rule => !string.Equals(rule.Mode, "Allow Full Trade", StringComparison.OrdinalIgnoreCase)).Select(rule => rule.Asset));
+        PortfolioCashShareSummary = "Awaiting Coinbase connection";
+        PortfolioProtectedPolicyCount = "Awaiting approved assets";
+        PortfolioRiskPostureSummary = "Awaiting Coinbase connection";
+        PortfolioSelectedPositionSummary = "Select a live holding to inspect it in later phases.";
+        PortfolioHistorySummary = "Historical portfolio tracking remains a later-phase feature.";
         InAppAlertsEnabled = true;
         EmailAlertsEnabled = true;
         SmsAlertsEnabled = false;
@@ -420,6 +677,93 @@ public partial class MainWindowViewModel : ViewModelBase
         AlertSmsNumber = "+1 555-0100";
         QuietHoursSummary = "Scheduling arrives in a later phase";
         LastAlertDeliveryTest = "Not Run";
+        AllocationSlices.Clear();
+        PortfolioHoldings.Clear();
+        UpdateAdvancedThresholdsDisplay();
+
+        if (_latestCoinbaseSnapshot is not null)
+        {
+            ApplyCoinbaseSnapshot(_latestCoinbaseSnapshot, false);
+        }
+        OnPropertyChanged(nameof(StatusBarDetail));
+    }
+
+    [RelayCommand]
+    private async Task RefreshCoinbaseDataAsync()
+    {
+        await RefreshCoinbaseDataAsync(isStartup: false);
+    }
+
+    private async Task RefreshCoinbaseDataAsync(bool isStartup)
+    {
+        if (_coinbaseService is null)
+        {
+            CoinbaseConnectionSummary = "Unavailable";
+            CoinbaseRefreshSummary = "Coinbase refresh service is not configured.";
+            OnPropertyChanged(nameof(StatusBarDetail));
+            return;
+        }
+
+        try
+        {
+            if (!isStartup)
+            {
+                RefreshCoinbaseButtonText = "Refreshing...";
+                RefreshUniverseButtonText = "Refreshing...";
+            }
+
+            var snapshot = await _coinbaseService.RefreshAsync();
+            ApplyCoinbaseSnapshot(snapshot, isStartup);
+        }
+        catch (Exception ex)
+        {
+            CoinbaseConnectionSummary = "Refresh Failed";
+            CoinbaseRefreshSummary = $"Coinbase refresh failed: {ex.Message}";
+            ShellStatus = "Refresh Failed";
+            OnPropertyChanged(nameof(StatusBarDetail));
+        }
+        finally
+        {
+            RefreshCoinbaseButtonText = "Refresh Coinbase";
+            RefreshUniverseButtonText = "Refresh Universe";
+        }
+    }
+
+    [RelayCommand]
+    private async Task SaveCoinbaseConnectionAsync()
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(SecretsPath)!);
+            SaveCoinbaseJsonFile();
+            LoadFromSnapshot(_settingsService.Load());
+            ConnectionsActionMessage = "Coinbase connection settings saved.";
+
+            if (_coinbaseService is not null)
+            {
+                await RefreshCoinbaseDataAsync(isStartup: false);
+            }
+        }
+        catch (Exception ex)
+        {
+            ConnectionsActionMessage = $"Coinbase save failed: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void SaveOpenAiConnection()
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(SecretsPath)!);
+            SaveOpenAiSecret();
+            LoadFromSnapshot(_settingsService.Load());
+            ConnectionsActionMessage = "OpenAI connection settings saved.";
+        }
+        catch (Exception ex)
+        {
+            ConnectionsActionMessage = $"OpenAI save failed: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -438,6 +782,325 @@ public partial class MainWindowViewModel : ViewModelBase
             SettingsActionMessage = "Save failed. Correct the highlighted issue and try again.";
             ValidationSummary = $"Save failed: {ex.Message}";
         }
+    }
+
+    private void ApplyCoinbaseSnapshot(CoinbaseShellSnapshot snapshot, bool isStartup)
+    {
+        _latestCoinbaseSnapshot = snapshot;
+        CoinbaseConnectionSummary = snapshot.State switch
+        {
+            CoinbaseRefreshState.Connected => "Connected (Read-Only)",
+            CoinbaseRefreshState.MissingCredentials => "Credentials Missing",
+            CoinbaseRefreshState.IncompleteCredentials => "Credentials Incomplete",
+            CoinbaseRefreshState.PermissionMismatch => "Permission Mismatch",
+            CoinbaseRefreshState.TransportFailure => "Transport Failure",
+            _ => "Refresh Failed",
+        };
+
+        CoinbaseRefreshSummary = snapshot.LastRefreshUtc is null
+            ? snapshot.Messages.FirstOrDefault() ?? "No refresh data available."
+            : $"{(isStartup ? "Startup" : "Manual")} refresh: {snapshot.LastRefreshUtc.Value.LocalDateTime:g}";
+
+        if (snapshot.IsConnected)
+        {
+            ShellStatus = "Connected (Read-Only)";
+            ShellMessage = "Coinbase read-only data is active. Trading remains inactive until later phases enable execution.";
+            ReplaceAssetRowsWithCoinbaseData(snapshot);
+            ReplacePolicyRulesFromApprovedUniverse();
+            UpdateOverviewAndPortfolio(snapshot, isStartup);
+            UpdateActivityFromCoinbase(snapshot);
+        }
+    }
+
+    private void ReplaceAssetRowsWithCoinbaseData(CoinbaseShellSnapshot snapshot)
+    {
+        var approved = BuildSettingsFromEditor().Policy.ApprovedCandidates.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        _allAssetRows.Clear();
+        foreach (var product in snapshot.Products
+                     .Where(product => string.Equals(product.ProductType, "SPOT", StringComparison.OrdinalIgnoreCase))
+                     .Where(product => string.Equals(product.QuoteCurrencyId, "USD", StringComparison.OrdinalIgnoreCase) ||
+                                       string.Equals(product.QuoteCurrencyId, "USDC", StringComparison.OrdinalIgnoreCase))
+                     .GroupBy(product => product.BaseCurrencyId, StringComparer.OrdinalIgnoreCase)
+                     .Select(group => group
+                         .OrderBy(product => string.Equals(product.QuoteCurrencyId, "USD", StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                         .ThenBy(product => product.ProductId, StringComparer.OrdinalIgnoreCase)
+                         .First())
+                     .OrderBy(product => product.BaseCurrencyId, StringComparer.OrdinalIgnoreCase))
+        {
+            var state = approved.Contains(product.BaseCurrencyId)
+                ? "Approved"
+                : string.Equals(product.BaseCurrencyId, "DOGE", StringComparison.OrdinalIgnoreCase)
+                    ? "Watchlist"
+                    : "Observed";
+
+            var priority = state switch
+            {
+                "Approved" when product.BaseCurrencyId is "BTC" or "ETH" => "High",
+                "Approved" => "Medium",
+                "Watchlist" => "Low",
+                _ => "Observed",
+            };
+
+            _allAssetRows.Add(new AssetRowViewModel(product.BaseCurrencyId, state, priority, string.Empty));
+        }
+
+        RefreshAssetRows();
+        RefreshTopTradeAssets();
+    }
+
+    private void ReplacePolicyRulesFromApprovedUniverse()
+    {
+        var settings = BuildSettingsFromEditor();
+        var existingPolicies = settings.Policy.AssetPolicies.ToDictionary(assetPolicy => assetPolicy.Asset, StringComparer.OrdinalIgnoreCase);
+        _allPolicyRules.Clear();
+
+        foreach (var asset in _allAssetRows
+                     .Where(asset => string.Equals(asset.State, "Approved", StringComparison.OrdinalIgnoreCase))
+                     .Select(asset => asset.Asset)
+                     .Distinct(StringComparer.OrdinalIgnoreCase)
+                     .OrderBy(asset => asset, StringComparer.OrdinalIgnoreCase))
+        {
+            if (existingPolicies.TryGetValue(asset, out var assetPolicy))
+            {
+                _allPolicyRules.Add(new PolicyRuleViewModel(asset, assetPolicy.Mode, assetPolicy.Notes, false));
+            }
+            else
+            {
+                _allPolicyRules.Add(new PolicyRuleViewModel(asset, "Allow Full Trade", string.Empty, false));
+            }
+        }
+
+        RefreshPolicyRules();
+    }
+
+    private void UpdateOverviewAndPortfolio(CoinbaseShellSnapshot snapshot, bool isStartup)
+    {
+        var accountValues = snapshot.Accounts
+            .Select(account =>
+            {
+                var available = ParseAmount(account.AvailableValue);
+                var hold = ParseAmount(account.HoldValue);
+                var price = ResolveAccountPrice(snapshot.Products, account.Currency);
+                return new
+                {
+                    account.Currency,
+                    Total = available + hold,
+                    UsdValue = (available + hold) * price,
+                };
+            })
+            .Where(account => account.Total > 0m)
+            .OrderByDescending(account => account.UsdValue)
+            .ToList();
+
+        var totalValue = accountValues.Sum(account => account.UsdValue);
+        var cashStableValue = accountValues.Where(account => IsCashLike(account.Currency)).Sum(account => account.UsdValue);
+        var openPositions = accountValues.Count(account => !IsCashLike(account.Currency) && account.UsdValue > 0.01m);
+        var usdAvailable = accountValues
+            .Where(account => string.Equals(account.Currency, "USD", StringComparison.OrdinalIgnoreCase))
+            .Sum(account => account.Total);
+        var largestHolding = accountValues.FirstOrDefault(account => !IsCashLike(account.Currency)) ?? accountValues.FirstOrDefault();
+
+        OverviewCoinbaseStatus = CoinbaseConnectionSummary;
+        OverviewTotalValue = FormatUsd(totalValue);
+        OverviewOpenPositions = openPositions.ToString();
+        OverviewUsdAvailable = FormatUsd(usdAvailable);
+        OverviewRefreshSummary = snapshot.LastRefreshUtc is null
+            ? "No Coinbase refresh has run yet."
+            : $"{(isStartup ? "Startup" : "Manual")} refresh: {snapshot.LastRefreshUtc.Value.LocalDateTime:g} · {snapshot.Accounts.Count} accounts · {snapshot.Products.Count} products";
+
+        PortfolioTotalValue = FormatUsd(totalValue);
+        PortfolioUnrealizedSummary = "Current balances only";
+        PortfolioCashStableSummary = FormatUsd(cashStableValue);
+        PortfolioLargestExposure = largestHolding is null ? "No live holdings" : $"{FormatAssetLabel(largestHolding.Currency)} · {FormatUsd(largestHolding.UsdValue)}";
+        PortfolioCashShareSummary = totalValue <= 0m ? "n/a" : $"{Math.Round(cashStableValue / totalValue * 100m, 1):0.#}% held as cash/stable";
+        PortfolioProtectedAssetsSummary = string.Join(", ", _allPolicyRules
+            .Where(rule => !string.Equals(rule.Mode, "Allow Full Trade", StringComparison.OrdinalIgnoreCase))
+            .Select(rule => FormatAssetLabel(rule.Asset)));
+        if (string.IsNullOrWhiteSpace(PortfolioProtectedAssetsSummary))
+        {
+            PortfolioProtectedAssetsSummary = "None";
+        }
+        PortfolioProtectedPolicyCount = _allPolicyRules.Count(rule => !string.Equals(rule.Mode, "Allow Full Trade", StringComparison.OrdinalIgnoreCase)) switch
+        {
+            0 => "0 constrained assets",
+            1 => "1 constrained asset",
+            var count => $"{count} constrained assets",
+        };
+        PortfolioRiskPostureSummary = openPositions switch
+        {
+            0 => "No deployed non-cash positions",
+            1 => "Concentrated in a single deployed position",
+            <= 3 => "Moderately concentrated current exposure",
+            _ => "More distributed current exposure",
+        };
+
+        PortfolioSelectedPositionSummary = largestHolding is null
+            ? "No live non-cash holdings are currently loaded."
+            : $"{FormatAssetLabel(largestHolding.Currency)} is currently the largest non-cash exposure at {FormatUsd(largestHolding.UsdValue)}.";
+        PortfolioHistorySummary = "Current balances are live. Historical portfolio time-series and realized-performance analytics remain later-phase work.";
+
+        PortfolioHoldings.Clear();
+        foreach (var holding in accountValues.Take(12))
+        {
+            var allocationPct = totalValue <= 0m ? 0m : Math.Round(holding.UsdValue / totalValue * 100m, 1);
+            var mode = _allPolicyRules.FirstOrDefault(rule => string.Equals(rule.Asset, holding.Currency, StringComparison.OrdinalIgnoreCase))?.Mode
+                       ?? (IsCashLike(holding.Currency) ? "Cash / Stable" : "Allow Full Trade");
+            PortfolioHoldings.Add(new PortfolioHoldingViewModel(
+                holding.Currency,
+                holding.Total.ToString("0.########"),
+                "n/a",
+                FormatUsd(holding.UsdValue),
+                $"{allocationPct:0.#}%",
+                mode));
+        }
+
+        AllocationSlices.Clear();
+        var visibleAllocations = accountValues.Where(account => account.UsdValue > 0.01m).Take(6).ToList();
+        var runningPercent = 0d;
+        for (var index = 0; index < visibleAllocations.Count; index++)
+        {
+            var holding = visibleAllocations[index];
+            var percent = totalValue <= 0m ? 0d : Math.Round((double)(holding.UsdValue / totalValue * 100m), 1);
+            AllocationSlices.Add(new AllocationSliceViewModel(
+                holding.Currency,
+                percent,
+                FormatUsd(holding.UsdValue),
+                AllocationPalette[index % AllocationPalette.Length])
+            {
+                PathData = BuildDonutSlicePath(runningPercent, percent),
+            });
+            runningPercent += percent;
+        }
+
+        AllocationSummary = totalValue <= 0m
+            ? "No Coinbase balances are currently available."
+            : $"{FormatUsd(totalValue)} total · {FormatUsd(cashStableValue)} cash/stable · {FormatUsd(totalValue - cashStableValue)} deployed.";
+
+        var topHoldings = accountValues
+            .Where(account => account.UsdValue > 0.01m)
+            .Take(3)
+            .Select(account => $"{FormatAssetLabel(account.Currency)} · {FormatUsd(account.UsdValue)}");
+        PerformanceTopHoldingsSummary = topHoldings.Any()
+            ? string.Join(" | ", topHoldings)
+            : "No live holdings are currently available.";
+    }
+
+    private void UpdateActivityFromCoinbase(CoinbaseShellSnapshot snapshot)
+    {
+        _allActivityEntries.Clear();
+
+        foreach (var transaction in snapshot.Transactions
+                     .OrderByDescending(transaction => ParseDateTime(transaction.CreatedAt))
+                     .Take(100))
+        {
+            var createdAt = ParseDateTime(transaction.CreatedAt);
+            var asset = string.IsNullOrWhiteSpace(transaction.AmountCurrency) ? "Account" : transaction.AmountCurrency;
+            var detail = string.IsNullOrWhiteSpace(transaction.Title) ? HumanizeWords(transaction.Type) : transaction.Title;
+            var subtitle = string.IsNullOrWhiteSpace(transaction.Subtitle) ? "No additional Coinbase detail was returned." : transaction.Subtitle;
+
+            _allActivityEntries.Add(new ActivityEntryViewModel(
+                createdAt == DateTimeOffset.MinValue ? transaction.CreatedAt : createdAt.LocalDateTime.ToString("yyyy-MM-dd HH:mm"),
+                asset,
+                HumanizeTransactionAction(transaction),
+                FormatTransactionAmount(transaction),
+                string.IsNullOrWhiteSpace(transaction.Status) ? "Completed" : HumanizeWords(transaction.Status),
+                detail,
+                detail,
+                subtitle,
+                [new ActivitySourceContributionViewModel("Coinbase Account Activity", detail, "Read-Only")]));
+        }
+
+        RefreshActivityEntries();
+        var groupedActions = _allActivityEntries
+            .GroupBy(entry => entry.Action, StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(group => group.Count())
+            .ThenBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
+            .Select(group => $"{group.Key}: {group.Count()}");
+        PerformanceActivityMixSummary = groupedActions.Any()
+            ? string.Join(" · ", groupedActions)
+            : "No Coinbase account events are currently available.";
+    }
+
+    private void SaveCoinbaseJsonFile()
+    {
+        if (string.IsNullOrWhiteSpace(CoinbaseJsonImportPath))
+        {
+            return;
+        }
+
+        var sourcePath = CoinbaseJsonImportPath.Trim();
+        if (!File.Exists(sourcePath))
+        {
+            throw new InvalidOperationException("The specified Coinbase JSON key file path does not exist.");
+        }
+
+        var targetPath = Path.GetExtension(sourcePath).Equals(".txt", StringComparison.OrdinalIgnoreCase)
+            ? VectorQuayPaths.Resolve(baseDirectory: AppContext.BaseDirectory).CoinbaseApiKeyJsonTextPath
+            : VectorQuayPaths.Resolve(baseDirectory: AppContext.BaseDirectory).CoinbaseApiKeyJsonPath;
+
+        Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
+        File.Copy(sourcePath, targetPath, true);
+        CoinbaseJsonKeyFilePath = targetPath;
+        CoinbaseJsonKeyFileStatus = "Detected";
+    }
+
+    public void SetCoinbaseJsonImportPath(string path)
+    {
+        CoinbaseJsonImportPath = path;
+        ConnectionsActionMessage = $"Selected Coinbase JSON key file: {Path.GetFileName(path)}";
+    }
+
+    private void SaveOpenAiSecret()
+    {
+        var secrets = LoadSecretValues(SecretsPath);
+        if (string.IsNullOrWhiteSpace(OpenAiApiKeyEditor))
+        {
+            secrets.Remove(SecretNames.OpenAiApiKey);
+        }
+        else
+        {
+            secrets[SecretNames.OpenAiApiKey] = OpenAiApiKeyEditor.Trim();
+        }
+
+        WriteSecretValues(SecretsPath, secrets);
+    }
+
+    private static Dictionary<string, string> LoadSecretValues(string secretsPath)
+    {
+        if (!File.Exists(secretsPath))
+        {
+            return new Dictionary<string, string>(StringComparer.Ordinal);
+        }
+
+        var parsed = SecretFileParser.ParseWithDiagnostics(File.ReadAllText(secretsPath));
+        return new Dictionary<string, string>(parsed.Values, StringComparer.Ordinal);
+    }
+
+    private static void WriteSecretValues(string secretsPath, IReadOnlyDictionary<string, string> secrets)
+    {
+        var lines = secrets
+            .Where(pair => !string.IsNullOrWhiteSpace(pair.Value))
+            .OrderBy(pair => pair.Key, StringComparer.Ordinal)
+            .Select(pair => $"{pair.Key}={pair.Value}");
+        File.WriteAllLines(secretsPath, lines);
+    }
+
+    private static string ResolveSecretEditorValue(string secretsPath, string secretName)
+    {
+        var environmentValue = Environment.GetEnvironmentVariable(secretName);
+        if (!string.IsNullOrWhiteSpace(environmentValue))
+        {
+            return environmentValue;
+        }
+
+        if (!File.Exists(secretsPath))
+        {
+            return string.Empty;
+        }
+
+        var parsed = SecretFileParser.ParseWithDiagnostics(File.ReadAllText(secretsPath));
+        return parsed.Values.TryGetValue(secretName, out var value) ? value : string.Empty;
     }
 
     [RelayCommand]
@@ -499,7 +1162,93 @@ public partial class MainWindowViewModel : ViewModelBase
         if (rule is not null)
         {
             SelectedPolicyRule = rule;
+            SelectedPolicyModeEditor = rule.Mode;
+            SelectedPolicyNotesEditor = string.Empty;
         }
+    }
+
+    [RelayCommand]
+    private void SaveSelectedPolicy()
+    {
+        var selectedRules = _allPolicyRules.Where(rule => rule.IsSelected).ToList();
+        if (selectedRules.Count == 0)
+        {
+            SettingsActionMessage = "Check one or more policy rows before applying.";
+            return;
+        }
+
+        if (!ProtectedAssetModes.Contains(SelectedPolicyModeEditor))
+        {
+            SettingsActionMessage = "Choose a valid policy mode before saving.";
+            return;
+        }
+
+        foreach (var rule in selectedRules)
+        {
+            rule.Mode = SelectedPolicyModeEditor;
+            rule.Notes = SelectedPolicyNotesEditor.Trim();
+        }
+
+        if (_allPolicyRules.FirstOrDefault(rule => string.Equals(rule.Asset, "BTC", StringComparison.OrdinalIgnoreCase)) is { } btcRule)
+        {
+            ProtectedBtcMode = btcRule.Mode;
+        }
+
+        if (_allPolicyRules.FirstOrDefault(rule => string.Equals(rule.Asset, "ETH", StringComparison.OrdinalIgnoreCase)) is { } ethRule)
+        {
+            ProtectedEthMode = ethRule.Mode;
+        }
+
+        try
+        {
+            var settings = BuildSettingsFromEditor();
+            _settingsService.Save(settings);
+            LoadFromSnapshot(_settingsService.Load());
+            SettingsActionMessage = $"Applied {selectedRules.Count} policy update{(selectedRules.Count == 1 ? string.Empty : "s")}.";
+            SelectedPolicyNotesEditor = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            SettingsActionMessage = $"Policy save failed: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void UndoSelectedPolicyChanges()
+    {
+        if (_launchPolicyBaseline is null)
+        {
+            SettingsActionMessage = "No session baseline is available to restore.";
+            return;
+        }
+
+        foreach (var rule in _allPolicyRules)
+        {
+            var baseline = _launchPolicyBaseline.FirstOrDefault(policy => string.Equals(policy.Asset, rule.Asset, StringComparison.OrdinalIgnoreCase));
+            if (baseline is null)
+            {
+                rule.Mode = "Allow Full Trade";
+                rule.Notes = string.Empty;
+            }
+            else
+            {
+                rule.Mode = baseline.Mode;
+                rule.Notes = baseline.Notes;
+            }
+
+            rule.IsSelected = false;
+        }
+
+        ProtectedBtcMode = _launchProtectedBtcMode ?? ProtectedBtcMode;
+        ProtectedEthMode = _launchProtectedEthMode ?? ProtectedEthMode;
+        AreAllPoliciesSelected = false;
+        SelectedPolicyNotesEditor = string.Empty;
+        SelectedPolicyModeEditor = "Allow Full Trade";
+
+        var settings = BuildSettingsFromEditor();
+        _settingsService.Save(settings);
+        LoadFromSnapshot(_settingsService.Load());
+        SettingsActionMessage = "Policy session changes were restored to the app-launch baseline.";
     }
 
     [RelayCommand]
@@ -529,7 +1278,10 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         SelectedSourceEntry = entry;
-        SourceActionMessage = $"Selected source: {entry.Name}. Detail actions remain shell-level placeholders in Phase 1.";
+        SourceNameEditor = entry.Name;
+        SourceScopeEditor = entry.Scope;
+        SourceWeightEditor = entry.Weight;
+        SourceActionMessage = $"Selected source: {entry.Name}.";
     }
 
     [RelayCommand]
@@ -540,17 +1292,23 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        SourceActionMessage = actionName switch
+        switch (actionName)
         {
-            "Add Source" => "Manual direct-source creation is reserved for a later phase. This shell currently shows the planned management surface only.",
-            "Add Watcher" => "Watcher creation arrives in later phases after AI-assisted source workflows are defined.",
-            "Edit Weight" => SelectedSourceEntry is null ? "Select a source first." : $"Weight editing for {SelectedSourceEntry.Name} is reserved for a later phase.",
-            "Edit Scope" => SelectedSourceEntry is null ? "Select a source first." : $"Scope editing for {SelectedSourceEntry.Name} is reserved for a later phase.",
-            "More Actions" => SelectedSourceEntry is null ? "Select a source first." : $"Lifecycle actions for {SelectedSourceEntry.Name} will be added in later phases.",
-            "View History" => SelectedSourceEntry is null ? "Select a source first." : $"History for {SelectedSourceEntry.Name} is not populated until source events are tracked.",
-            "Automation Settings" => SelectedSourceEntry is null ? "Select a source first." : $"Automation settings for {SelectedSourceEntry.Name} arrive in later phases.",
-            _ => "That source action is not available yet.",
-        };
+            case "Apply Source":
+                ApplySelectedSource();
+                break;
+            case "Remove Source":
+                RemoveSelectedSource();
+                break;
+            case "View History":
+                SourceActionMessage = SelectedSourceEntry is null
+                    ? "Select a source first."
+                    : $"{SelectedSourceEntry.Name} was loaded from local configuration. Historical source events are not tracked yet.";
+                break;
+            default:
+                SourceActionMessage = "That source action is not available yet.";
+                break;
+        }
     }
 
     [RelayCommand]
@@ -580,6 +1338,92 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    public void AddOrUpdateSourceFromDialog(string name, string type, string scope, string weight, bool isNew, SourceEntryViewModel? existing)
+    {
+        var state = type == "Watcher" ? "Observed" : "Active";
+        var entry = new SourceEntryViewModel(name.Trim(), type, state, scope.Trim(), string.IsNullOrWhiteSpace(weight) ? "Default" : weight.Trim());
+        if (!isNew && existing is not null)
+        {
+            var index = SourceEntries.IndexOf(existing);
+            if (index >= 0)
+            {
+                SourceEntries[index] = entry;
+            }
+        }
+        else
+        {
+            SourceEntries.Add(entry);
+        }
+
+        PersistSources();
+        if (SelectedSourceView == "Watchers" && !string.Equals(type, "Watcher", StringComparison.OrdinalIgnoreCase))
+        {
+            SelectedSourceView = "Direct Sources";
+        }
+        else if (SelectedSourceView == "Direct Sources" && string.Equals(type, "Watcher", StringComparison.OrdinalIgnoreCase))
+        {
+            SelectedSourceView = "Watchers";
+        }
+
+        SourceSearchText = string.Empty;
+        SourceStateFilter = "All States";
+        RefreshVisibleSourceEntries();
+        SelectSourceEntry(entry);
+        SourceActionMessage = isNew
+            ? $"{entry.Name} was added to the local {(type == "Watcher" ? "watcher" : "source")} registry."
+            : $"{entry.Name} was saved to the local {(type == "Watcher" ? "watcher" : "source")} registry.";
+    }
+
+    private void ApplySelectedSource()
+    {
+        if (SelectedSourceEntry is null)
+        {
+            SourceActionMessage = "Select a source first.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(SourceNameEditor))
+        {
+            SourceActionMessage = "Source name is required.";
+            return;
+        }
+
+        AddOrUpdateSourceFromDialog(SourceNameEditor, SelectedSourceEntry.Type, SourceScopeEditor, SourceWeightEditor, false, SelectedSourceEntry);
+    }
+
+    private void RemoveSelectedSource()
+    {
+        if (SelectedSourceEntry is null)
+        {
+            SourceActionMessage = "Select a source first.";
+            return;
+        }
+
+        var removedName = SelectedSourceEntry.Name;
+        SourceEntries.Remove(SelectedSourceEntry);
+        PersistSources();
+        RefreshVisibleSourceEntries();
+        SelectedSourceEntry = VisibleSourceEntries.FirstOrDefault();
+        if (SelectedSourceEntry is not null)
+        {
+            SelectSourceEntry(SelectedSourceEntry);
+        }
+        else
+        {
+            SourceNameEditor = string.Empty;
+            SourceScopeEditor = string.Empty;
+            SourceWeightEditor = "Default";
+        }
+
+        SourceActionMessage = $"{removedName} removed from local source configuration.";
+    }
+
+    private void PersistSources()
+    {
+        var settings = BuildSettingsFromEditor();
+        _settingsService.Save(settings);
+    }
+
     [RelayCommand]
     private void SetPerformanceRange(string? rangeName)
     {
@@ -591,12 +1435,12 @@ public partial class MainWindowViewModel : ViewModelBase
         PerformanceRange = rangeName;
         PerformanceRangeSummary = rangeName switch
         {
-            "7D" => "7D shell view selected. Weekly rollups become meaningful after performance history is available.",
-            "30D" => "30D shell view selected. Monthly comparisons arrive with later-phase strategy history.",
-            "90D" => "90D shell view selected. Medium-horizon trend reporting is reserved for later phases.",
-            "1Y" => "1Y shell view selected. Long-horizon reporting depends on sustained live operation.",
-            "ALL" => "ALL shell view selected. Full-lifecycle performance history is not available in Phase 1.",
-            _ => "24H shell view selected. Live performance history arrives in later phases.",
+            "7D" => "7D view selected. Current balances are live; rolling weekly return measurement arrives once snapshots are persisted.",
+            "30D" => "30D view selected. This is a truthful read-only state summary for now, not realized performance.",
+            "90D" => "90D view selected. Broader trend analytics remain a later-phase feature.",
+            "1Y" => "1Y view selected. Long-horizon return tracking requires historical snapshots that are not stored yet.",
+            "ALL" => "All-time view selected. The page remains a truthful snapshot until persistent performance history is added.",
+            _ => "24H view selected. Current balances and recent Coinbase events are live; full return analytics still require time-series history.",
         };
     }
 
@@ -640,6 +1484,7 @@ public partial class MainWindowViewModel : ViewModelBase
         SettingsActionMessage = profileName == "Custom"
             ? "Custom risk editing is enabled."
             : $"{profileName} preset applied. Direct threshold editing is now locked until Custom is selected again.";
+        UpdateAdvancedThresholdsDisplay();
     }
 
     [RelayCommand]
@@ -719,6 +1564,14 @@ public partial class MainWindowViewModel : ViewModelBase
                 ProtectedBtcMode = ProtectedBtcMode.Trim(),
                 ProtectedEthMode = ProtectedEthMode.Trim(),
                 OperatorNotes = OperatorNotes.Trim(),
+                AssetPolicies = _allPolicyRules
+                    .Select(rule => new AssetPolicySettings
+                    {
+                        Asset = rule.Asset,
+                        Mode = rule.Mode,
+                        Notes = rule.Notes,
+                    })
+                    .ToList(),
             },
             Risk = new RiskSettings
             {
@@ -735,6 +1588,7 @@ public partial class MainWindowViewModel : ViewModelBase
                         Name = entry.Name,
                         Type = entry.Type,
                         State = entry.State,
+                        Weight = entry.Weight,
                         Scope = entry.Scope,
                     })
                     .ToList(),
@@ -777,18 +1631,41 @@ public partial class MainWindowViewModel : ViewModelBase
         foreach (var asset in policy.ApprovedCandidates)
         {
             var priority = asset is "BTC" or "ETH" ? "High" : asset is "XRP" or "SOL" ? "Medium" : "Screened";
-            var notes = asset == "ETH" ? "Initial holding" : asset == "BTC" ? "USD preferred" : "Expansion set";
-            yield return new AssetRowViewModel(asset, "Approved", priority, notes);
+            yield return new AssetRowViewModel(asset, "Approved", priority, string.Empty);
         }
 
-        yield return new AssetRowViewModel("DOGE", "Watchlist", "Low", policy.WatchlistNote);
-        yield return new AssetRowViewModel("New Listing", "Observed", "Pending", "Auto-discovered, not tradable yet");
+        yield return new AssetRowViewModel("DOGE", "Watchlist", "Low", string.Empty);
+        yield return new AssetRowViewModel("New Listing", "Observed", "Pending", string.Empty);
     }
 
     private static IEnumerable<PolicyRuleViewModel> BuildPolicyRules(PolicySettings policy)
     {
-        yield return new PolicyRuleViewModel("ETH", policy.ProtectedEthMode, "Protected current holding", true);
-        yield return new PolicyRuleViewModel("BTC", policy.ProtectedBtcMode, "Operator lock", false);
+        var policyLookup = policy.AssetPolicies
+            .Where(assetPolicy => !string.IsNullOrWhiteSpace(assetPolicy.Asset))
+            .ToDictionary(assetPolicy => assetPolicy.Asset, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var asset in policy.ApprovedCandidates
+                     .Distinct(StringComparer.OrdinalIgnoreCase)
+                     .OrderBy(asset => asset, StringComparer.OrdinalIgnoreCase))
+        {
+            if (policyLookup.TryGetValue(asset, out var assetPolicy))
+            {
+                yield return new PolicyRuleViewModel(asset, assetPolicy.Mode, assetPolicy.Notes, false);
+            }
+            else
+            {
+                yield return new PolicyRuleViewModel(
+                    asset,
+                    asset switch
+                    {
+                        "BTC" => policy.ProtectedBtcMode,
+                        "ETH" => policy.ProtectedEthMode,
+                        _ => "Allow Full Trade",
+                    },
+                    string.Empty,
+                    false);
+            }
+        }
     }
 
     private static IEnumerable<AlertEntryViewModel> BuildAlertEntries(SettingsSnapshot snapshot)
@@ -908,6 +1785,45 @@ public partial class MainWindowViewModel : ViewModelBase
         return $"https://github.com/{segments[1]}/{segments[2]}/releases";
     }
 
+    private void UpdateAdvancedThresholdsDisplay()
+    {
+        switch (SelectedRiskProfile)
+        {
+            case "High Risk":
+                AdvancedThresholdsSummary = "High Risk keeps tighter monitoring but allows wider execution tolerance and faster turnover when later phases enable strategy logic.";
+                AdvancedSpreadToleranceSummary = "0.85% spread tolerance";
+                AdvancedLiquidityMinimumSummary = "$100K minimum 24H liquidity";
+                AdvancedConfidenceCutoffSummary = "0.50 confidence cutoff";
+                break;
+            case "Low Risk":
+                AdvancedThresholdsSummary = "Low Risk favors deeper liquidity, tighter spreads, and higher signal quality before any future execution is allowed.";
+                AdvancedSpreadToleranceSummary = "0.25% spread tolerance";
+                AdvancedLiquidityMinimumSummary = "$500K minimum 24H liquidity";
+                AdvancedConfidenceCutoffSummary = "0.75 confidence cutoff";
+                break;
+            case "Custom":
+                AdvancedThresholdsSummary = "Custom mode keeps these advanced thresholds illustrative for now. In later phases they will combine with your custom position and loss controls.";
+                AdvancedSpreadToleranceSummary = $"Spread tolerance aligned to custom mode · {CustomDailyLossPct}% daily loss shell";
+                AdvancedLiquidityMinimumSummary = $"Liquidity floor aligned to custom mode · {CustomMaxPositionPct}% position shell";
+                AdvancedConfidenceCutoffSummary = $"Confidence cutoff aligned to custom mode · {CustomTurnoverPct}% turnover shell";
+                break;
+            default:
+                AdvancedThresholdsSummary = "Medium Risk balances execution tolerance, liquidity quality, and signal strictness for a measured default operating posture.";
+                AdvancedSpreadToleranceSummary = "0.40% spread tolerance";
+                AdvancedLiquidityMinimumSummary = "$250K minimum 24H liquidity";
+                AdvancedConfidenceCutoffSummary = "0.60 confidence cutoff";
+                break;
+        }
+    }
+
+    private static string FormatAssetLabel(string symbol)
+    {
+        var metadata = AssetMetadataCatalog.Resolve(symbol);
+        return string.Equals(metadata.Name, metadata.Symbol, StringComparison.OrdinalIgnoreCase)
+            ? metadata.Symbol
+            : $"{metadata.Name} ({metadata.Symbol})";
+    }
+
     private int CountMutedAlertChannels()
     {
         var muted = 0;
@@ -955,8 +1871,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var filtered = _allAssetRows
             .Where(asset => string.IsNullOrWhiteSpace(AssetSearchText) ||
-                            asset.Asset.Contains(AssetSearchText, StringComparison.OrdinalIgnoreCase) ||
-                            asset.Notes.Contains(AssetSearchText, StringComparison.OrdinalIgnoreCase))
+                            asset.Asset.Contains(AssetSearchText, StringComparison.OrdinalIgnoreCase))
             .Where(asset => AssetStateFilter == "All States" || string.Equals(asset.State, AssetStateFilter, StringComparison.OrdinalIgnoreCase));
 
         filtered = AssetSortOrder switch
@@ -971,6 +1886,19 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             AssetRows.Add(asset);
         }
+
+        OnPropertyChanged(nameof(AssetCountSummary));
+    }
+
+    private void RefreshTopTradeAssets()
+    {
+        TopTradeAssetItems.Clear();
+        foreach (var asset in _allAssetRows
+                     .Where(asset => string.Equals(asset.State, "Approved", StringComparison.OrdinalIgnoreCase))
+                     .Take(10))
+        {
+            TopTradeAssetItems.Add(new TopTradeAssetViewModel(asset.AssetSymbol, asset.State, asset.Priority));
+        }
     }
 
     private void RefreshPolicyRules()
@@ -980,7 +1908,6 @@ public partial class MainWindowViewModel : ViewModelBase
                            rule.Asset.Contains(PolicySearchText, StringComparison.OrdinalIgnoreCase) ||
                            rule.Mode.Contains(PolicySearchText, StringComparison.OrdinalIgnoreCase) ||
                            rule.Notes.Contains(PolicySearchText, StringComparison.OrdinalIgnoreCase))
-            .Where(rule => PolicyAssetFilter == "All Assets" || string.Equals(rule.Asset, PolicyAssetFilter, StringComparison.OrdinalIgnoreCase))
             .Where(rule => PolicyModeFilter == "All Modes" || string.Equals(rule.Mode, PolicyModeFilter, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
@@ -993,10 +1920,31 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         SelectedPolicyRule = VisiblePolicyRules.FirstOrDefault();
+        AreAllPoliciesSelected = VisiblePolicyRules.Count > 0 && VisiblePolicyRules.All(rule => rule.IsSelected);
+        OnPropertyChanged(nameof(PolicyCountSummary));
+        OnPropertyChanged(nameof(HasPolicySelection));
     }
 
     private void RefreshActivityEntries()
     {
+        _isRefreshingActivityFilters = true;
+        try
+        {
+        if (string.IsNullOrWhiteSpace(ActivityAssetFilter))
+        {
+            ActivityAssetFilter = "All Assets";
+        }
+
+        if (string.IsNullOrWhiteSpace(ActivityActionFilter))
+        {
+            ActivityActionFilter = "All Actions";
+        }
+
+        if (string.IsNullOrWhiteSpace(ActivityOutcomeFilter))
+        {
+            ActivityOutcomeFilter = "All Outcomes";
+        }
+
         var filtered = _allActivityEntries
             .Where(entry => ActivityAssetFilter == "All Assets" || string.Equals(entry.AssetPair, ActivityAssetFilter, StringComparison.OrdinalIgnoreCase))
             .Where(entry => ActivityActionFilter == "All Actions" || string.Equals(entry.Action, ActivityActionFilter, StringComparison.OrdinalIgnoreCase))
@@ -1012,6 +1960,42 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         SelectedActivityEntry = ActivityEntries.FirstOrDefault();
+        RecentOverviewActivityItems.Clear();
+        foreach (var item in _allActivityEntries.Take(5))
+        {
+            RecentOverviewActivityItems.Add(new OverviewActivityRowViewModel(
+                item.Timestamp,
+                item.AssetPair,
+                item.Action,
+                item.Amount));
+        }
+        ReplaceOptions(ActivityAssetOptions, ["All Assets", .. _allActivityEntries.Select(entry => entry.AssetPair).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(asset => asset, StringComparer.OrdinalIgnoreCase)]);
+        ReplaceOptions(ActivityActionOptions, ["All Actions", .. _allActivityEntries.Select(entry => entry.Action).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(action => action, StringComparer.OrdinalIgnoreCase)]);
+        ReplaceOptions(ActivityOutcomeOptions, ["All Outcomes", .. _allActivityEntries.Select(entry => entry.Outcome).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(outcome => outcome, StringComparer.OrdinalIgnoreCase)]);
+        if (!ActivityAssetOptions.Contains(ActivityAssetFilter))
+        {
+            ActivityAssetFilter = "All Assets";
+        }
+
+        if (!ActivityActionOptions.Contains(ActivityActionFilter))
+        {
+            ActivityActionFilter = "All Actions";
+        }
+
+        if (!ActivityOutcomeOptions.Contains(ActivityOutcomeFilter))
+        {
+            ActivityOutcomeFilter = "All Outcomes";
+        }
+
+        OnPropertyChanged(nameof(ActivityEntryCountSummary));
+        OnPropertyChanged(nameof(HasActivityEntries));
+        OnPropertyChanged(nameof(ShowNoActivityEntries));
+        OnPropertyChanged(nameof(ActivityCountSummary));
+        }
+        finally
+        {
+            _isRefreshingActivityFilters = false;
+        }
     }
 
     private void RefreshVisibleSourceEntries()
@@ -1036,6 +2020,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         SelectedSourceEntry = VisibleSourceEntries.FirstOrDefault();
+        OnPropertyChanged(nameof(SourceCountSummary));
     }
 
     private void RefreshAlertEntries()
@@ -1087,6 +2072,35 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnSelectedRiskProfileChanged(string value)
     {
         OnPropertyChanged(nameof(CanEditRiskThresholds));
+        OnPropertyChanged(nameof(IsHighRiskProfile));
+        OnPropertyChanged(nameof(IsMediumRiskProfile));
+        OnPropertyChanged(nameof(IsLowRiskProfile));
+        OnPropertyChanged(nameof(IsCustomRiskProfile));
+        UpdateAdvancedThresholdsDisplay();
+    }
+
+    partial void OnCustomMaxPositionPctChanged(string value)
+    {
+        if (SelectedRiskProfile == "Custom")
+        {
+            UpdateAdvancedThresholdsDisplay();
+        }
+    }
+
+    partial void OnCustomDailyLossPctChanged(string value)
+    {
+        if (SelectedRiskProfile == "Custom")
+        {
+            UpdateAdvancedThresholdsDisplay();
+        }
+    }
+
+    partial void OnCustomTurnoverPctChanged(string value)
+    {
+        if (SelectedRiskProfile == "Custom")
+        {
+            UpdateAdvancedThresholdsDisplay();
+        }
     }
 
     partial void OnAssetSearchTextChanged(string value) => RefreshAssetRows();
@@ -1097,21 +2111,58 @@ public partial class MainWindowViewModel : ViewModelBase
 
     partial void OnPolicySearchTextChanged(string value) => RefreshPolicyRules();
 
-    partial void OnPolicyAssetFilterChanged(string value) => RefreshPolicyRules();
-
     partial void OnPolicyModeFilterChanged(string value) => RefreshPolicyRules();
 
-    partial void OnActivityAssetFilterChanged(string value) => RefreshActivityEntries();
+    partial void OnActivityAssetFilterChanged(string value)
+    {
+        if (_isRefreshingActivityFilters)
+        {
+            return;
+        }
 
-    partial void OnActivityActionFilterChanged(string value) => RefreshActivityEntries();
+        RefreshActivityEntries();
+    }
 
-    partial void OnActivityOutcomeFilterChanged(string value) => RefreshActivityEntries();
+    partial void OnActivityActionFilterChanged(string value)
+    {
+        if (_isRefreshingActivityFilters)
+        {
+            return;
+        }
+
+        RefreshActivityEntries();
+    }
+
+    partial void OnActivityOutcomeFilterChanged(string value)
+    {
+        if (_isRefreshingActivityFilters)
+        {
+            return;
+        }
+
+        RefreshActivityEntries();
+    }
 
     partial void OnSelectedActivityEntryChanged(ActivityEntryViewModel? value)
     {
-        OnPropertyChanged(nameof(SelectedActivityDecisionSummary));
-        OnPropertyChanged(nameof(SelectedActivityPolicyRiskSummary));
         OnPropertyChanged(nameof(SelectedActivitySources));
+        if (value is null)
+        {
+            ActivityDetailTitle = "No activity selected";
+            ActivityDetailTimestamp = string.Empty;
+            ActivityDetailAmount = string.Empty;
+            ActivityDetailStatus = string.Empty;
+            ActivityDetailSummary = "Select a Coinbase account event to inspect its details.";
+            ActivitySelectionMessage = string.Empty;
+            return;
+        }
+
+        ActivityDetailTitle = $"{value.AssetName} ({value.AssetSymbol}) · {value.Action}";
+        ActivityDetailTimestamp = value.Timestamp;
+        ActivityDetailAmount = value.Amount;
+        ActivityDetailStatus = value.Outcome;
+        ActivityDetailSummary = value.DecisionSummary;
+        ActivitySelectionMessage = string.Empty;
     }
 
     partial void OnSelectedSourceViewChanged(string value)
@@ -1128,6 +2179,49 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(SelectedSourceReliability));
         OnPropertyChanged(nameof(SelectedSourceSignalSummary));
         OnPropertyChanged(nameof(SelectedSourceContributionSummary));
+        if (value is not null)
+        {
+            SourceNameEditor = value.Name;
+            SourceScopeEditor = value.Scope;
+            SourceWeightEditor = value.Weight;
+        }
+    }
+
+    partial void OnShellStatusChanged(string value)
+    {
+        OnPropertyChanged(nameof(StatusBarIndicatorBrush));
+        OnPropertyChanged(nameof(StatusBarSummary));
+    }
+
+    partial void OnCoinbaseApiKeyStatusChanged(string value)
+    {
+        OnPropertyChanged(nameof(StatusBarIndicatorBrush));
+        OnPropertyChanged(nameof(StatusBarSummary));
+    }
+
+    partial void OnCoinbaseApiSecretStatusChanged(string value)
+    {
+        OnPropertyChanged(nameof(StatusBarIndicatorBrush));
+        OnPropertyChanged(nameof(StatusBarSummary));
+    }
+
+    partial void OnCoinbaseConnectionSummaryChanged(string value)
+    {
+        OnPropertyChanged(nameof(StatusBarIndicatorBrush));
+        OnPropertyChanged(nameof(StatusBarSummary));
+        OnPropertyChanged(nameof(StatusBarDetail));
+    }
+
+    partial void OnRefreshCoinbaseButtonTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsRefreshingCoinbase));
+        OnPropertyChanged(nameof(CanRefreshCoinbase));
+    }
+
+    partial void OnRefreshUniverseButtonTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsRefreshingCoinbase));
+        OnPropertyChanged(nameof(CanRefreshCoinbase));
     }
 
     partial void OnUpdateActionUrlChanged(string value)
@@ -1193,6 +2287,16 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsPerformanceRangeAll));
     }
 
+    partial void OnAreAllPoliciesSelectedChanged(bool value)
+    {
+        foreach (var rule in VisiblePolicyRules)
+        {
+            rule.IsSelected = value;
+        }
+
+        OnPropertyChanged(nameof(HasPolicySelection));
+    }
+
     private bool HasUnsavedCustomRiskChanges()
     {
         var defaults = AppSettings.CreateDefault().Risk;
@@ -1215,11 +2319,175 @@ public partial class MainWindowViewModel : ViewModelBase
         CustomDailyLossPct = profile.CustomDailyLossPct.ToString("0.##");
         CustomTurnoverPct = profile.CustomTurnoverPct.ToString("0.##");
     }
+
+    private static void ReplaceOptions(ObservableCollection<string> target, IEnumerable<string> values)
+    {
+        var normalized = values.Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (target.SequenceEqual(normalized, StringComparer.Ordinal))
+        {
+            return;
+        }
+
+        target.Clear();
+        foreach (var value in normalized)
+        {
+            target.Add(value);
+        }
+    }
+
+    private static decimal ParseAmount(string? value) => decimal.TryParse(value, out var parsed) ? parsed : 0m;
+
+    private static string FormatUsd(decimal value) => value.ToString("C2");
+
+    private static decimal ResolveAccountPrice(IEnumerable<CoinbaseProduct> products, string currency)
+    {
+        if (IsCashLike(currency))
+        {
+            return 1m;
+        }
+
+        var product = products
+            .Where(product => string.Equals(product.BaseCurrencyId, currency, StringComparison.OrdinalIgnoreCase))
+            .Where(product => string.Equals(product.QuoteCurrencyId, "USD", StringComparison.OrdinalIgnoreCase) ||
+                              string.Equals(product.QuoteCurrencyId, "USDC", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(product => string.Equals(product.QuoteCurrencyId, "USD", StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .FirstOrDefault();
+
+        return decimal.TryParse(product?.Price, out var parsed) ? parsed : 0m;
+    }
+
+    private static bool IsCashLike(string currency) =>
+        string.Equals(currency, "USD", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(currency, "USDC", StringComparison.OrdinalIgnoreCase);
+
+    private static DateTimeOffset ParseDateTime(string? value) =>
+        DateTimeOffset.TryParse(value, out var parsed) ? parsed : DateTimeOffset.MinValue;
+
+    private static string HumanizeTransactionAction(CoinbaseTransaction transaction)
+    {
+        var title = $"{transaction.Title} {transaction.Type}".Trim();
+        if (title.Contains("reward", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Reward";
+        }
+
+        if (title.Contains("buy", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Buy";
+        }
+
+        if (title.Contains("sell", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Sell";
+        }
+
+        if (title.Contains("deposit", StringComparison.OrdinalIgnoreCase) || title.Contains("receive", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Deposit";
+        }
+
+        if (title.Contains("withdraw", StringComparison.OrdinalIgnoreCase) || title.Contains("send", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Withdrawal";
+        }
+
+        return HumanizeWords(transaction.Type);
+    }
+
+    private static string HumanizeWords(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "Unknown";
+        }
+
+        return string.Join(" ", value
+            .Replace("_", " ", StringComparison.Ordinal)
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(part => char.ToUpperInvariant(part[0]) + part[1..].ToLowerInvariant()));
+    }
+
+    private static string FormatTransactionAmount(CoinbaseTransaction transaction)
+    {
+        if (decimal.TryParse(transaction.NativeAmount, out var nativeValue) &&
+            string.Equals(transaction.NativeCurrency, "USD", StringComparison.OrdinalIgnoreCase))
+        {
+            return nativeValue.ToString("C2");
+        }
+
+        if (decimal.TryParse(transaction.Amount, out var amountValue))
+        {
+            return $"{amountValue:0.########} {transaction.AmountCurrency}".Trim();
+        }
+
+        return transaction.Amount;
+    }
+
+    private static string BuildDonutSlicePath(double startPercent, double sweepPercent)
+    {
+        const double centerX = 82d;
+        const double centerY = 82d;
+        const double radius = 51d;
+
+        if (sweepPercent <= 0d)
+        {
+            return string.Empty;
+        }
+
+        if (sweepPercent >= 99.9d)
+        {
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                "M {0},{1} A {2},{2} 0 1 1 {3},{1} A {2},{2} 0 1 1 {0},{1}",
+                centerX + radius,
+                centerY,
+                radius,
+                centerX - radius);
+        }
+
+        var startAngle = -90d + (startPercent / 100d * 360d);
+        var endAngle = startAngle + (sweepPercent / 100d * 360d);
+        var largeArc = sweepPercent >= 50d ? 1 : 0;
+        var start = PolarPoint(centerX, centerY, radius, startAngle);
+        var end = PolarPoint(centerX, centerY, radius, endAngle);
+
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "M {0},{1} A {2},{2} 0 {3} 1 {4},{5}",
+            start.X,
+            start.Y,
+            radius,
+            largeArc,
+            end.X,
+            end.Y);
+    }
+
+    private static (double X, double Y) PolarPoint(double centerX, double centerY, double radius, double angleDegrees)
+    {
+        var radians = angleDegrees * Math.PI / 180d;
+        return (centerX + radius * Math.Cos(radians), centerY + radius * Math.Sin(radians));
+    }
 }
 
 public sealed class AssetRowViewModel(string asset, string state, string priority, string notes)
 {
+    private readonly AssetMetadata _metadata = AssetMetadataCatalog.Resolve(asset);
+
     public string Asset { get; } = asset;
+
+    public string AssetSymbol => _metadata.Symbol;
+
+    public string AssetName => _metadata.Name;
+
+    public string AssetIconPath => _metadata.IconPath;
+
+    public Bitmap? AssetIcon => AssetIconCache.Load(AssetIconPath);
+
+    public bool HasAssetIcon => AssetIcon is not null;
+
+    public bool ShowAssetFallback => !HasAssetIcon;
+
+    public string AssetMonogram => AssetSymbol.Length >= 2 ? AssetSymbol[..2] : AssetSymbol;
 
     public string State { get; } = state;
 
@@ -1237,15 +2505,134 @@ public sealed class AssetRowViewModel(string asset, string state, string priorit
     };
 }
 
-public sealed class PolicyRuleViewModel(string asset, string mode, string notes, bool isSelected)
+public partial class PolicyRuleViewModel : ObservableObject
 {
+    public PolicyRuleViewModel(string asset, string mode, string notes, bool isSelected)
+    {
+        _metadata = AssetMetadataCatalog.Resolve(asset);
+        Asset = asset;
+        this.mode = mode;
+        this.notes = notes;
+        this.isSelected = isSelected;
+    }
+
+    private readonly AssetMetadata _metadata;
+
+    public string Asset { get; }
+
+    public string AssetSymbol => _metadata.Symbol;
+
+    public string AssetName => _metadata.Name;
+
+    public string AssetIconPath => _metadata.IconPath;
+
+    public Bitmap? AssetIcon => AssetIconCache.Load(AssetIconPath);
+
+    public bool HasAssetIcon => AssetIcon is not null;
+
+    public bool ShowAssetFallback => !HasAssetIcon;
+
+    public string AssetMonogram => AssetSymbol.Length >= 2 ? AssetSymbol[..2] : AssetSymbol;
+
+    [ObservableProperty]
+    private string mode;
+
+    [ObservableProperty]
+    private string notes;
+
+    [ObservableProperty]
+    private bool isSelected;
+}
+
+public sealed class AllocationSliceViewModel(string asset, double percent, string usdValue, string brush)
+{
+    private readonly AssetMetadata _metadata = AssetMetadataCatalog.Resolve(asset);
+
     public string Asset { get; } = asset;
 
-    public string Mode { get; } = mode;
+    public string AssetSymbol => _metadata.Symbol;
+
+    public string AssetName => _metadata.Name;
+
+    public string AssetIconPath => _metadata.IconPath;
+
+    public Bitmap? AssetIcon => AssetIconCache.Load(AssetIconPath);
+
+    public bool HasAssetIcon => AssetIcon is not null;
+
+    public bool ShowAssetFallback => !HasAssetIcon;
+
+    public string AssetMonogram => AssetSymbol.Length >= 2 ? AssetSymbol[..2] : AssetSymbol;
+
+    public double Percent { get; } = percent;
+
+    public string PercentText => $"{Percent:0.#}%";
+
+    public string UsdValue { get; } = usdValue;
+
+    public string Brush { get; } = brush;
+
+    public string PathData { get; init; } = string.Empty;
+
+    public string TooltipText => $"{AssetName} ({AssetSymbol}) · {PercentText} · {UsdValue}";
+}
+
+public sealed class OverviewActivityRowViewModel(string timestamp, string asset, string action, string amount)
+{
+    private readonly AssetMetadata _metadata = AssetMetadataCatalog.Resolve(asset);
+
+    public string Timestamp { get; } = timestamp;
+
+    public string Asset { get; } = asset;
+
+    public string AssetSymbol => _metadata.Symbol;
+
+    public string AssetName => _metadata.Name;
+
+    public string AssetIconPath => _metadata.IconPath;
+
+    public Bitmap? AssetIcon => AssetIconCache.Load(AssetIconPath);
+
+    public bool HasAssetIcon => AssetIcon is not null;
+
+    public bool ShowAssetFallback => !HasAssetIcon;
+
+    public string AssetMonogram => AssetSymbol.Length >= 2 ? AssetSymbol[..2] : AssetSymbol;
+
+    public string Action { get; } = action;
+
+    public string Amount { get; } = amount;
+}
+
+public sealed class PortfolioHoldingViewModel(string asset, string quantity, string avgCost, string value, string allocation, string notes)
+{
+    private readonly AssetMetadata _metadata = AssetMetadataCatalog.Resolve(asset);
+
+    public string Asset { get; } = asset;
+
+    public string AssetSymbol => _metadata.Symbol;
+
+    public string AssetName => _metadata.Name;
+
+    public string AssetIconPath => _metadata.IconPath;
+
+    public Bitmap? AssetIcon => AssetIconCache.Load(AssetIconPath);
+
+    public bool HasAssetIcon => AssetIcon is not null;
+
+    public bool ShowAssetFallback => !HasAssetIcon;
+
+    public string AssetMonogram => AssetSymbol.Length >= 2 ? AssetSymbol[..2] : AssetSymbol;
+
+    public string Quantity { get; } = quantity;
+
+    public string AvgCost { get; } = avgCost;
+
+    public string Value { get; } = value;
+
+    public string Allocation { get; } = allocation;
 
     public string Notes { get; } = notes;
-
-    public bool IsSelected { get; } = isSelected;
 }
 
 public sealed class ActivityEntryViewModel(
@@ -1259,9 +2646,25 @@ public sealed class ActivityEntryViewModel(
     string policyRiskSummary,
     IReadOnlyList<ActivitySourceContributionViewModel> sources)
 {
+    private readonly AssetMetadata _metadata = AssetMetadataCatalog.Resolve(assetPair);
+
     public string Timestamp { get; } = timestamp;
 
     public string AssetPair { get; } = assetPair;
+
+    public string AssetSymbol => _metadata.Symbol;
+
+    public string AssetName => _metadata.Name;
+
+    public string AssetIconPath => _metadata.IconPath;
+
+    public Bitmap? AssetIcon => AssetIconCache.Load(AssetIconPath);
+
+    public bool HasAssetIcon => AssetIcon is not null;
+
+    public bool ShowAssetFallback => !HasAssetIcon;
+
+    public string AssetMonogram => AssetSymbol.Length >= 2 ? AssetSymbol[..2] : AssetSymbol;
 
     public string Action { get; } = action;
 
@@ -1276,6 +2679,31 @@ public sealed class ActivityEntryViewModel(
     public string PolicyRiskSummary { get; } = policyRiskSummary;
 
     public IReadOnlyList<ActivitySourceContributionViewModel> Sources { get; } = sources;
+}
+
+public sealed class TopTradeAssetViewModel(string asset, string state, string priority)
+{
+    private readonly AssetMetadata _metadata = AssetMetadataCatalog.Resolve(asset);
+
+    public string Asset { get; } = asset;
+
+    public string AssetSymbol => _metadata.Symbol;
+
+    public string AssetName => _metadata.Name;
+
+    public string AssetIconPath => _metadata.IconPath;
+
+    public Bitmap? AssetIcon => AssetIconCache.Load(AssetIconPath);
+
+    public bool HasAssetIcon => AssetIcon is not null;
+
+    public bool ShowAssetFallback => !HasAssetIcon;
+
+    public string AssetMonogram => AssetSymbol.Length >= 2 ? AssetSymbol[..2] : AssetSymbol;
+
+    public string State { get; } = state;
+
+    public string Priority { get; } = priority;
 }
 
 public sealed class ActivitySourceContributionViewModel(string source, string signal, string weight)
@@ -1305,13 +2733,15 @@ public sealed class AlertRuleViewModel(string rule, string severity, string dest
     public string Destination { get; } = destination;
 }
 
-public sealed class SourceEntryViewModel(string name, string type, string state, string scope)
+public sealed class SourceEntryViewModel(string name, string type, string state, string scope, string weight)
 {
     public string Name { get; } = name;
 
     public string Type { get; } = type;
 
     public string State { get; } = state;
+
+    public string Weight { get; } = weight;
 
     public string Scope { get; } = scope;
 

@@ -58,8 +58,8 @@
         </Style>
     </Window.Styles>
 
-    <Grid ColumnDefinitions="220,*" Background="#FFFFFF">
-        <Border Grid.Column="0" Background="#262B5B">
+    <Grid ColumnDefinitions="220,*" RowDefinitions="*,Auto" Background="#FFFFFF">
+        <Border Grid.Column="0" Grid.RowSpan="2" Background="#262B5B">
             <Grid RowDefinitions="Auto,*" Margin="0">
                 <StackPanel Margin="20,20,20,12" Spacing="18">
                     <Border Background="#33407C" CornerRadius="14" Padding="14,14" BorderBrush="#3E4A94" BorderThickness="1">
@@ -97,7 +97,7 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Column="1" Background="#F6F8FF">
+        <Grid Grid.Column="1" Grid.Row="0" Background="#F6F8FF">
             <ScrollViewer>
                 <StackPanel Margin="24" Spacing="16">
                     <Border Background="#FFF4D6" BorderBrush="#F1D48A" BorderThickness="1" CornerRadius="12" Padding="10,12">
@@ -119,13 +119,13 @@
                             <Border Classes="card">
                                 <StackPanel Spacing="4">
                                     <TextBlock Classes="label" Text="App Health"/>
-                                    <TextBlock FontSize="20" FontWeight="Bold" Foreground="#262B5B" Text="Ready"/>
+                                    <TextBlock FontSize="20" FontWeight="Bold" Foreground="#262B5B" Text="{Binding OverviewAppHealth}"/>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="1" Classes="card">
                                 <StackPanel Spacing="4">
                                     <TextBlock Classes="label" Text="Coinbase"/>
-                                    <TextBlock FontSize="20" FontWeight="Bold" Foreground="#262B5B" Text="Not Connected"/>
+                                    <TextBlock FontSize="20" FontWeight="Bold" Foreground="#262B5B" Text="{Binding OverviewCoinbaseStatus}"/>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="2" Classes="card">
@@ -141,37 +141,49 @@
                                 <StackPanel Spacing="10">
                                     <Grid ColumnDefinitions="*,Auto">
                                         <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Portfolio Snapshot"/>
-                                        <TextBlock Grid.Column="1" Classes="label" Text="Live account data begins in Phase 2"/>
+                                        <Button Grid.Column="1"
+                                                Content="{Binding RefreshCoinbaseButtonText}"
+                                                Command="{Binding RefreshCoinbaseDataCommand}"
+                                                IsEnabled="{Binding CanRefreshCoinbase}"
+                                                Background="#EEF2FF"
+                                                Foreground="#2B357F"/>
                                     </Grid>
                                     <Grid ColumnDefinitions="*,*,*">
                                         <StackPanel>
                                             <TextBlock Classes="label" Text="Total Value"/>
-                                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="#262B5B" Text="Connect Coinbase in Phase 2"/>
+                                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="#262B5B" Text="{Binding OverviewTotalValue}"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Classes="label" Text="Open Positions"/>
-                                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="#262B5B" Text="Unavailable in Phase 1"/>
+                                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="#262B5B" Text="{Binding OverviewOpenPositions}"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
                                             <TextBlock Classes="label" Text="USD Available"/>
-                                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="#262B5B" Text="Unavailable in Phase 1"/>
+                                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="#262B5B" Text="{Binding OverviewUsdAvailable}"/>
                                         </StackPanel>
                                     </Grid>
+                                    <TextBlock Classes="label" Text="{Binding OverviewRefreshSummary}" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="1" Classes="card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Top Trade Candidates"/>
-                                    <ItemsControl ItemsSource="{Binding AssetRows}">
+                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Top 10 Trade Assets"/>
+                                    <ItemsControl ItemsSource="{Binding TopTradeAssetItems}">
                                         <ItemsControl.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:AssetRowViewModel">
-                                                <TextBlock>
-                                                    <Run Text="{Binding Asset}"/>
-                                                    <Run Text=" · "/>
-                                                    <Run Text="{Binding State}"/>
-                                                    <Run Text=" · "/>
-                                                    <Run Text="{Binding Priority}"/>
-                                                </TextBlock>
+                                            <DataTemplate x:DataType="vm:TopTradeAssetViewModel">
+                                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Margin="0,0,0,8">
+                                                    <Grid Width="22" Height="22">
+                                                        <Image Width="22" Height="22" Source="{Binding AssetIcon}" IsVisible="{Binding HasAssetIcon}"/>
+                                                        <Border Width="22" Height="22" CornerRadius="11" Background="#EEF2FF" BorderBrush="#CFD7FF" BorderThickness="1" IsVisible="{Binding ShowAssetFallback}">
+                                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" FontWeight="Bold" Foreground="#2B357F" Text="{Binding AssetMonogram}"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <StackPanel Grid.Column="1" Spacing="0">
+                                                        <TextBlock FontWeight="SemiBold" Text="{Binding AssetName}"/>
+                                                        <TextBlock Classes="label" Text="{Binding AssetSymbol}"/>
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{Binding Priority}"/>
+                                                </Grid>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
@@ -182,56 +194,96 @@
                         <Grid ColumnDefinitions="1.1*,0.9*" ColumnSpacing="14">
                             <Border Classes="card">
                                 <StackPanel Spacing="8">
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Allocation Snapshot"/>
-                                        <TextBlock Grid.Column="1" Classes="label" Text="Overview only"/>
+                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Allocation Snapshot"/>
+                                    <TextBlock Classes="label" Text="{Binding AllocationSummary}" TextWrapping="Wrap"/>
+                                    <Grid ColumnDefinitions="180,*" ColumnSpacing="18">
+                                        <Grid Width="164" Height="164" HorizontalAlignment="Center" VerticalAlignment="Top">
+                                            <Ellipse Width="164" Height="164" Fill="#F5F7FF" Stroke="#D9E0FF" StrokeThickness="1"/>
+                                            <ItemsControl ItemsSource="{Binding AllocationSlices}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <Canvas Width="164" Height="164"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:AllocationSliceViewModel">
+                                                        <Path Data="{Binding PathData}" Stroke="{Binding Brush}" StrokeThickness="34" Stretch="None">
+                                                            <ToolTip.Tip>
+                                                                <TextBlock Text="{Binding TooltipText}"/>
+                                                            </ToolTip.Tip>
+                                                        </Path>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <Ellipse Width="76" Height="76" Fill="White" Stroke="#E4E9FF" StrokeThickness="1"/>
+                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="2">
+                                                <TextBlock Classes="label" HorizontalAlignment="Center" Text="Total"/>
+                                                <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="Bold" Foreground="#262B5B" Text="{Binding OverviewTotalValue}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        <ItemsControl Grid.Column="1" ItemsSource="{Binding AllocationSlices}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:AllocationSliceViewModel">
+                                                    <Grid ColumnDefinitions="18,Auto,*,70,90" ColumnSpacing="10" Margin="0,0,0,8">
+                                                        <Border Width="12" Height="12" CornerRadius="999" Background="{Binding Brush}" VerticalAlignment="Center"/>
+                                                        <Grid Grid.Column="1" Width="20" Height="20" VerticalAlignment="Center">
+                                                            <Image Width="20" Height="20" Source="{Binding AssetIcon}" IsVisible="{Binding HasAssetIcon}"/>
+                                                            <Border Width="20" Height="20" CornerRadius="10" Background="#EEF2FF" BorderBrush="#CFD7FF" BorderThickness="1" IsVisible="{Binding ShowAssetFallback}">
+                                                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="9" FontWeight="Bold" Foreground="#2B357F" Text="{Binding AssetMonogram}"/>
+                                                            </Border>
+                                                        </Grid>
+                                                        <StackPanel Grid.Column="2" Spacing="0">
+                                                            <TextBlock VerticalAlignment="Center" Text="{Binding AssetName}"/>
+                                                            <TextBlock Classes="label" Text="{Binding AssetSymbol}"/>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="3" VerticalAlignment="Center" Text="{Binding PercentText}"/>
+                                                        <TextBlock Grid.Column="4" VerticalAlignment="Center" Text="{Binding UsdValue}"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
                                     </Grid>
-                                    <Border Height="160" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="12" Background="#FBFCFF">
-                                        <TextBlock HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"
-                                                   Text="Compact allocation view stays here. Detailed holdings and exposure analysis live on Portfolio."
-                                                   Foreground="#5F6794"
-                                                   TextWrapping="Wrap"
-                                                   Margin="20"/>
-                                    </Border>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="1" Classes="card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Holdings Snapshot"/>
-                                    <Grid ColumnDefinitions="*,*" Margin="0,0,0,6">
-                                        <TextBlock FontWeight="Bold" Text="Asset"/>
-                                        <TextBlock Grid.Column="1" FontWeight="Bold" Text="Status"/>
+                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Recent Activity"/>
+                                    <Grid ColumnDefinitions="120,140,80,*" ColumnSpacing="10" Margin="0,0,0,6">
+                                        <TextBlock FontWeight="Bold" Text="Timestamp"/>
+                                        <TextBlock Grid.Column="1" FontWeight="Bold" Text="Asset"/>
+                                        <TextBlock Grid.Column="2" FontWeight="Bold" Text="Action"/>
+                                        <TextBlock Grid.Column="3" FontWeight="Bold" Text="Amount"/>
                                     </Grid>
-                                    <Grid ColumnDefinitions="*,*" Margin="0,0,0,4">
-                                        <TextBlock Text="ETH"/>
-                                        <TextBlock Grid.Column="1" Text="Protected holding"/>
-                                    </Grid>
-                                    <Grid ColumnDefinitions="*,*" Margin="0,0,0,4">
-                                        <TextBlock Text="USD"/>
-                                        <TextBlock Grid.Column="1" Text="Primary route"/>
-                                    </Grid>
-                                    <Grid ColumnDefinitions="*,*">
-                                        <TextBlock Text="USDC"/>
-                                        <TextBlock Grid.Column="1" Text="Secondary route only"/>
-                                    </Grid>
+                                    <ItemsControl ItemsSource="{Binding RecentOverviewActivityItems}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:OverviewActivityRowViewModel">
+                                                <Border BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="8" Padding="8,6" Margin="0,0,0,6" Background="#FBFCFF">
+                                                    <Grid ColumnDefinitions="120,140,80,*" ColumnSpacing="10">
+                                                        <TextBlock Text="{Binding Timestamp}"/>
+                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                                            <Grid Width="18" Height="18" VerticalAlignment="Center">
+                                                                <Image Width="18" Height="18" Source="{Binding AssetIcon}" IsVisible="{Binding HasAssetIcon}"/>
+                                                                <Border Width="18" Height="18" CornerRadius="9" Background="#EEF2FF" BorderBrush="#CFD7FF" BorderThickness="1" IsVisible="{Binding ShowAssetFallback}">
+                                                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8" FontWeight="Bold" Foreground="#2B357F" Text="{Binding AssetMonogram}"/>
+                                                                </Border>
+                                                            </Grid>
+                                                            <TextBlock Text="{Binding AssetSymbol}" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="2" Text="{Binding Action}"/>
+                                                        <TextBlock Grid.Column="3" Text="{Binding Amount}"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
                                 </StackPanel>
                             </Border>
                         </Grid>
 
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="14" RowSpacing="14">
+                        <Grid ColumnDefinitions="*" RowDefinitions="Auto" ColumnSpacing="14" RowSpacing="14">
                             <Border Classes="card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Recent Activity"/>
-                                    <ItemsControl ItemsSource="{Binding ActivityItems}"/>
-                                </StackPanel>
-                            </Border>
-                            <Border Grid.Column="1" Classes="card">
-                                <StackPanel Spacing="8">
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="System Summary"/>
-                                        <TextBlock Grid.Column="1" Classes="label" Text="Status-only shell summary"/>
-                                    </Grid>
+                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="System Summary"/>
                                     <TextBlock Text="{Binding ShellMessage}" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Border>
@@ -243,88 +295,42 @@
 
                         <Border Classes="card">
                             <StackPanel Spacing="10">
-                                <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Status"/>
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
+                                <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Connections"/>
+                                <StackPanel Spacing="16">
                                     <StackPanel Spacing="6">
-                                        <TextBlock Classes="label" Text="Coinbase API"/>
-                                        <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12">
-                                            <TextBlock Foreground="#424A76" Text="{Binding CoinbaseApiKeyStatus}" TextWrapping="Wrap"/>
-                                        </Border>
+                                        <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Coinbase"/>
+                                        <TextBlock Classes="label" Text="Use the downloaded CDP JSON key file." TextWrapping="Wrap"/>
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                            <TextBox Text="{Binding CoinbaseJsonImportPath}" PlaceholderText="/home/brad/.config/VectorQuay/cdp_api_key.json"/>
+                                            <Button Grid.Column="1" Content="Browse" Click="OnBrowseCoinbaseJson"/>
+                                        </Grid>
+                                        <TextBlock Classes="label" Text="{Binding CoinbaseJsonKeyFilePath}" TextWrapping="Wrap"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Button Content="Save Coinbase"
+                                                    Command="{Binding SaveCoinbaseConnectionCommand}"
+                                                    Background="#262B5B"
+                                                    Foreground="White"/>
+                                            <Button Command="{Binding RefreshCoinbaseDataCommand}"
+                                                    Content="{Binding RefreshCoinbaseButtonText}"
+                                                    IsEnabled="{Binding CanRefreshCoinbase}"
+                                                    Background="#EEF2FF"
+                                                    Foreground="#2B357F"/>
+                                        </StackPanel>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="1" Spacing="6">
-                                        <TextBlock Classes="label" Text="Application State"/>
-                                        <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12">
-                                            <TextBlock Foreground="#424A76" Text="{Binding ShellStatus}"/>
-                                        </Border>
-                                    </StackPanel>
-                                </Grid>
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
+                                    <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Height="1"/>
                                     <StackPanel Spacing="6">
-                                        <TextBlock Classes="label" Text="Platform"/>
-                                        <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12">
-                                            <TextBlock Foreground="#424A76" Text="Ubuntu / Linux"/>
-                                        </Border>
+                                        <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="OpenAI"/>
+                                        <TextBlock Classes="label" Text="Used for future AI-assisted features." TextWrapping="Wrap"/>
+                                        <TextBox Width="280" Text="{Binding OpenAiApiKeyEditor}" PlaceholderText="sk-..." />
+                                        <Button Content="Save OpenAI"
+                                                Command="{Binding SaveOpenAiConnectionCommand}"
+                                                Background="#262B5B"
+                                                Foreground="White"
+                                                HorizontalAlignment="Left"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="1" Spacing="6">
-                                        <TextBlock Classes="label" Text="Valuation Currency"/>
-                                        <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12">
-                                            <TextBlock Foreground="#424A76" Text="{Binding CurrentValuationCurrency}"/>
-                                        </Border>
-                                    </StackPanel>
-                                </Grid>
-                                <TextBlock Classes="label" Text="USD remains locked as the Phase 1 valuation currency. Coinbase credentials stay outside the UI and secret values remain redacted." TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Classes="card">
-                            <StackPanel Spacing="10">
-                                <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Local Non-Secret Settings"/>
-                                <TextBlock Classes="label" Text="{Binding ConfigurationSummary}" TextWrapping="Wrap"/>
-                                <StackPanel Spacing="6">
-                                    <TextBlock Classes="label" Text="GitHub Releases Feed"/>
-                                    <TextBox Text="{Binding ReleaseFeedUrl}" PlaceholderText="https://api.github.com/repos/owner/repo/releases/latest"/>
                                 </StackPanel>
-                                <Border Background="#F7F9FF" BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="10" Padding="10,12">
-                                    <StackPanel Spacing="8">
-                                        <CheckBox IsChecked="{Binding UsdcSecondaryEnabled}"/>
-                                        <TextBlock Margin="28,-26,0,0"
-                                                   Foreground="#424A76"
-                                                   Text="Keep USDC recognized as an approved secondary routing asset for later phases."
-                                                   TextWrapping="Wrap"/>
-                                    </StackPanel>
-                                </Border>
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <Button Content="Save" Command="{Binding SaveSettingsCommand}" Background="#262B5B" Foreground="White"/>
-                                    <Button Content="Validate" Command="{Binding ValidateSettingsCommand}" Background="#EEF2FF" Foreground="#2B357F"/>
-                                    <Button Content="Reset" Command="{Binding ResetToSavedCommand}" Background="#EEF2FF" Foreground="#2B357F"/>
-                                </StackPanel>
-                                <Border Background="#FFF7E8" BorderBrush="#F0D79A" BorderThickness="1" CornerRadius="10" Padding="10,12">
-                                    <TextBlock Foreground="#7A5A12" Text="{Binding SettingsActionMessage}" TextWrapping="Wrap"/>
-                                </Border>
                                 <Border Background="#FFFFFF" BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="10" Padding="10,12">
-                                    <TextBlock Foreground="#424A76" Text="{Binding ValidationSummary}" TextWrapping="Wrap"/>
-                                </Border>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Classes="card">
-                            <StackPanel Spacing="10">
-                                <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Coinbase Setup"/>
-                                <TextBlock Classes="label" Text="Coinbase credentials are not entered in the UI in Phase 1. Add them to the local secrets file below, relaunch the app, and then check the status card above." TextWrapping="Wrap"/>
-                                <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12">
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Classes="label" Text="Secrets File Path"/>
-                                        <TextBlock Foreground="#424A76" Text="{Binding SecretsPath}" TextWrapping="Wrap"/>
-                                    </StackPanel>
-                                </Border>
-                                <Border Background="#FFFFFF" BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="10" Padding="10,12">
-                                    <StackPanel Spacing="6">
-                                        <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Add These Lines"/>
-                                        <TextBlock Foreground="#424A76" FontFamily="Cascadia Code, Consolas, monospace" Text="VECTORQUAY_COINBASE_API_KEY=your_key_here&#x0a;VECTORQUAY_COINBASE_API_SECRET=your_secret_here" TextWrapping="Wrap"/>
-                                    </StackPanel>
-                                </Border>
-                                <Border Background="#FFF7E8" BorderBrush="#F0D79A" BorderThickness="1" CornerRadius="10" Padding="10,12">
-                                    <TextBlock Foreground="#7A5A12" Text="Environment variables override the secrets file if both are present. Do not put Coinbase secrets in tracked repo files." TextWrapping="Wrap"/>
+                                    <TextBlock Foreground="#424A76" Text="{Binding ConnectionsActionMessage}" TextWrapping="Wrap"/>
                                 </Border>
                             </StackPanel>
                         </Border>
@@ -336,38 +342,49 @@
                                 <TextBlock FontSize="22" FontWeight="Bold" Foreground="#262B5B" Text="Asset Universe"/>
                                 <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <TextBox Width="180" PlaceholderText="Search asset or note" Text="{Binding AssetSearchText}"/>
+                                        <TextBox Width="180" PlaceholderText="Search asset" Text="{Binding AssetSearchText}"/>
                                         <ComboBox Width="150" ItemsSource="{Binding AssetStateOptions}" SelectedItem="{Binding AssetStateFilter}"/>
                                         <ComboBox Width="150" ItemsSource="{Binding AssetSortOptions}" SelectedItem="{Binding AssetSortOrder}"/>
                                     </StackPanel>
-                                    <TextBlock Grid.Column="1" Classes="label" Text="Phase 1 shell filters" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1"
+                                            Content="{Binding RefreshUniverseButtonText}"
+                                            Command="{Binding RefreshCoinbaseDataCommand}"
+                                            IsEnabled="{Binding CanRefreshCoinbase}"
+                                            Background="#EEF2FF"
+                                            Foreground="#2B357F"/>
                                 </Grid>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Classes="label" Text="Discovery automation begins in later phases"/>
-                                    <TextBlock Grid.Column="1" Foreground="#2B357F" FontWeight="SemiBold" Text="Refresh Universe"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="120,140,140,*" ColumnSpacing="10" Margin="0,4,0,0">
+                                <Grid ColumnDefinitions="180,140,140" ColumnSpacing="10" Margin="0,4,0,0">
                                     <TextBlock FontWeight="Bold" Text="Asset"/>
                                     <TextBlock Grid.Column="1" FontWeight="Bold" Text="State"/>
                                     <TextBlock Grid.Column="2" FontWeight="Bold" Text="Priority"/>
-                                    <TextBlock Grid.Column="3" FontWeight="Bold" Text="Notes"/>
                                 </Grid>
-                                <ItemsControl ItemsSource="{Binding AssetRows}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:AssetRowViewModel">
-                                            <Border BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="0,8">
-                                                <Grid ColumnDefinitions="120,140,140,*" ColumnSpacing="10">
-                                                    <TextBlock Text="{Binding Asset}" TextWrapping="Wrap"/>
-                                                    <TextBlock Grid.Column="1" Text="{Binding State}" TextWrapping="Wrap"/>
-                                                    <TextBlock Grid.Column="2" Text="{Binding Priority}" TextWrapping="Wrap"/>
-                                                    <TextBlock Grid.Column="3" Text="{Binding Notes}" TextWrapping="Wrap"/>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                                <TextBlock Classes="label" Text="Newly discovered assets should appear automatically in a non-tradable state until screened. Operators should also be able to trigger a manual discovery refresh." TextWrapping="Wrap"/>
-                                <TextBlock Classes="label" Text="Screening remains manual placeholder-only in Phase 1"/>
+                                <ScrollViewer MaxHeight="520" HorizontalAlignment="Left" Width="430">
+                                    <ItemsControl ItemsSource="{Binding AssetRows}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:AssetRowViewModel">
+                                                <Border BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="0,8">
+                                                    <Grid ColumnDefinitions="180,140,140" ColumnSpacing="10">
+                                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                                            <Grid Width="20" Height="20" VerticalAlignment="Center">
+                                                                <Image Width="20" Height="20" Source="{Binding AssetIcon}" IsVisible="{Binding HasAssetIcon}"/>
+                                                                <Border Width="20" Height="20" CornerRadius="10" Background="#EEF2FF" BorderBrush="#CFD7FF" BorderThickness="1" IsVisible="{Binding ShowAssetFallback}">
+                                                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="9" FontWeight="Bold" Foreground="#2B357F" Text="{Binding AssetMonogram}"/>
+                                                                </Border>
+                                                            </Grid>
+                                                            <StackPanel Spacing="0">
+                                                                <TextBlock Text="{Binding AssetName}" TextWrapping="Wrap"/>
+                                                                <TextBlock Classes="label" Text="{Binding AssetSymbol}"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="1" Text="{Binding State}" TextWrapping="Wrap"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding Priority}" TextWrapping="Wrap"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                                <TextBlock Classes="label" Text="{Binding AssetCountSummary}"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -376,72 +393,72 @@
                         <Border Classes="card" Background="#F7F9FF">
                             <StackPanel Spacing="10">
                                 <TextBlock FontSize="22" FontWeight="Bold" Foreground="#262B5B" Text="Policies"/>
-                                <Grid ColumnDefinitions="*,Auto">
+                                <Grid ColumnDefinitions="*" ColumnSpacing="10">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                         <TextBox Width="180" PlaceholderText="Search policy" Text="{Binding PolicySearchText}"/>
-                                        <ComboBox Width="140" ItemsSource="{Binding PolicyAssetOptions}" SelectedItem="{Binding PolicyAssetFilter}"/>
                                         <ComboBox Width="160" ItemsSource="{Binding PolicyModeOptions}" SelectedItem="{Binding PolicyModeFilter}"/>
                                     </StackPanel>
-                                    <TextBlock Grid.Column="1" Classes="label" Text="Local shell filtering" VerticalAlignment="Center"/>
                                 </Grid>
-                                <TextBlock Classes="label" Text="Select one rule to edit details, or select multiple rules for future bulk actions."/>
+                                <TextBlock Classes="label" Text="Check one or more approved assets, then use the tools on the right to update those policies in bulk." TextWrapping="Wrap"/>
                                 <Grid ColumnDefinitions="1.1*,0.9*" ColumnSpacing="14">
                                     <Border Classes="card">
                                         <StackPanel Spacing="10">
-                                            <Grid ColumnDefinitions="72,110,150,*" ColumnSpacing="10" Margin="0,0,0,8">
+                                            <Grid ColumnDefinitions="72,170,150,*" ColumnSpacing="10" Margin="0,0,0,8">
                                                 <TextBlock FontWeight="Bold" Text="Select"/>
                                                 <TextBlock Grid.Column="1" FontWeight="Bold" Text="Asset"/>
                                                 <TextBlock Grid.Column="2" FontWeight="Bold" Text="Mode"/>
                                                 <TextBlock Grid.Column="3" FontWeight="Bold" Text="Notes"/>
                                             </Grid>
-                                            <ItemsControl ItemsSource="{Binding VisiblePolicyRules}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate x:DataType="vm:PolicyRuleViewModel">
-                                                        <Button Command="{Binding $parent[Window].DataContext.SelectPolicyRuleCommand}" CommandParameter="{Binding .}" Background="Transparent" BorderThickness="0" Padding="0" HorizontalContentAlignment="Stretch">
+                                            <CheckBox Content="All" IsChecked="{Binding AreAllPoliciesSelected}" HorizontalAlignment="Left"/>
+                                            <ScrollViewer MaxHeight="420">
+                                                <ItemsControl ItemsSource="{Binding VisiblePolicyRules}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:PolicyRuleViewModel">
                                                             <Border BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="0,8">
-                                                                <Grid ColumnDefinitions="72,110,150,*" ColumnSpacing="10">
-                                                                    <CheckBox IsChecked="{Binding IsSelected}" IsEnabled="False" VerticalAlignment="Center" HorizontalAlignment="Left"/>
-                                                                    <TextBlock Grid.Column="1" Text="{Binding Asset}"/>
+                                                                <Grid ColumnDefinitions="72,170,150,*" ColumnSpacing="10">
+                                                                    <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                                                        <Grid Width="20" Height="20" VerticalAlignment="Center">
+                                                                            <Image Width="20" Height="20" Source="{Binding AssetIcon}" IsVisible="{Binding HasAssetIcon}"/>
+                                                                            <Border Width="20" Height="20" CornerRadius="10" Background="#EEF2FF" BorderBrush="#CFD7FF" BorderThickness="1" IsVisible="{Binding ShowAssetFallback}">
+                                                                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="9" FontWeight="Bold" Foreground="#2B357F" Text="{Binding AssetMonogram}"/>
+                                                                            </Border>
+                                                                        </Grid>
+                                                                        <StackPanel Spacing="0">
+                                                                            <TextBlock Text="{Binding AssetName}"/>
+                                                                            <TextBlock Classes="label" Text="{Binding AssetSymbol}"/>
+                                                                        </StackPanel>
+                                                                    </StackPanel>
                                                                     <TextBlock Grid.Column="2" Text="{Binding Mode}"/>
                                                                     <TextBlock Grid.Column="3" Text="{Binding Notes}" TextWrapping="Wrap"/>
                                                                 </Grid>
                                                             </Border>
-                                                        </Button>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                            <TextBlock Classes="label" Text="Local policy edits persist when changed"/>
-                                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                                <Button Content="Add Rule" Background="#DDE4FF" Foreground="#6670A3" IsEnabled="False"/>
-                                                <Button Content="Edit" Background="#EEF2FF" Foreground="#6670A3" IsEnabled="False"/>
-                                            </StackPanel>
-                                            <TextBlock Classes="label" Text="Rule creation and bulk edit actions remain disabled until later policy-management phases." TextWrapping="Wrap"/>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </ScrollViewer>
+                                            <TextBlock Classes="label" Text="{Binding PolicyCountSummary}"/>
                                         </StackPanel>
                                     </Border>
                                     <Border Grid.Column="1" Classes="card">
-                                        <StackPanel Spacing="8">
-                                            <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Selected Policy Details"/>
-                                            <TextBlock Classes="label" Text="{Binding SelectedPolicyRule.Asset, StringFormat=Asset: {0}, TargetNullValue=Asset: None}"/>
-                                            <TextBlock Classes="label" Text="{Binding SelectedPolicyRule.Mode, StringFormat=Mode: {0}, TargetNullValue=Mode: None}"/>
-                                            <TextBlock Classes="label" Text="{Binding SelectedPolicyRule.Notes, StringFormat=Notes: {0}, TargetNullValue=Notes: None}"/>
-                                            <TextBlock Classes="label" Text="Source: Operator rule"/>
-                                            <TextBlock Classes="label" Text="Local operator policy detail"/>
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <Button Content="Edit Rule" Background="#EEF2FF" Foreground="#6670A3" IsEnabled="False"/>
-                                                <Button Content="Remove" Background="#EEF2FF" Foreground="#6670A3" IsEnabled="False"/>
-                                                <Button Content="Reset Default" Background="#EEF2FF" Foreground="#6670A3" IsEnabled="False"/>
+                                        <StackPanel Spacing="10">
+                                            <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Bulk Policy Update"/>
+                                            <TextBlock Classes="label" Text="Apply the selected mode and notes to all checked policy rows." TextWrapping="Wrap"/>
+                                            <StackPanel Spacing="6">
+                                                <TextBlock Classes="label" Text="Trading Mode"/>
+                                                <ComboBox ItemsSource="{Binding ProtectedAssetModes}" SelectedItem="{Binding SelectedPolicyModeEditor}" HorizontalAlignment="Left" Width="180"/>
                                             </StackPanel>
-                                            <Separator/>
-                                            <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
-                                                <StackPanel Spacing="6">
-                                                    <TextBlock Classes="label" Text="BTC Protected Mode"/>
-                                                    <ComboBox ItemsSource="{Binding ProtectedAssetModes}" SelectedItem="{Binding ProtectedBtcMode}"/>
-                                                </StackPanel>
-                                                <StackPanel Grid.Column="1" Spacing="6">
-                                                    <TextBlock Classes="label" Text="ETH Protected Mode"/>
-                                                    <ComboBox ItemsSource="{Binding ProtectedAssetModes}" SelectedItem="{Binding ProtectedEthMode}"/>
-                                                </StackPanel>
-                                            </Grid>
+                                            <StackPanel Spacing="6">
+                                                <TextBlock Classes="label" Text="Notes"/>
+                                                <TextBox Text="{Binding SelectedPolicyNotesEditor}" HorizontalAlignment="Stretch"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <Button Content="Apply" Command="{Binding SaveSelectedPolicyCommand}" Background="#262B5B" Foreground="White"/>
+                                                <Button Content="Undo" Command="{Binding UndoSelectedPolicyChangesCommand}" Background="#EEF2FF" Foreground="#2B357F"/>
+                                            </StackPanel>
+                                            <Border Background="#FFFFFF" BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="10" Padding="10,12">
+                                                <TextBlock Text="{Binding SettingsActionMessage}" TextWrapping="Wrap" Foreground="#424A76"/>
+                                            </Border>
                                         </StackPanel>
                                     </Border>
                                 </Grid>
@@ -453,35 +470,93 @@
                         <TextBlock FontSize="26" FontWeight="Bold" Foreground="#262B5B" Text="Portfolio"/>
                         <TextBlock Classes="label" Text="Detailed holdings, allocation, and exposure drilldown live here. Overview keeps only the summary layer." TextWrapping="Wrap"/>
                         <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="12">
-                            <Border Classes="card"><StackPanel><TextBlock Classes="label" Text="Total Value"/><TextBlock FontSize="20" FontWeight="Bold" Text="Awaiting exchange connection"/></StackPanel></Border>
-                            <Border Grid.Column="1" Classes="card"><StackPanel><TextBlock Classes="label" Text="Unrealized P/L"/><TextBlock FontSize="20" FontWeight="Bold" Text="Available after market sync"/></StackPanel></Border>
-                            <Border Grid.Column="2" Classes="card"><StackPanel><TextBlock Classes="label" Text="Cash / Stable"/><TextBlock FontSize="20" FontWeight="Bold" Text="USD dominant"/></StackPanel></Border>
-                            <Border Grid.Column="3" Classes="card"><StackPanel><TextBlock Classes="label" Text="Largest Exposure"/><TextBlock FontSize="20" FontWeight="Bold" Text="ETH"/></StackPanel></Border>
+                            <Border Classes="card"><StackPanel><TextBlock Classes="label" Text="Total Value"/><TextBlock FontSize="20" FontWeight="Bold" Text="{Binding PortfolioTotalValue}"/></StackPanel></Border>
+                            <Border Grid.Column="1" Classes="card"><StackPanel><TextBlock Classes="label" Text="Current View"/><TextBlock FontSize="20" FontWeight="Bold" Text="{Binding PortfolioUnrealizedSummary}"/></StackPanel></Border>
+                            <Border Grid.Column="2" Classes="card"><StackPanel><TextBlock Classes="label" Text="Cash / Stable"/><TextBlock FontSize="20" FontWeight="Bold" Text="{Binding PortfolioCashStableSummary}"/></StackPanel></Border>
+                            <Border Grid.Column="3" Classes="card"><StackPanel><TextBlock Classes="label" Text="Largest Exposure"/><TextBlock FontSize="20" FontWeight="Bold" Text="{Binding PortfolioLargestExposure}"/></StackPanel></Border>
                         </Grid>
                         <Grid ColumnDefinitions="1.1*,0.9*" ColumnSpacing="14">
-                            <Border Classes="card"><StackPanel><TextBlock FontWeight="Bold" Text="Allocation"/><Border Height="170" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="12" Background="#FBFCFF"><TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="Larger allocation and concentration chart becomes active after Coinbase portfolio sync" Foreground="#5F6794" TextWrapping="Wrap" Margin="20"/></Border></StackPanel></Border>
+                            <Border Classes="card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontWeight="Bold" Text="Allocation"/>
+                                    <TextBlock Classes="label" Text="{Binding AllocationSummary}" TextWrapping="Wrap"/>
+                                    <Grid ColumnDefinitions="180,*" ColumnSpacing="18">
+                                        <Grid Width="164" Height="164" HorizontalAlignment="Center" VerticalAlignment="Top">
+                                            <Ellipse Width="164" Height="164" Fill="#F5F7FF" Stroke="#D9E0FF" StrokeThickness="1"/>
+                                            <ItemsControl ItemsSource="{Binding AllocationSlices}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <Canvas Width="164" Height="164"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:AllocationSliceViewModel">
+                                                        <Path Data="{Binding PathData}" Stroke="{Binding Brush}" StrokeThickness="34" Stretch="None">
+                                                            <ToolTip.Tip>
+                                                                <TextBlock Text="{Binding TooltipText}"/>
+                                                            </ToolTip.Tip>
+                                                        </Path>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <Ellipse Width="76" Height="76" Fill="White" Stroke="#E4E9FF" StrokeThickness="1"/>
+                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="2">
+                                                <TextBlock Classes="label" HorizontalAlignment="Center" Text="Total"/>
+                                                <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="Bold" Foreground="#262B5B" Text="{Binding PortfolioTotalValue}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        <ItemsControl Grid.Column="1" ItemsSource="{Binding AllocationSlices}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:AllocationSliceViewModel">
+                                                    <Grid ColumnDefinitions="18,Auto,*,70,90" ColumnSpacing="10" Margin="0,0,0,8">
+                                                        <Border Width="12" Height="12" CornerRadius="999" Background="{Binding Brush}" VerticalAlignment="Center"/>
+                                                        <Grid Grid.Column="1" Width="20" Height="20" VerticalAlignment="Center">
+                                                            <Image Width="20" Height="20" Source="{Binding AssetIcon}" IsVisible="{Binding HasAssetIcon}"/>
+                                                            <Border Width="20" Height="20" CornerRadius="10" Background="#EEF2FF" BorderBrush="#CFD7FF" BorderThickness="1" IsVisible="{Binding ShowAssetFallback}">
+                                                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="9" FontWeight="Bold" Foreground="#2B357F" Text="{Binding AssetMonogram}"/>
+                                                            </Border>
+                                                        </Grid>
+                                                        <StackPanel Grid.Column="2" Spacing="0">
+                                                            <TextBlock VerticalAlignment="Center" Text="{Binding AssetName}"/>
+                                                            <TextBlock Classes="label" Text="{Binding AssetSymbol}"/>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="3" VerticalAlignment="Center" Text="{Binding PercentText}"/>
+                                                        <TextBlock Grid.Column="4" VerticalAlignment="Center" Text="{Binding UsdValue}"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
                             <Border Grid.Column="1" Classes="card">
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="Bold" Text="Portfolio Risk"/>
-                                    <Grid ColumnDefinitions="*,*" Margin="0,0,0,6">
-                                        <TextBlock Text="Largest Position"/>
-                                        <TextBlock Grid.Column="1" Text="ETH"/>
-                                    </Grid>
-                                    <Grid ColumnDefinitions="*,*" Margin="0,0,0,4">
-                                        <TextBlock Text="Protected Assets"/>
-                                        <TextBlock Grid.Column="1" Text="BTC, ETH"/>
-                                    </Grid>
-                                    <Grid ColumnDefinitions="*,*">
-                                        <TextBlock Text="Turnover Profile"/>
-                                        <TextBlock Grid.Column="1" Text="Medium Risk shell"/>
-                                    </Grid>
+                                    <TextBlock Classes="label" Text="{Binding PortfolioRiskPostureSummary}" TextWrapping="Wrap"/>
+                                    <Border Background="#F7F9FF" BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="10" Padding="10,12">
+                                        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                                            <Grid ColumnDefinitions="140,*">
+                                                <TextBlock Classes="label" Text="Largest Position"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding PortfolioLargestExposure}" TextWrapping="Wrap"/>
+                                            </Grid>
+                                            <Grid Grid.Row="1" ColumnDefinitions="140,*">
+                                                <TextBlock Classes="label" Text="Cash / Stable Share"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding PortfolioCashShareSummary}" TextWrapping="Wrap"/>
+                                            </Grid>
+                                            <Grid Grid.Row="2" ColumnDefinitions="140,*">
+                                                <TextBlock Classes="label" Text="Constrained Assets"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding PortfolioProtectedPolicyCount}" TextWrapping="Wrap"/>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                    <TextBlock Classes="label" Text="{Binding PortfolioProtectedAssetsSummary}" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
                         <Border Classes="card">
                             <StackPanel Spacing="8">
                                 <TextBlock FontWeight="Bold" Text="Holdings Detail"/>
-                                <Grid ColumnDefinitions="120,110,120,120,120,*" ColumnSpacing="10" Margin="0,0,0,6">
+                                <Grid ColumnDefinitions="170,110,120,120,120,*" ColumnSpacing="10" Margin="0,0,0,6">
                                     <TextBlock FontWeight="Bold" Text="Asset"/>
                                     <TextBlock Grid.Column="1" FontWeight="Bold" Text="Quantity"/>
                                     <TextBlock Grid.Column="2" FontWeight="Bold" Text="Avg Cost"/>
@@ -489,44 +564,45 @@
                                     <TextBlock Grid.Column="4" FontWeight="Bold" Text="Allocation"/>
                                     <TextBlock Grid.Column="5" FontWeight="Bold" Text="Notes"/>
                                 </Grid>
-                                <Grid ColumnDefinitions="120,110,120,120,120,*" ColumnSpacing="10" Margin="0,0,0,4">
-                                    <TextBlock Text="ETH"/>
-                                    <TextBlock Grid.Column="1" Text="Mocked"/>
-                                    <TextBlock Grid.Column="2" Text="Pending sync"/>
-                                    <TextBlock Grid.Column="3" Text="Pending sync"/>
-                                    <TextBlock Grid.Column="4" Text="Protected"/>
-                                    <TextBlock Grid.Column="5" Text="Existing protected holding from Phase 0 assumptions" TextWrapping="Wrap"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="120,110,120,120,120,*" ColumnSpacing="10" Margin="0,0,0,4">
-                                    <TextBlock Text="USD"/>
-                                    <TextBlock Grid.Column="1" Text="Mocked"/>
-                                    <TextBlock Grid.Column="2" Text="n/a"/>
-                                    <TextBlock Grid.Column="3" Text="Pending sync"/>
-                                    <TextBlock Grid.Column="4" Text="Primary route"/>
-                                    <TextBlock Grid.Column="5" Text="Default valuation and routing currency for v1" TextWrapping="Wrap"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="120,110,120,120,120,*" ColumnSpacing="10">
-                                    <TextBlock Text="USDC"/>
-                                    <TextBlock Grid.Column="1" Text="Mocked"/>
-                                    <TextBlock Grid.Column="2" Text="n/a"/>
-                                    <TextBlock Grid.Column="3" Text="Pending sync"/>
-                                    <TextBlock Grid.Column="4" Text="Secondary"/>
-                                    <TextBlock Grid.Column="5" Text="Secondary routing only; kept separate from overview summary" TextWrapping="Wrap"/>
-                                </Grid>
+                                <ItemsControl ItemsSource="{Binding PortfolioHoldings}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:PortfolioHoldingViewModel">
+                                            <Grid ColumnDefinitions="170,110,120,120,120,*" ColumnSpacing="10" Margin="0,0,0,4">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <Grid Width="20" Height="20" VerticalAlignment="Center">
+                                                        <Image Width="20" Height="20" Source="{Binding AssetIcon}" IsVisible="{Binding HasAssetIcon}"/>
+                                                        <Border Width="20" Height="20" CornerRadius="10" Background="#EEF2FF" BorderBrush="#CFD7FF" BorderThickness="1" IsVisible="{Binding ShowAssetFallback}">
+                                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="9" FontWeight="Bold" Foreground="#2B357F" Text="{Binding AssetMonogram}"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <StackPanel Spacing="0">
+                                                        <TextBlock Text="{Binding AssetName}"/>
+                                                        <TextBlock Classes="label" Text="{Binding AssetSymbol}"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="1" Text="{Binding Quantity}"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding AvgCost}"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding Value}"/>
+                                                <TextBlock Grid.Column="4" Text="{Binding Allocation}"/>
+                                                <TextBlock Grid.Column="5" Text="{Binding Notes}" TextWrapping="Wrap"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </StackPanel>
                         </Border>
                         <Grid ColumnDefinitions="1.1*,0.9*" ColumnSpacing="14">
                             <Border Classes="card">
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="Bold" Text="Selected Position Detail"/>
-                                    <TextBlock Text="ETH is the mocked selected position. A future detailed portfolio page should show acquisition history, realized/unrealized performance, and related activity for the chosen asset." TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding PortfolioSelectedPositionSummary}" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="1" Classes="card">
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="Bold" Text="Portfolio History"/>
                                     <Border Height="150" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="12" Background="#FBFCFF">
-                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="Portfolio value curve and contribution by asset arrive once read-only Coinbase history is available." Foreground="#5F6794" TextWrapping="Wrap" Margin="20"/>
+                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PortfolioHistorySummary}" Foreground="#5F6794" TextWrapping="Wrap" Margin="20"/>
                                     </Border>
                                 </StackPanel>
                             </Border>
@@ -551,22 +627,37 @@
                                             <ComboBox ItemsSource="{Binding ActivityOutcomeOptions}" SelectedItem="{Binding ActivityOutcomeFilter}"/>
                                         </StackPanel>
                                 </StackPanel>
-                                <Grid ColumnDefinitions="150,150,120,120,120,*" ColumnSpacing="10" Margin="0,0,0,6">
+                                <TextBlock Classes="label" Text="{Binding ActivityCountSummary}" TextWrapping="Wrap"/>
+                                <Grid ColumnDefinitions="150,170,120,120,130,*" ColumnSpacing="10" Margin="0,0,0,6">
                                     <TextBlock FontWeight="Bold" Text="Timestamp"/>
-                                    <TextBlock Grid.Column="1" FontWeight="Bold" Text="Asset / Pair"/>
+                                    <TextBlock Grid.Column="1" FontWeight="Bold" Text="Asset"/>
                                     <TextBlock Grid.Column="2" FontWeight="Bold" Text="Action"/>
                                     <TextBlock Grid.Column="3" FontWeight="Bold" Text="Amount"/>
-                                    <TextBlock Grid.Column="4" FontWeight="Bold" Text="Outcome"/>
-                                    <TextBlock Grid.Column="5" FontWeight="Bold" Text="Confidence"/>
+                                    <TextBlock Grid.Column="4" FontWeight="Bold" Text="Status"/>
+                                    <TextBlock Grid.Column="5" FontWeight="Bold" Text="Detail"/>
                                 </Grid>
+                                <Border Background="#F7F9FF" BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="10" Padding="12" IsVisible="{Binding ShowNoActivityEntries}">
+                                    <TextBlock Foreground="#5F6794" Text="No Coinbase account events matched the current filters. Adjust the filters or refresh Coinbase to reload the latest activity." TextWrapping="Wrap"/>
+                                </Border>
                                 <ItemsControl ItemsSource="{Binding ActivityEntries}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="vm:ActivityEntryViewModel">
                                             <Button Command="{Binding $parent[Window].DataContext.SelectActivityEntryCommand}" CommandParameter="{Binding .}" Background="Transparent" BorderThickness="0" Padding="0" HorizontalContentAlignment="Stretch">
                                                 <Border Background="#FFFFFF" CornerRadius="10" Padding="8" BorderBrush="#DFE4FB" BorderThickness="1" Margin="0,0,0,6">
-                                                    <Grid ColumnDefinitions="150,150,120,120,120,*" ColumnSpacing="10">
+                                                    <Grid ColumnDefinitions="150,170,120,120,130,*" ColumnSpacing="10">
                                                         <TextBlock Text="{Binding Timestamp}" TextWrapping="Wrap"/>
-                                                        <TextBlock Grid.Column="1" Text="{Binding AssetPair}" TextWrapping="Wrap"/>
+                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                                            <Grid Width="20" Height="20" VerticalAlignment="Center">
+                                                                <Image Width="20" Height="20" Source="{Binding AssetIcon}" IsVisible="{Binding HasAssetIcon}"/>
+                                                                <Border Width="20" Height="20" CornerRadius="10" Background="#EEF2FF" BorderBrush="#CFD7FF" BorderThickness="1" IsVisible="{Binding ShowAssetFallback}">
+                                                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="9" FontWeight="Bold" Foreground="#2B357F" Text="{Binding AssetMonogram}"/>
+                                                                </Border>
+                                                            </Grid>
+                                                            <StackPanel Spacing="0">
+                                                                <TextBlock Text="{Binding AssetName}" TextWrapping="Wrap"/>
+                                                                <TextBlock Classes="label" Text="{Binding AssetSymbol}"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
                                                         <TextBlock Grid.Column="2" Text="{Binding Action}" TextWrapping="Wrap"/>
                                                         <TextBlock Grid.Column="3" Text="{Binding Amount}" TextWrapping="Wrap"/>
                                                         <TextBlock Grid.Column="4" Text="{Binding Outcome}" TextWrapping="Wrap"/>
@@ -579,17 +670,31 @@
                                 </ItemsControl>
                             </StackPanel>
                         </Border>
-                        <TextBlock Classes="label" Text="{Binding ActivitySelectionMessage}" TextWrapping="Wrap"/>
                         <Border Classes="card" Background="#F7F9FF">
                             <StackPanel Spacing="8">
-                                <TextBlock FontWeight="Bold" Text="Decision Details"/>
-                                <TextBlock Text="{Binding SelectedActivityDecisionSummary}" TextWrapping="Wrap"/>
+                                <TextBlock FontWeight="Bold" Text="Event Details"/>
+                                <Grid ColumnDefinitions="140,*" ColumnSpacing="10">
+                                    <TextBlock Classes="label" Text="Event"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding ActivityDetailTitle}" FontWeight="SemiBold"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="140,*" ColumnSpacing="10">
+                                    <TextBlock Classes="label" Text="Timestamp"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding ActivityDetailTimestamp}"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="140,*" ColumnSpacing="10">
+                                    <TextBlock Classes="label" Text="Amount"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding ActivityDetailAmount}"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="140,*" ColumnSpacing="10">
+                                    <TextBlock Classes="label" Text="Status"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding ActivityDetailStatus}"/>
+                                </Grid>
                             </StackPanel>
                         </Border>
                         <Border Classes="card">
                             <StackPanel Spacing="8">
-                                <TextBlock FontWeight="Bold" Text="Policy and Risk Checks"/>
-                                <TextBlock Classes="label" Text="{Binding SelectedActivityPolicyRiskSummary}" TextWrapping="Wrap"/>
+                                <TextBlock FontWeight="Bold" Text="Coinbase Detail"/>
+                                <TextBlock Classes="label" Text="{Binding ActivityDetailSummary}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
                         <Border Classes="card">
@@ -616,7 +721,7 @@
 
                     <StackPanel IsVisible="{Binding IsPerformanceSection}" Spacing="16">
                         <TextBlock FontSize="26" FontWeight="Bold" Foreground="#262B5B" Text="Performance"/>
-                        <TextBlock Classes="label" Text="Performance history begins after strategy and portfolio data are available"/>
+                        <TextBlock Classes="label" Text="This Phase 2 view summarizes current account state honestly without inventing long-term performance metrics." TextWrapping="Wrap"/>
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Button Classes="segment" Classes.active="{Binding IsPerformanceRange24H}" Content="24H" Command="{Binding SetPerformanceRangeCommand}" CommandParameter="24H"/>
                             <Button Classes="segment" Classes.active="{Binding IsPerformanceRange7D}" Content="7D" Command="{Binding SetPerformanceRangeCommand}" CommandParameter="7D"/>
@@ -627,22 +732,42 @@
                         </StackPanel>
                         <TextBlock Classes="label" Text="{Binding PerformanceRangeSummary}" TextWrapping="Wrap"/>
                         <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
-                            <Border Classes="card"><StackPanel><TextBlock Classes="label" Text="PnL"/><TextBlock FontSize="20" FontWeight="Bold" Text="Awaiting performance history"/></StackPanel></Border>
-                            <Border Grid.Column="1" Classes="card"><StackPanel><TextBlock Classes="label" Text="Win Rate"/><TextBlock FontSize="20" FontWeight="Bold" Text="Awaiting performance history"/></StackPanel></Border>
-                            <Border Grid.Column="2" Classes="card"><StackPanel><TextBlock Classes="label" Text="Drawdown"/><TextBlock FontSize="20" FontWeight="Bold" Text="Awaiting performance history"/></StackPanel></Border>
+                            <Border Classes="card"><StackPanel><TextBlock Classes="label" Text="Current Portfolio Value"/><TextBlock FontSize="20" FontWeight="Bold" Text="{Binding PortfolioTotalValue}"/></StackPanel></Border>
+                            <Border Grid.Column="1" Classes="card"><StackPanel><TextBlock Classes="label" Text="Cash / Stable"/><TextBlock FontSize="20" FontWeight="Bold" Text="{Binding PortfolioCashStableSummary}"/></StackPanel></Border>
+                            <Border Grid.Column="2" Classes="card"><StackPanel><TextBlock Classes="label" Text="Recent Activity Rows"/><TextBlock FontSize="20" FontWeight="Bold" Text="{Binding ActivityEntryCountSummary}"/></StackPanel></Border>
                         </Grid>
-                        <Border Classes="card" Height="180"><TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="Future KPI / performance chart area" Foreground="#5F6794"/></Border>
+                        <Grid ColumnDefinitions="1.1*,0.9*" ColumnSpacing="14">
+                            <Border Classes="card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontWeight="Bold" Text="Current Holdings Mix"/>
+                                    <TextBlock Text="{Binding PerformanceTopHoldingsSummary}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Classes="card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontWeight="Bold" Text="Recent Activity Mix"/>
+                                    <TextBlock Text="{Binding PerformanceActivityMixSummary}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                        <Border Classes="card">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="Bold" Text="Read-Only Boundary"/>
+                                <TextBlock Text="{Binding PerformanceReadModelSummary}" TextWrapping="Wrap"/>
+                                <TextBlock Classes="label" Text="{Binding PortfolioHistorySummary}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
 
                     <StackPanel IsVisible="{Binding IsRiskSection}" Spacing="16">
                         <TextBlock FontSize="26" FontWeight="Bold" Foreground="#262B5B" Text="Risk &amp; Thresholds"/>
-                        <TextBlock Classes="label" Text="Preset risk shell only until later-phase live controls are connected"/>
-                        <WrapPanel>
-                            <Button Content="High Risk" Command="{Binding ApplyRiskProfileCommand}" CommandParameter="High Risk"/>
-                            <Button Content="Medium Risk" Command="{Binding ApplyRiskProfileCommand}" CommandParameter="Medium Risk"/>
-                            <Button Content="Low Risk" Command="{Binding ApplyRiskProfileCommand}" CommandParameter="Low Risk"/>
-                            <Button Content="Custom" Command="{Binding ApplyRiskProfileCommand}" CommandParameter="Custom"/>
-                        </WrapPanel>
+                        <TextBlock Classes="label" Text="Choose an operating profile, then use Custom only when you need to override the recommended thresholds." TextWrapping="Wrap"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Classes="segment" Classes.active="{Binding IsHighRiskProfile}" Content="High Risk" Command="{Binding ApplyRiskProfileCommand}" CommandParameter="High Risk"/>
+                            <Button Classes="segment" Classes.active="{Binding IsMediumRiskProfile}" Content="Medium Risk" Command="{Binding ApplyRiskProfileCommand}" CommandParameter="Medium Risk"/>
+                            <Button Classes="segment" Classes.active="{Binding IsLowRiskProfile}" Content="Low Risk" Command="{Binding ApplyRiskProfileCommand}" CommandParameter="Low Risk"/>
+                            <Button Classes="segment" Classes.active="{Binding IsCustomRiskProfile}" Content="Custom" Command="{Binding ApplyRiskProfileCommand}" CommandParameter="Custom"/>
+                        </StackPanel>
                         <Border Classes="card" Background="#F7F9FF">
                             <StackPanel Spacing="8">
                                 <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="{Binding SelectedRiskProfile, StringFormat=Selected Profile: {0}}"/>
@@ -666,17 +791,29 @@
                             <Border Grid.Column="1" Classes="card">
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Advanced Thresholds"/>
-                                    <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12"><TextBlock Foreground="#6B7287" Text="Spread Tolerance · Read-only until strategy engine is active"/></Border>
-                                    <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12"><TextBlock Foreground="#6B7287" Text="Liquidity Minimum · Read-only until strategy engine is active"/></Border>
-                                    <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12"><TextBlock Foreground="#6B7287" Text="Confidence Cutoff · Read-only until strategy engine is active"/></Border>
+                                    <TextBlock Classes="label" Text="{Binding AdvancedThresholdsSummary}" TextWrapping="Wrap"/>
+                                    <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12">
+                                        <StackPanel Spacing="4">
+                                            <TextBlock FontWeight="SemiBold" Foreground="#262B5B" Text="Spread Tolerance"/>
+                                            <TextBlock Foreground="#6B7287" Text="{Binding AdvancedSpreadToleranceSummary}" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12">
+                                        <StackPanel Spacing="4">
+                                            <TextBlock FontWeight="SemiBold" Foreground="#262B5B" Text="Liquidity Minimum"/>
+                                            <TextBlock Foreground="#6B7287" Text="{Binding AdvancedLiquidityMinimumSummary}" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Padding="10,12">
+                                        <StackPanel Spacing="4">
+                                            <TextBlock FontWeight="SemiBold" Foreground="#262B5B" Text="Confidence Cutoff"/>
+                                            <TextBlock Foreground="#6B7287" Text="{Binding AdvancedConfidenceCutoffSummary}" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
                             </Border>
                         </Grid>
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <Button Content="Save" Command="{Binding SaveSettingsCommand}" Background="#262B5B" Foreground="White"/>
-                            <Button Content="Switch to Custom" Command="{Binding ApplyRiskProfileCommand}" CommandParameter="Custom" Background="#EEF2FF" Foreground="#2B357F"/>
-                            <Button Content="Reset to Default" Command="{Binding ResetRiskDefaultsCommand}" Background="#EEF2FF" Foreground="#2B357F"/>
-                        </StackPanel>
+                        <Button Content="Save" Command="{Binding SaveSettingsCommand}" Background="#262B5B" Foreground="White" HorizontalAlignment="Left"/>
                         <Border Background="#F7F9FF" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="10" Padding="10,12">
                             <TextBlock Text="{Binding SettingsActionMessage}" TextWrapping="Wrap" Foreground="#424A76"/>
                         </Border>
@@ -686,7 +823,13 @@
                         <TextBlock FontSize="26" FontWeight="Bold" Foreground="#262B5B" Text="Sources"/>
                         <Border Classes="card">
                             <StackPanel Spacing="12">
-                                <TextBlock Classes="label" Text="Use this page as a simple source registry. Select one source to inspect its current shell detail." TextWrapping="Wrap"/>
+                                <TextBlock Classes="label" Text="Manage the local source registry used by the shell. Direct sources and watchers can be added, updated, and removed here." TextWrapping="Wrap"/>
+                                <Border Background="#F7F9FF" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="10" Padding="10,12">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Sources vs Watchers"/>
+                                        <TextBlock Classes="label" Text="Sources are direct operational inputs like exchange or structured data feeds. Watchers are observational monitors like news, topics, or communities that surface ideas for review." TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <Button Classes="segment" Classes.active="{Binding IsAllSourceView}" Content="All" Command="{Binding SetSourceViewCommand}" CommandParameter="All"/>
@@ -694,6 +837,8 @@
                                         <Button Classes="segment" Classes.active="{Binding IsWatchersSourceView}" Content="Watchers" Command="{Binding SetSourceViewCommand}" CommandParameter="Watchers"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                        <Button Content="Add Source" Click="OnAddSource"/>
+                                        <Button Content="Add Watcher" Click="OnAddWatcher"/>
                                         <TextBox Width="200" PlaceholderText="Search source" Text="{Binding SourceSearchText}"/>
                                         <ComboBox Width="150" ItemsSource="{Binding SourceStateOptions}" SelectedItem="{Binding SourceStateFilter}"/>
                                     </StackPanel>
@@ -701,12 +846,14 @@
                                 <Grid ColumnDefinitions="1.1*,0.9*" ColumnSpacing="14">
                                     <Border Classes="card" Background="#FFFFFF">
                                         <StackPanel Spacing="8">
+                                            <TextBlock Classes="label" Text="{Binding SourceCountSummary}" TextWrapping="Wrap"/>
                                             <Grid ColumnDefinitions="280,130,120,90" ColumnSpacing="10" Margin="0,0,0,6">
                                                 <TextBlock FontWeight="Bold" Text="Source"/>
                                                 <TextBlock Grid.Column="1" FontWeight="Bold" Text="Type"/>
                                                 <TextBlock Grid.Column="2" FontWeight="Bold" Text="State"/>
                                                 <TextBlock Grid.Column="3" FontWeight="Bold" Text="Weight"/>
                                             </Grid>
+                                            <ScrollViewer MaxHeight="420" HorizontalAlignment="Stretch" HorizontalScrollBarVisibility="Auto">
                                             <ItemsControl ItemsSource="{Binding VisibleSourceEntries}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate x:DataType="vm:SourceEntryViewModel">
@@ -716,27 +863,31 @@
                                                                     <TextBlock Text="{Binding Name}" FontWeight="Bold" TextWrapping="Wrap"/>
                                                                     <TextBlock Grid.Column="1" Text="{Binding Type}" TextWrapping="Wrap"/>
                                                                     <TextBlock Grid.Column="2" Text="{Binding State}" TextWrapping="Wrap"/>
-                                                                    <TextBlock Grid.Column="3" Text="Default"/>
+                                                                    <TextBlock Grid.Column="3" Text="{Binding Weight}"/>
                                                                 </Grid>
                                                             </Border>
                                                         </Button>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
+                                            </ScrollViewer>
                                         </StackPanel>
                                     </Border>
                                     <Border Grid.Column="1" Classes="card" Background="#FFFFFF">
                                         <StackPanel Spacing="10">
-                                            <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="{Binding SelectedSourceEntry.Name, StringFormat=Selected Source: {0}, TargetNullValue=Selected Source: None}"/>
+                                            <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Source Tools"/>
+                                            <TextBlock Classes="label" Text="{Binding SourceEditorSummary}" TextWrapping="Wrap"/>
                                             <StackPanel Spacing="6">
-                                                <TextBlock Classes="label" Text="{Binding SelectedSourceEntry.Type, StringFormat=Type: {0}, TargetNullValue=Type: Not selected}"/>
-                                                <TextBlock Classes="label" Text="{Binding SelectedSourceEntry.State, StringFormat=State: {0}, TargetNullValue=State: Not selected}"/>
-                                                <TextBlock Classes="label" Text="{Binding SelectedSourceReliability}"/>
-                                                <TextBlock Classes="label" Text="{Binding SelectedSourceEntry.Scope, TargetNullValue=No scope available}" TextWrapping="Wrap"/>
-                                                <TextBlock Classes="label" Text="{Binding SelectedSourceContributionSummary}" TextWrapping="Wrap"/>
+                                                <TextBlock Classes="label" Text="Name"/>
+                                                <TextBox Text="{Binding SourceNameEditor}"/>
+                                                <TextBlock Classes="label" Text="Scope"/>
+                                                <TextBox Text="{Binding SourceScopeEditor}"/>
+                                                <TextBlock Classes="label" Text="Weight"/>
+                                                <ComboBox Width="160" ItemsSource="{Binding SourceWeightOptions}" SelectedItem="{Binding SourceWeightEditor}"/>
                                             </StackPanel>
                                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <Button Content="Edit Weight" Command="{Binding RunSourceActionCommand}" CommandParameter="Edit Weight" Background="#262B5B" Foreground="White" IsEnabled="{Binding HasSelectedSourceEntry}"/>
+                                                <Button Content="Apply Source" Command="{Binding RunSourceActionCommand}" CommandParameter="Apply Source" Background="#262B5B" Foreground="White" IsEnabled="{Binding HasSelectedSourceEntry}"/>
+                                                <Button Content="Remove Source" Command="{Binding RunSourceActionCommand}" CommandParameter="Remove Source" Background="#EEF2FF" Foreground="#2B357F" IsEnabled="{Binding HasSelectedSourceEntry}"/>
                                                 <Button Content="View History" Command="{Binding RunSourceActionCommand}" CommandParameter="View History" Background="#EEF2FF" Foreground="#2B357F" IsEnabled="{Binding HasSelectedSourceEntry}"/>
                                             </StackPanel>
                                             <Border Background="#F7F9FF" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="10" Padding="10,12">
@@ -763,16 +914,21 @@
                                     <ComboBox Width="180" ItemsSource="{Binding AlertDestinationOptions}" SelectedItem="{Binding AlertDestinationFilter}"/>
                                 </StackPanel>
                                 <TextBlock FontWeight="Bold" Text="Recent Alerts"/>
+                                <Grid ColumnDefinitions="100,130,*" ColumnSpacing="10" Margin="0,0,0,6">
+                                    <TextBlock FontWeight="Bold" Text="Severity"/>
+                                    <TextBlock Grid.Column="1" FontWeight="Bold" Text="Destination"/>
+                                    <TextBlock Grid.Column="2" FontWeight="Bold" Text="Summary"/>
+                                </Grid>
                                 <ItemsControl ItemsSource="{Binding AlertEntries}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="vm:AlertEntryViewModel">
-                                            <TextBlock>
-                                                <Run Text="{Binding Severity}"/>
-                                                <Run Text=" · "/>
-                                                <Run Text="{Binding Destination}"/>
-                                                <Run Text=" · "/>
-                                                <Run Text="{Binding Summary}"/>
-                                            </TextBlock>
+                                            <Border BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="0,6">
+                                                <Grid ColumnDefinitions="100,130,*" ColumnSpacing="10">
+                                                    <TextBlock Text="{Binding Severity}"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Destination}"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Summary}" TextWrapping="Wrap"/>
+                                                </Grid>
+                                            </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
@@ -875,5 +1031,32 @@
                 </StackPanel>
             </ScrollViewer>
         </Grid>
+
+        <Border Grid.Column="1"
+                Grid.Row="1"
+                Background="#FFFFFF"
+                BorderBrush="#DFE4FB"
+                BorderThickness="1,1,0,0"
+                Padding="16,10">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="14">
+                <Border Width="10"
+                        Height="10"
+                        CornerRadius="999"
+                        Background="{Binding StatusBarIndicatorBrush}"
+                        VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1"
+                           VerticalAlignment="Center"
+                           Foreground="#424A76"
+                           Text="{Binding StatusBarSummary}"/>
+                <TextBlock Grid.Column="2"
+                           VerticalAlignment="Center"
+                           Foreground="#5F6794"
+                           Text="{Binding StatusBarDetail}"/>
+                <TextBlock Grid.Column="3"
+                           VerticalAlignment="Center"
+                           Foreground="#5F6794"
+                           Text="{Binding ShellStatus, StringFormat=State: {0}}"/>
+            </Grid>
+        </Border>
     </Grid>
 </Window>

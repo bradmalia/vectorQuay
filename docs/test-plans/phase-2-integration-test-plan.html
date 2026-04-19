@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 2 Integration Test Plan</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Integration Test Plan</p>
+          <h1>Phase 2 Integration Test Plan</h1>
+          <p class="subtitle">Cross-layer validation for shell rendering, Coinbase read-only data flow, and capital restriction confidence.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v0.1</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Draft baseline</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <article class="section-card">
+        <h2>Purpose</h2>
+        <p>Phase 2 integration testing should prove that Coinbase read-only data flows coherently through the existing shell and that the product understands account truth, available capital, and restrictions before any execution work begins.</p>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Environment and Fixtures</h2>
+        <ul>
+          <li>Primary execution environment: Ubuntu-first local workstation with the Phase 2 .NET 8 solution and valid or intentionally invalid Coinbase credential fixtures available.</li>
+          <li>Primary command baseline: <code>dotnet restore</code>, <code>dotnet build</code>, <code>dotnet test</code>, and the documented shell launch command such as <code>dotnet run --project src/VectorQuay.App</code>.</li>
+          <li>Required fixture set: valid Coinbase read-only credentials, missing-credential fixture, incomplete-credential fixture, rejected-auth fixture where possible, representative account/product response fixtures, and a known local policy overlay state.</li>
+          <li>Expected evidence: command summaries, walkthrough captures for affected screens, refresh-state records, and a durable result artifact under <code>docs/test-results/phase-2-integration-results.md</code> or equivalent.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Required Integration Gates</h2>
+        <ul>
+          <li>ITP2-01: Successful read-only Coinbase authentication and connection-health display.</li>
+          <li>ITP2-02: Accurate account-balance rendering in Overview and Portfolio.</li>
+          <li>ITP2-03: Accurate product-universe rendering in Assets with approved/watch overlays.</li>
+          <li>ITP2-04: Existing-funds-only capital interpretation with no unsupported funding paths implied.</li>
+          <li>ITP2-05: Policy restrictions remain visible and coherent alongside real Coinbase data.</li>
+          <li>ITP2-06: Manual refresh updates the shell cleanly without crashes or inconsistent state.</li>
+          <li>ITP2-07: Missing credentials and auth failures surface understandable operator errors.</li>
+          <li>ITP2-08: The shell still presents an inactive trading state despite live read-only data.</li>
+          <li>ITP2-09: Startup refresh occurs once when credentials are complete and does not become a silent polling loop.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Contract</h2>
+        <div class="callout gate">
+          <h3>ITP2-01: Read-Only Coinbase Authentication</h3>
+          <p>Verify that the shell connects successfully to Coinbase using the approved read-only credential path and surfaces connection health clearly.</p>
+          <p><strong>Automation:</strong> Required for underlying service verification; manual UI review is acceptable for rendered proof until UI automation exists.</p>
+          <p><strong>Fixture:</strong> valid read-only Coinbase credentials configured through the approved secret model.</p>
+          <p><strong>Command:</strong> documented shell launch command plus focused integration command pattern such as <code>dotnet test tests/&lt;integration-test-project&gt; --filter ITP2_01</code>.</p>
+          <p><strong>Pass condition:</strong> the app reaches a truthful connected state without exposing secret values or implying write capability.</p>
+          <p><strong>Expected evidence:</strong> connected-state capture showing connection health, last refresh state, and redacted credential-source status.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP2-02: Accurate Balance Rendering</h3>
+          <p>Verify that Overview and Portfolio show truthful current balances, holdings, and value interpretations from Coinbase read-only data.</p>
+          <p><strong>Automation:</strong> Required for mapping verification; manual shell review may supplement rendering evidence.</p>
+          <p><strong>Fixture:</strong> valid read-only Coinbase account with stable known balances or controlled integration fixture.</p>
+          <p><strong>Expected evidence:</strong> captured shell state or textual validation record showing account totals, holdings, and current-value consistency.</p>
+          <p><strong>Pass condition:</strong> shell values match the verified read-only account or controlled fixture output without contradictory totals.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP2-03: Asset Registry Overlay Integrity</h3>
+          <p>Verify that Assets merges Coinbase product visibility with local approved-candidate, watchlist, and restricted overlays without losing local policy meaning.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> live or controlled product set containing approved assets, DOGE, and non-approved products with a known local policy overlay state.</p>
+          <p><strong>Command:</strong> shell launch plus refresh action and focused integration command pattern such as <code>dotnet test tests/&lt;integration-test-project&gt; --filter ITP2_03</code>.</p>
+          <p><strong>Pass condition:</strong> Coinbase refresh does not erase or silently reinterpret local overlay state.</p>
+          <p><strong>Expected evidence:</strong> before/after overlay record showing policy state intact after refresh.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP2-04: Existing-Funds-Only Capital Interpretation</h3>
+          <p>Verify that the shell derives available capital only from existing Coinbase balances and does not imply unsupported funding paths.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> known balance state with distinguishable available cash and held assets.</p>
+          <p><strong>Expected evidence:</strong> walkthrough or captured state showing balance-derived capital interpretation and absence of off-platform funding surfaces.</p>
+          <p><strong>Pass condition:</strong> no visible shell state suggests deposits, external funding, or unsupported transfer sources are part of available capital.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP2-05: Policy Overlay Preservation</h3>
+          <p>Verify that local policy restrictions remain visible and authoritative when live Coinbase data is loaded.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> known local policy state including approved candidates, DOGE watchlist note, and protected-asset modes.</p>
+          <p><strong>Command:</strong> refresh live Coinbase data, revisit Assets and Policies, and run any focused integration verification command.</p>
+          <p><strong>Pass condition:</strong> refresh does not overwrite approved candidates, DOGE watchlist posture, or protected-asset modes.</p>
+          <p><strong>Expected evidence:</strong> before/after state capture showing local policy values unchanged.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP2-06: Manual Refresh Behavior</h3>
+          <p>Verify that manual refresh updates shell state coherently, including last-refresh cues and connection-health updates, without crashes or stale-state confusion.</p>
+          <p><strong>Automation:</strong> Required for service behavior; manual shell interaction may supplement evidence.</p>
+          <p><strong>Fixture:</strong> valid credentials and a shell state loaded before manual refresh is triggered.</p>
+          <p><strong>Command:</strong> shell launch, trigger manual refresh, and capture the resulting state transition.</p>
+          <p><strong>Pass condition:</strong> refresh completes or fails safely with distinct state transitions and no UI contradiction.</p>
+          <p><strong>Expected evidence:</strong> before/after refresh record showing timestamp or connection-state change.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP2-07: Credential and Auth Failure Handling</h3>
+          <p>Verify that missing credentials, incomplete credentials, and auth failures produce understandable operator errors and safe non-connected shell state.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> missing-credential, incomplete-credential, and rejected-auth variants.</p>
+          <p><strong>Pass condition:</strong> each failure mode is distinguishable enough for operator troubleshooting and none crashes the shell.</p>
+          <p><strong>Expected evidence:</strong> error-state captures or textual result log for each failure mode.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP2-08: Inactive-Trading Boundary Preservation</h3>
+          <p>Verify that the shell continues to present an inactive trading state even while live read-only Coinbase data is visible.</p>
+          <p><strong>Automation:</strong> Required for baseline assertions; manual visual confirmation may supplement evidence.</p>
+          <p><strong>Command:</strong> shell launch with successful read-only Coinbase refresh and focused navigation review of Overview, Portfolio, Assets, and Activity.</p>
+          <p><strong>Pass condition:</strong> no screen implies order placement, active strategy, or execution readiness.</p>
+          <p><strong>Expected evidence:</strong> checklist showing inactive-trading language and absence of execution affordances across relevant screens.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP2-09: One-Time Startup Refresh Without Polling</h3>
+          <p>Verify that when a complete Coinbase credential set is present, the shell performs one safe startup refresh and does not enter an unapproved silent retry or polling loop.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> complete valid Coinbase credentials and observable refresh-state logging or shell state transitions.</p>
+          <p><strong>Command:</strong> shell launch with startup refresh instrumentation and focused integration verification command such as <code>dotnet test tests/&lt;integration-test-project&gt; --filter ITP2_09</code>.</p>
+          <p><strong>Pass condition:</strong> one startup refresh attempt occurs, the resulting state is visible, and no silent recurring refresh loop begins.</p>
+          <p><strong>Expected evidence:</strong> startup-state record showing one refresh attempt and no background polling behavior.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Required Evidence</h2>
+        <ul>
+          <li>Manual or automated walkthrough record for Overview, Configuration, Assets, Portfolio, Sources, and About.</li>
+          <li>Before/after refresh state capture showing last-refresh and connection-health updates.</li>
+          <li>Text or screenshot evidence that unsupported funding and non-trade account surfaces are absent.</li>
+          <li>Evidence that local policy overlays remain intact after live refresh.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Pass Condition</h2>
+        <p>Read-only Coinbase data is accurate enough for operator trust, UI state remains coherent under success and failure conditions, and no integration path creates accidental execution capability.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

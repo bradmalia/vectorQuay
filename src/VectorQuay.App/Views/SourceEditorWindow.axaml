@@ -1,0 +1,78 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="VectorQuay.App.Views.SourceEditorWindow"
+        Width="860"
+        Height="680"
+        MinWidth="780"
+        MinHeight="620"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True"
+        ShowInTaskbar="False"
+        Title="Add Source">
+    <Grid RowDefinitions="*,Auto">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="20" Spacing="14">
+                <TextBlock x:Name="TitleText" FontSize="24" FontWeight="Bold" Foreground="#262B5B" Text="Add Source"/>
+                <TextBlock Foreground="#5F6794" TextWrapping="Wrap"
+                           Text="Describe what you want VectorQuay to monitor. The prompt will generate a local draft you can refine before saving."/>
+                <Border Background="#F7F9FF" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="10" Padding="12,14">
+                    <Grid ColumnDefinitions="1.15*,0.85*" ColumnSpacing="16">
+                        <StackPanel Spacing="12">
+                            <StackPanel Spacing="6">
+                                <TextBlock FontWeight="SemiBold" Foreground="#262B5B" Text="AI Prompt"/>
+                                <TextBlock Foreground="#5F6794" Text="Use natural language to describe what VectorQuay should monitor or watch." TextWrapping="Wrap"/>
+                                <TextBox x:Name="PromptBox" AcceptsReturn="True" Height="220" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Button Content="Generate Draft" Click="OnGenerateDraft" Background="#EEF2FF" Foreground="#2B357F"/>
+                                <TextBlock VerticalAlignment="Center" Foreground="#5F6794" Text="The generated draft stays local. You can edit every field before saving." TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="12">
+                            <Border Background="White" BorderBrush="#D8DEFA" BorderThickness="1" CornerRadius="10" Padding="12">
+                                <StackPanel Spacing="10">
+                                    <TextBlock FontWeight="SemiBold" Foreground="#262B5B" Text="Draft Details"/>
+                                    <StackPanel Spacing="6">
+                                        <TextBlock FontWeight="SemiBold" Text="Name"/>
+                                        <TextBox x:Name="NameBox"/>
+                                    </StackPanel>
+                                    <StackPanel Spacing="6">
+                                        <TextBlock FontWeight="SemiBold" Text="Weight"/>
+                                        <ComboBox x:Name="WeightBox" SelectedIndex="0">
+                                            <ComboBoxItem Content="Default"/>
+                                            <ComboBoxItem Content="Baseline"/>
+                                            <ComboBoxItem Content="Review"/>
+                                            <ComboBoxItem Content="Low"/>
+                                            <ComboBoxItem Content="Medium"/>
+                                            <ComboBoxItem Content="High"/>
+                                            <ComboBoxItem Content="Required"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel Spacing="6">
+                                        <TextBlock FontWeight="SemiBold" Text="Scope"/>
+                                        <TextBox x:Name="ScopeBox" AcceptsReturn="True" Height="150" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                            <Border Background="#FFFFFF" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="10" Padding="10,12">
+                                <TextBlock x:Name="HelperText"
+                                           Foreground="#424A76"
+                                           TextWrapping="Wrap"
+                                           Text="Examples: 'I want you to monitor Robinhood trade data' or 'I want you to watch the /r/dogecoin subreddit for reliable dogecoin news.'"/>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+        <Border Grid.Row="1" Background="White" BorderBrush="#DFE4FB" BorderThickness="1,0,0,0" Padding="20,14">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                <TextBlock VerticalAlignment="Center"
+                           Foreground="#5F6794"
+                           Text="Saving will add this entry to the local source registry immediately."/>
+                <Button Grid.Column="1" Content="Cancel" Click="OnCancel"/>
+                <Button x:Name="SaveButton" Grid.Column="2" Content="Save Source" Click="OnSave" Background="#262B5B" Foreground="White"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

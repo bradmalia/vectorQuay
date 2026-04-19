@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 2 Regression Test Plan</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Regression Test Plan</p>
+          <h1>Phase 2 Regression Test Plan</h1>
+          <p class="subtitle">Baseline-protection plan for read-only integration boundaries and Phase 0/1 carry-forward constraints.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v0.1</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Draft baseline</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <article class="section-card">
+        <h2>Protected Baselines</h2>
+        <ul>
+          <li>Coinbase Advanced remains the only exchange surface.</li>
+          <li>Read-only mode remains enforced throughout Phase 2.</li>
+          <li>Spot-only and trade-only scope remain intact.</li>
+          <li>USD remains the locked valuation currency.</li>
+          <li>Approved candidate class and DOGE watchlist treatment remain visible and intact.</li>
+          <li>No unsupported funding, transfer, staking, Web3, margin, or derivatives surfaces are introduced.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Environment and Evidence</h2>
+        <ul>
+          <li>Run regression review whenever Coinbase integration behavior, credential rules, refresh behavior, capital interpretation, or protected policy surfaces change materially.</li>
+          <li>Primary review inputs: approved roadmap, approved Phase 2 PRD, approved Phase 2 TRD, approved Phase 2 test plans, Phase 0 decision memo, and the latest implementation/test-result artifacts.</li>
+          <li>Expected evidence: comparison checklist, identified drift items if any, approval notes for intentional changes, and a durable result artifact under <code>docs/test-results/phase-2-regression-results.md</code> or equivalent.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Required Regression Checks</h2>
+        <ul>
+          <li>RTP2-01: No write-capable Coinbase endpoints or operator actions are introduced.</li>
+          <li>RTP2-02: Account truth does not silently override approved policy overlays.</li>
+          <li>RTP2-03: Read-only failures do not crash the shell or remove the inactive-trading boundary.</li>
+          <li>RTP2-04: Existing-funds-only interpretation remains intact.</li>
+          <li>RTP2-05: Phase 1 update-check, config, secret-handling, and ignored-file guarantees remain intact.</li>
+          <li>RTP2-06: Startup refresh remains a one-time safe startup behavior and does not drift into silent polling.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Contract</h2>
+        <div class="callout gate">
+          <h3>RTP2-01: No Write-Capable Coinbase Path</h3>
+          <p>Verify that no Phase 2 service, command, or UI action introduces order placement, order cancellation, or any other write-capable Coinbase path.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Review method:</strong> codepath review, command registration review, and UI affordance inspection.</p>
+          <p><strong>Expected evidence:</strong> reviewed navigation and command map with no write-capable exchange action present.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP2-02: Local Policy Overlay Preservation</h3>
+          <p>Verify that live Coinbase refresh cannot silently overwrite approved candidates, DOGE watchlist treatment, or protected-asset policy overlays.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Review method:</strong> compare pre-refresh and post-refresh policy state plus codepath review for overlay merges.</p>
+          <p><strong>Expected evidence:</strong> overlay comparison artifact showing no drift.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP2-03: Safe Failure Retention</h3>
+          <p>Verify that read-only failures do not crash the shell, remove inactive-trading language, or degrade Phase 1 safety boundaries.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Review method:</strong> forced-failure runs for missing credentials, rejected auth, and transport failure.</p>
+          <p><strong>Expected evidence:</strong> failure-state checklist showing retained shell safety boundaries.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP2-04: Existing-Funds-Only Protection</h3>
+          <p>Verify that no new shell surface implies off-platform funding, external transfer, or unsupported capital sources.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Review method:</strong> navigation review against approved scope plus account-summary inspection.</p>
+          <p><strong>Expected evidence:</strong> screen checklist showing absence of unsupported funding surfaces.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP2-05: Phase 1 Baseline Preservation</h3>
+          <p>Verify that Phase 1 update-check, config, secret-handling, and ignored-file guarantees remain intact after Coinbase read-only integration is introduced.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Review method:</strong> compare the Phase 2 implementation and results against the last approved Phase 1 baseline artifacts.</p>
+          <p><strong>Expected evidence:</strong> regression comparison record with no weakened Phase 1 guarantees.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP2-06: Startup Refresh Boundary Preservation</h3>
+          <p>Verify that the approved Phase 2 startup refresh behavior remains a one-time safe startup action and does not drift into silent background polling or retry loops without explicit approval.</p>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Review method:</strong> compare current startup behavior against the approved refresh contract and inspect for recurring background refresh paths.</p>
+          <p><strong>Expected evidence:</strong> startup-behavior review artifact showing one-time startup refresh only.</p>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Method</h2>
+        <ul>
+          <li>Run regression review whenever the Phase 2 baseline or any protected boundary changes materially.</li>
+          <li>Compare new revisions against the approved roadmap, Phase 0 carry-forward decisions, approved Phase 2 PRD, and approved Phase 2 TRD.</li>
+          <li>Where implementation exists, compare current behavior and validation artifacts against the last approved result set rather than relying on document review alone.</li>
+          <li>Reject any silent scope expansion, weakened read-only boundary, or loosened safety contract that lacks explicit approval.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Pass Condition</h2>
+        <p>Phase 2 adds truthful exchange visibility without weakening the approved product boundary or the safe foundation established in Phase 1.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
