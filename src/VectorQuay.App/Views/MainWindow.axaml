@@ -115,32 +115,19 @@
                             </Border>
                         </Grid>
 
-                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="14">
-                            <Border Classes="card">
-                                <StackPanel Spacing="4">
-                                    <TextBlock Classes="label" Text="App Health"/>
-                                    <TextBlock FontSize="20" FontWeight="Bold" Foreground="#262B5B" Text="{Binding OverviewAppHealth}"/>
-                                </StackPanel>
-                            </Border>
-                            <Border Grid.Column="1" Classes="card">
-                                <StackPanel Spacing="4">
-                                    <TextBlock Classes="label" Text="Coinbase"/>
-                                    <TextBlock FontSize="20" FontWeight="Bold" Foreground="#262B5B" Text="{Binding OverviewCoinbaseStatus}"/>
-                                </StackPanel>
-                            </Border>
-                            <Border Grid.Column="2" Classes="card">
-                                <StackPanel Spacing="4">
-                                    <TextBlock Classes="label" Text="Application State"/>
-                                    <TextBlock FontSize="20" FontWeight="Bold" Foreground="#262B5B" Text="{Binding ShellStatus}"/>
-                                </StackPanel>
-                            </Border>
-                        </Grid>
-
                         <Grid ColumnDefinitions="1.1*,0.9*" ColumnSpacing="14">
                             <Border Classes="card">
                                 <StackPanel Spacing="10">
                                     <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Portfolio Snapshot"/>
+                                        <Button HorizontalAlignment="Left"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Padding="0"
+                                                FontWeight="Bold"
+                                                Foreground="#262B5B"
+                                                Content="Portfolio Snapshot"
+                                                Command="{Binding SetSectionCommand}"
+                                                CommandParameter="Portfolio"/>
                                         <Button Grid.Column="1"
                                                 Content="{Binding RefreshCoinbaseButtonText}"
                                                 Command="{Binding RefreshCoinbaseDataCommand}"
@@ -167,7 +154,15 @@
                             </Border>
                             <Border Grid.Column="1" Classes="card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Top 10 Trade Assets"/>
+                                    <Button HorizontalAlignment="Left"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Padding="0"
+                                            FontWeight="Bold"
+                                            Foreground="#262B5B"
+                                            Content="Top 10 Trade Assets"
+                                            Command="{Binding SetSectionCommand}"
+                                            CommandParameter="Assets"/>
                                     <ItemsControl ItemsSource="{Binding TopTradeAssetItems}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="vm:TopTradeAssetViewModel">
@@ -194,7 +189,15 @@
                         <Grid ColumnDefinitions="1.1*,0.9*" ColumnSpacing="14">
                             <Border Classes="card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Allocation Snapshot"/>
+                                    <Button HorizontalAlignment="Left"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Padding="0"
+                                            FontWeight="Bold"
+                                            Foreground="#262B5B"
+                                            Content="Allocation Snapshot"
+                                            Command="{Binding SetSectionCommand}"
+                                            CommandParameter="Portfolio"/>
                                     <TextBlock Classes="label" Text="{Binding AllocationSummary}" TextWrapping="Wrap"/>
                                     <Grid ColumnDefinitions="180,*" ColumnSpacing="18">
                                         <Grid Width="164" Height="164" HorizontalAlignment="Center" VerticalAlignment="Top">
@@ -247,7 +250,15 @@
                             </Border>
                             <Border Grid.Column="1" Classes="card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Recent Activity"/>
+                                    <Button HorizontalAlignment="Left"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Padding="0"
+                                            FontWeight="Bold"
+                                            Foreground="#262B5B"
+                                            Content="Recent Activity"
+                                            Command="{Binding SetSectionCommand}"
+                                            CommandParameter="Activity"/>
                                     <Grid ColumnDefinitions="120,140,80,*" ColumnSpacing="10" Margin="0,0,0,6">
                                         <TextBlock FontWeight="Bold" Text="Timestamp"/>
                                         <TextBlock Grid.Column="1" FontWeight="Bold" Text="Asset"/>
@@ -283,7 +294,15 @@
                         <Grid ColumnDefinitions="*" RowDefinitions="Auto" ColumnSpacing="14" RowSpacing="14">
                             <Border Classes="card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="System Summary"/>
+                                    <Button HorizontalAlignment="Left"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Padding="0"
+                                            FontWeight="Bold"
+                                            Foreground="#262B5B"
+                                            Content="System Summary"
+                                            Command="{Binding SetSectionCommand}"
+                                            CommandParameter="Configuration"/>
                                     <TextBlock Text="{Binding ShellMessage}" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Border>
@@ -293,42 +312,43 @@
                     <StackPanel IsVisible="{Binding IsConfigurationSection}" Spacing="16">
                         <TextBlock FontSize="24" FontWeight="Bold" Foreground="#262B5B" Text="Configuration"/>
 
-                        <Border Classes="card">
-                            <StackPanel Spacing="10">
-                                <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Connections"/>
-                                <StackPanel Spacing="16">
-                                    <StackPanel Spacing="6">
-                                        <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Coinbase"/>
-                                        <TextBlock Classes="label" Text="Use the downloaded CDP JSON key file." TextWrapping="Wrap"/>
+                        <Border Classes="card" MaxWidth="780" HorizontalAlignment="Left">
+                            <StackPanel Spacing="14">
+                                <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Connection Setup"/>
+                                <TextBlock Classes="label" Text="{Binding ConnectionStatusSummary}" TextWrapping="Wrap"/>
+
+                                <Border Background="#F7F9FF" BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="12" Padding="14">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Coinbase Read-Only"/>
+                                        <TextBlock Classes="label" Text="Use the downloaded CDP JSON key file for the Coinbase Advanced Trade read-only connection." TextWrapping="Wrap"/>
                                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
                                             <TextBox Text="{Binding CoinbaseJsonImportPath}" PlaceholderText="/home/brad/.config/VectorQuay/cdp_api_key.json"/>
                                             <Button Grid.Column="1" Content="Browse" Click="OnBrowseCoinbaseJson"/>
                                         </Grid>
-                                        <TextBlock Classes="label" Text="{Binding CoinbaseJsonKeyFilePath}" TextWrapping="Wrap"/>
-                                        <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <Button Content="Save Coinbase"
-                                                    Command="{Binding SaveCoinbaseConnectionCommand}"
-                                                    Background="#262B5B"
-                                                    Foreground="White"/>
-                                            <Button Command="{Binding RefreshCoinbaseDataCommand}"
-                                                    Content="{Binding RefreshCoinbaseButtonText}"
-                                                    IsEnabled="{Binding CanRefreshCoinbase}"
-                                                    Background="#EEF2FF"
-                                                    Foreground="#2B357F"/>
-                                        </StackPanel>
+                                        <TextBlock Classes="label" Text="{Binding CoinbaseJsonStatusSummary}" TextWrapping="Wrap"/>
                                     </StackPanel>
-                                    <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Height="1"/>
-                                    <StackPanel Spacing="6">
+                                </Border>
+
+                                <Border Background="#F7F9FF" BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="12" Padding="14">
+                                    <StackPanel Spacing="8">
                                         <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="OpenAI"/>
-                                        <TextBlock Classes="label" Text="Used for future AI-assisted features." TextWrapping="Wrap"/>
-                                        <TextBox Width="280" Text="{Binding OpenAiApiKeyEditor}" PlaceholderText="sk-..." />
-                                        <Button Content="Save OpenAI"
-                                                Command="{Binding SaveOpenAiConnectionCommand}"
-                                                Background="#262B5B"
-                                                Foreground="White"
-                                                HorizontalAlignment="Left"/>
+                                        <TextBlock Classes="label" Text="Used for AI-assisted source and watcher workflows." TextWrapping="Wrap"/>
+                                        <TextBox Width="320" Text="{Binding OpenAiApiKeyEditor}" PlaceholderText="sk-..." />
                                     </StackPanel>
+                                </Border>
+
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button Content="Save Connections"
+                                            Command="{Binding SaveConnectionsCommand}"
+                                            Background="#262B5B"
+                                            Foreground="White"/>
+                                    <Button Command="{Binding RefreshCoinbaseDataCommand}"
+                                            Content="{Binding RefreshCoinbaseButtonText}"
+                                            IsEnabled="{Binding CanRefreshCoinbase}"
+                                            Background="#EEF2FF"
+                                            Foreground="#2B357F"/>
                                 </StackPanel>
+
                                 <Border Background="#FFFFFF" BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="10" Padding="10,12">
                                     <TextBlock Foreground="#424A76" Text="{Binding ConnectionsActionMessage}" TextWrapping="Wrap"/>
                                 </Border>
@@ -907,80 +927,108 @@
                             <Border Grid.Column="1" Classes="card"><StackPanel><TextBlock Classes="label" Text="Muted Rules"/><TextBlock FontSize="20" FontWeight="Bold" Text="{Binding MutedRulesSummary}"/></StackPanel></Border>
                             <Border Grid.Column="2" Classes="card"><StackPanel><TextBlock Classes="label" Text="Last Delivery Test"/><TextBlock FontSize="20" FontWeight="Bold" Text="{Binding LastAlertDeliveryTest}"/></StackPanel></Border>
                         </Grid>
-                        <Border Classes="card">
-                            <StackPanel Spacing="8">
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <ComboBox Width="160" ItemsSource="{Binding AlertSeverityOptions}" SelectedItem="{Binding AlertSeverityFilter}"/>
-                                    <ComboBox Width="180" ItemsSource="{Binding AlertDestinationOptions}" SelectedItem="{Binding AlertDestinationFilter}"/>
-                                </StackPanel>
-                                <TextBlock FontWeight="Bold" Text="Recent Alerts"/>
-                                <Grid ColumnDefinitions="100,130,*" ColumnSpacing="10" Margin="0,0,0,6">
-                                    <TextBlock FontWeight="Bold" Text="Severity"/>
-                                    <TextBlock Grid.Column="1" FontWeight="Bold" Text="Destination"/>
-                                    <TextBlock Grid.Column="2" FontWeight="Bold" Text="Summary"/>
-                                </Grid>
-                                <ItemsControl ItemsSource="{Binding AlertEntries}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:AlertEntryViewModel">
-                                            <Border BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="0,6">
-                                                <Grid ColumnDefinitions="100,130,*" ColumnSpacing="10">
-                                                    <TextBlock Text="{Binding Severity}"/>
-                                                    <TextBlock Grid.Column="1" Text="{Binding Destination}"/>
-                                                    <TextBlock Grid.Column="2" Text="{Binding Summary}" TextWrapping="Wrap"/>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
                         <Grid ColumnDefinitions="1.1*,0.9*" ColumnSpacing="12">
                             <Border Classes="card">
-                                <StackPanel Spacing="8">
-                                    <Grid ColumnDefinitions="2*,*,*" Margin="0,0,0,6">
-                                        <TextBlock FontWeight="Bold" Text="Rule"/>
-                                        <TextBlock Grid.Column="1" FontWeight="Bold" Text="Severity"/>
-                                        <TextBlock Grid.Column="2" FontWeight="Bold" Text="Destination"/>
+                                <StackPanel Spacing="10">
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <ComboBox Width="160" ItemsSource="{Binding AlertSeverityOptions}" SelectedItem="{Binding AlertSeverityFilter}"/>
+                                        <ComboBox Width="180" ItemsSource="{Binding AlertDestinationOptions}" SelectedItem="{Binding AlertDestinationFilter}"/>
+                                    </StackPanel>
+                                    <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,2">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock FontWeight="Bold" Text="Alert Rules"/>
+                                            <TextBlock Classes="label" Text="{Binding AlertRulesSummary}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                            <Button Content="Add Rule" Command="{Binding AddAlertRuleCommand}" Background="#EEF2FF" Foreground="#2B357F"/>
+                                            <Button Content="Apply Rules" Command="{Binding SaveAlertRulesCommand}" Background="#262B5B" Foreground="White"/>
+                                        </StackPanel>
                                     </Grid>
-                                    <ItemsControl ItemsSource="{Binding AlertRules}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:AlertRuleViewModel">
-                                                <Grid ColumnDefinitions="2*,*,*" Margin="0,0,0,4">
-                                                    <TextBlock Text="{Binding Rule}"/>
-                                                    <TextBlock Grid.Column="1" Text="{Binding Severity}"/>
-                                                    <TextBlock Grid.Column="2" Text="{Binding Destination}"/>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                    <Grid ColumnDefinitions="70,2.2*,*,*" ColumnSpacing="10" Margin="0,0,0,6">
+                                        <TextBlock FontWeight="Bold" Text="Enabled"/>
+                                        <TextBlock Grid.Column="1" FontWeight="Bold" Text="Rule"/>
+                                        <TextBlock Grid.Column="2" FontWeight="Bold" Text="Severity"/>
+                                        <TextBlock Grid.Column="3" FontWeight="Bold" Text="Destination"/>
+                                    </Grid>
+                                    <ScrollViewer MaxHeight="320">
+                                        <ItemsControl ItemsSource="{Binding AlertRules}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:AlertRuleViewModel">
+                                                    <Border BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="0,6">
+                                                        <Grid ColumnDefinitions="70,2.2*,*,*" ColumnSpacing="10">
+                                                            <CheckBox IsChecked="{Binding IsEnabled}" VerticalAlignment="Center"/>
+                                                            <TextBox Grid.Column="1" Text="{Binding Rule}" PlaceholderText="Rule description"/>
+                                                            <ComboBox Grid.Column="2" ItemsSource="{Binding SeverityOptions}" SelectedItem="{Binding Severity}"/>
+                                                            <ComboBox Grid.Column="3" ItemsSource="{Binding DestinationOptions}" SelectedItem="{Binding Destination}"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="1" Classes="card">
-                                <StackPanel Spacing="8">
-                                    <TextBlock FontWeight="Bold" Text="Notification Preferences"/>
+                                <StackPanel Spacing="10">
+                                    <TextBlock FontWeight="Bold" Text="Delivery Preferences"/>
+                                    <TextBlock Classes="label" Text="Choose where alerts should go, then save the local delivery profile." TextWrapping="Wrap"/>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <CheckBox IsChecked="{Binding InAppAlertsEnabled}" VerticalAlignment="Center"/>
                                         <TextBlock VerticalAlignment="Center" Text="In-App Alerts"/>
                                     </StackPanel>
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <CheckBox IsChecked="{Binding EmailAlertsEnabled}" VerticalAlignment="Center"/>
+                                            <TextBlock VerticalAlignment="Center" Text="Email"/>
+                                        </StackPanel>
+                                        <TextBox Grid.Column="1" Width="240" PlaceholderText="name@example.com" Text="{Binding AlertEmailAddress}"/>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <CheckBox IsChecked="{Binding SmsAlertsEnabled}" VerticalAlignment="Center"/>
+                                            <TextBlock VerticalAlignment="Center" Text="SMS"/>
+                                        </StackPanel>
+                                        <TextBox Grid.Column="1" Width="220" PlaceholderText="555-555-5555" Text="{Binding AlertSmsNumber}"/>
+                                    </Grid>
+                                    <TextBlock Classes="label" Text="{Binding QuietHoursSummary, StringFormat=Quiet Hours: {0}}" TextWrapping="Wrap"/>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <CheckBox IsChecked="{Binding EmailAlertsEnabled}" VerticalAlignment="Center"/>
-                                        <TextBlock VerticalAlignment="Center" Text="Email:"/>
-                                        <TextBox Width="220" PlaceholderText="name@example.com" Text="{Binding AlertEmailAddress}"/>
+                                        <Button Content="Apply Preferences" Command="{Binding SaveAlertPreferencesCommand}" Background="#262B5B" Foreground="White"/>
+                                        <Button Content="Run Test Alert" Command="{Binding RunAlertActionCommand}" CommandParameter="Test Alert" Background="#EEF2FF" Foreground="#2B357F"/>
                                     </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <CheckBox IsChecked="{Binding SmsAlertsEnabled}" VerticalAlignment="Center"/>
-                                        <TextBlock VerticalAlignment="Center" Text="SMS:"/>
-                                        <TextBox Width="180" PlaceholderText="555-555-5555" Text="{Binding AlertSmsNumber}"/>
-                                    </StackPanel>
-                                    <TextBlock Text="{Binding QuietHoursSummary, StringFormat=Quiet Hours: {0}}"/>
-                                    <TextBlock Classes="label" Text="Escalation rules and external transports remain operator-configured placeholders in Phase 1." TextWrapping="Wrap"/>
-                                    <Button Content="Test Alert" Command="{Binding RunAlertActionCommand}" CommandParameter="Test Alert" Background="#262B5B" Foreground="White" HorizontalAlignment="Left"/>
                                     <Border Background="#F7F9FF" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="10" Padding="10,12">
                                         <TextBlock Text="{Binding AlertActionMessage}" TextWrapping="Wrap" Foreground="#424A76"/>
                                     </Border>
                                 </StackPanel>
                             </Border>
                         </Grid>
+                        <Border Classes="card">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="Bold" Text="Recent Alerts"/>
+                                <Grid ColumnDefinitions="120,110,160,*" ColumnSpacing="10" Margin="0,0,0,6">
+                                    <TextBlock FontWeight="Bold" Text="Timestamp"/>
+                                    <TextBlock Grid.Column="1" FontWeight="Bold" Text="Severity"/>
+                                    <TextBlock Grid.Column="2" FontWeight="Bold" Text="Destination"/>
+                                    <TextBlock Grid.Column="3" FontWeight="Bold" Text="Summary"/>
+                                </Grid>
+                                <TextBlock IsVisible="{Binding ShowNoAlertEntries}" Classes="label" Text="No alerts match the current filters."/>
+                                <ScrollViewer MaxHeight="260" IsVisible="{Binding HasAlertEntries}">
+                                    <ItemsControl ItemsSource="{Binding AlertEntries}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:AlertEntryViewModel">
+                                                <Border BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="0,8">
+                                                    <Grid ColumnDefinitions="120,110,160,*" ColumnSpacing="10">
+                                                        <TextBlock Text="{Binding Timestamp}"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Severity}"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding Destination}"/>
+                                                        <TextBlock Grid.Column="3" Text="{Binding Summary}" TextWrapping="Wrap"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
 
                     <StackPanel IsVisible="{Binding IsAboutSection}" Spacing="16">

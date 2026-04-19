@@ -12,6 +12,8 @@ public sealed class AppSettings
 
     public SourceSettings Sources { get; set; } = new();
 
+    public AlertSettings Alerts { get; set; } = new();
+
     public static AppSettings CreateDefault()
     {
         return new AppSettings
@@ -93,6 +95,39 @@ public sealed class AppSettings
                     },
                 ],
             },
+            Alerts = new AlertSettings
+            {
+                InAppEnabled = true,
+                EmailEnabled = true,
+                SmsEnabled = false,
+                EmailAddress = "brad@example.com",
+                SmsNumber = "+1 555-0100",
+                QuietHours = "None configured",
+                Rules =
+                [
+                    new AlertRuleSettings
+                    {
+                        Rule = "Coinbase refresh failure",
+                        Severity = "Error",
+                        Destination = "In-App + Email",
+                        Enabled = true,
+                    },
+                    new AlertRuleSettings
+                    {
+                        Rule = "Missing Coinbase credentials",
+                        Severity = "Warning",
+                        Destination = "In-App",
+                        Enabled = true,
+                    },
+                    new AlertRuleSettings
+                    {
+                        Rule = "Update feed unavailable",
+                        Severity = "Info",
+                        Destination = "In-App",
+                        Enabled = true,
+                    },
+                ],
+            },
         };
     }
 }
@@ -159,4 +194,32 @@ public sealed class SourceEntrySettings
     public string Weight { get; set; } = "Default";
 
     public string Scope { get; set; } = string.Empty;
+}
+
+public sealed class AlertSettings
+{
+    public bool InAppEnabled { get; set; } = true;
+
+    public bool EmailEnabled { get; set; } = true;
+
+    public bool SmsEnabled { get; set; }
+
+    public string EmailAddress { get; set; } = "brad@example.com";
+
+    public string SmsNumber { get; set; } = "+1 555-0100";
+
+    public string QuietHours { get; set; } = "None configured";
+
+    public List<AlertRuleSettings> Rules { get; set; } = [];
+}
+
+public sealed class AlertRuleSettings
+{
+    public string Rule { get; set; } = string.Empty;
+
+    public string Severity { get; set; } = "Info";
+
+    public string Destination { get; set; } = "In-App";
+
+    public bool Enabled { get; set; } = true;
 }

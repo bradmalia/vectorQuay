@@ -321,6 +321,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private string lastAlertDeliveryTest = "Not Run";
 
     [ObservableProperty]
+    private string alertRulesSummary = "No alert rules configured yet.";
+
+    [ObservableProperty]
     private string assetSearchText = string.Empty;
 
     [ObservableProperty]
@@ -549,7 +552,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public string OpenAlertsSummary => $"{AlertEntries.Count} visible";
 
-    public string MutedRulesSummary => $"{CountMutedAlertChannels()} muted";
+    public string MutedRulesSummary => $"{CountMutedAlertRules()} muted";
+
+    public bool HasAlertEntries => AlertEntries.Count > 0;
+
+    public bool ShowNoAlertEntries => AlertEntries.Count == 0;
+
+    public string ConnectionStatusSummary => $"Coinbase {CoinbaseConnectionSummary} · OpenAI {OpenAiApiKeyStatus}";
+
+    public string CoinbaseJsonStatusSummary => CoinbaseJsonKeyFileStatus == "Detected" && !string.IsNullOrWhiteSpace(CoinbaseJsonKeyFilePath)
+        ? $"Detected file: {CoinbaseJsonKeyFilePath}"
+        : "No Coinbase JSON key file is configured yet.";
 
     private void LoadFromSnapshot(SettingsSnapshot snapshot)
     {
@@ -629,7 +642,7 @@ public partial class MainWindowViewModel : ViewModelBase
         RefreshAlertEntries();
 
         _allAlertRules.Clear();
-        _allAlertRules.AddRange(BuildAlertRules());
+        _allAlertRules.AddRange(BuildAlertRules(snapshot));
         RefreshAlertRules();
 
         AlertItems.Clear();
@@ -647,7 +660,7 @@ public partial class MainWindowViewModel : ViewModelBase
         UpdateStatus = "Manual update check has not run yet.";
         SettingsActionMessage = "Use Save, Validate, and Reset to manage local Phase 1 configuration safely.";
         SourceActionMessage = "Source management controls in Phase 1 are local shell placeholders. Use the view toggle to inspect direct sources and watchers separately.";
-        AlertActionMessage = "Use the dropdowns and contact fields below to configure the local shell state for alerts.";
+        AlertActionMessage = "Edit alert rules and delivery preferences here, then apply your changes to local settings.";
         ActivitySelectionMessage = "Select a row to inspect its mock decision details.";
         PerformanceRangeSummary = "24H shell view selected. Live performance history arrives in later phases.";
         PerformanceTopHoldingsSummary = "Connect Coinbase to see the current holdings mix.";
@@ -670,13 +683,16 @@ public partial class MainWindowViewModel : ViewModelBase
         PortfolioRiskPostureSummary = "Awaiting Coinbase connection";
         PortfolioSelectedPositionSummary = "Select a live holding to inspect it in later phases.";
         PortfolioHistorySummary = "Historical portfolio tracking remains a later-phase feature.";
-        InAppAlertsEnabled = true;
-        EmailAlertsEnabled = true;
-        SmsAlertsEnabled = false;
-        AlertEmailAddress = "brad@example.com";
-        AlertSmsNumber = "+1 555-0100";
-        QuietHoursSummary = "Scheduling arrives in a later phase";
+        InAppAlertsEnabled = snapshot.Settings.Alerts.InAppEnabled;
+        EmailAlertsEnabled = snapshot.Settings.Alerts.EmailEnabled;
+        SmsAlertsEnabled = snapshot.Settings.Alerts.SmsEnabled;
+        AlertEmailAddress = snapshot.Settings.Alerts.EmailAddress;
+        AlertSmsNumber = snapshot.Settings.Alerts.SmsNumber;
+        QuietHoursSummary = string.IsNullOrWhiteSpace(snapshot.Settings.Alerts.QuietHours)
+            ? "None configured"
+            : snapshot.Settings.Alerts.QuietHours;
         LastAlertDeliveryTest = "Not Run";
+        AlertRulesSummary = $"{_allAlertRules.Count(rule => rule.IsEnabled)} active rules · {_allAlertRules.Count} total";
         AllocationSlices.Clear();
         PortfolioHoldings.Clear();
         UpdateAdvancedThresholdsDisplay();
@@ -747,6 +763,33 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             ConnectionsActionMessage = $"Coinbase save failed: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task SaveConnectionsAsync()
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(SecretsPath)!);
+
+            if (!string.IsNullOrWhiteSpace(CoinbaseJsonImportPath))
+            {
+                SaveCoinbaseJsonFile();
+            }
+
+            SaveOpenAiSecret();
+            LoadFromSnapshot(_settingsService.Load());
+            ConnectionsActionMessage = "Connection settings saved.";
+
+            if (_coinbaseService is not null)
+            {
+                await RefreshCoinbaseDataAsync(isStartup: false);
+            }
+        }
+        catch (Exception ex)
+        {
+            ConnectionsActionMessage = $"Connection save failed: {ex.Message}";
         }
     }
 
@@ -1324,9 +1367,12 @@ public partial class MainWindowViewModel : ViewModelBase
             case "Test Alert":
                 LastAlertDeliveryTest = $"Passed at {DateTime.Now:HH:mm:ss}";
                 _allAlertEntries.Insert(0, new AlertEntryViewModel(
+                    DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
                     $"Manual test alert fired at {DateTime.Now:HH:mm:ss}.",
                     "Info",
                     BuildAlertDestinationLabel()));
+                AlertSeverityFilter = "All Severities";
+                AlertDestinationFilter = "All Destinations";
                 RefreshAlertEntries();
                 AlertActionMessage = "Manual test alert generated. The recent-alerts list and delivery-test summary were updated.";
                 OnPropertyChanged(nameof(OpenAlertsSummary));
@@ -1336,6 +1382,49 @@ public partial class MainWindowViewModel : ViewModelBase
                 AlertActionMessage = "That alert action is not available yet.";
                 break;
         }
+    }
+
+    [RelayCommand]
+    private void SaveAlertPreferences()
+    {
+        try
+        {
+            var settings = BuildSettingsFromEditor();
+            _settingsService.Save(settings);
+            LoadFromSnapshot(_settingsService.Load());
+            AlertActionMessage = "Alert delivery preferences saved to local settings.";
+        }
+        catch (Exception ex)
+        {
+            AlertActionMessage = $"Alert preference save failed: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void SaveAlertRules()
+    {
+        try
+        {
+            var settings = BuildSettingsFromEditor();
+            _settingsService.Save(settings);
+            LoadFromSnapshot(_settingsService.Load());
+            AlertActionMessage = "Alert rules saved to local settings.";
+        }
+        catch (Exception ex)
+        {
+            AlertActionMessage = $"Alert rule save failed: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void AddAlertRule()
+    {
+        _allAlertRules.Add(new AlertRuleViewModel("New rule", "Warning", "In-App", true));
+        AlertSeverityFilter = "All Severities";
+        AlertDestinationFilter = "All Destinations";
+        RefreshAlertRules();
+        AlertRulesSummary = $"{_allAlertRules.Count(rule => rule.IsEnabled)} active rules · {_allAlertRules.Count} total";
+        AlertActionMessage = "A new alert rule row was added. Edit it and click Apply Rules to save.";
     }
 
     public void AddOrUpdateSourceFromDialog(string name, string type, string scope, string weight, bool isNew, SourceEntryViewModel? existing)
@@ -1593,6 +1682,24 @@ public partial class MainWindowViewModel : ViewModelBase
                     })
                     .ToList(),
             },
+            Alerts = new AlertSettings
+            {
+                InAppEnabled = InAppAlertsEnabled,
+                EmailEnabled = EmailAlertsEnabled,
+                SmsEnabled = SmsAlertsEnabled,
+                EmailAddress = AlertEmailAddress.Trim(),
+                SmsNumber = AlertSmsNumber.Trim(),
+                QuietHours = QuietHoursSummary.Trim(),
+                Rules = _allAlertRules
+                    .Select(rule => new AlertRuleSettings
+                    {
+                        Rule = rule.Rule.Trim(),
+                        Severity = rule.Severity.Trim(),
+                        Destination = rule.Destination.Trim(),
+                        Enabled = rule.IsEnabled,
+                    })
+                    .ToList(),
+            },
         };
     }
 
@@ -1670,18 +1777,24 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private static IEnumerable<AlertEntryViewModel> BuildAlertEntries(SettingsSnapshot snapshot)
     {
-        yield return new AlertEntryViewModel("Trading is inactive in Phase 1.", "Info", "In-App");
+        yield return new AlertEntryViewModel("Startup", "Trading is inactive in Phase 2. Coinbase remains read-only.", "Info", "In-App");
         if (!snapshot.Paths.SecretsExists)
         {
-            yield return new AlertEntryViewModel("No external secret file detected yet.", "Warning", "In-App");
+            yield return new AlertEntryViewModel("Startup", "No external secret file detected yet.", "Warning", "In-App");
         }
 
         if (!snapshot.Paths.SettingsExists)
         {
-            yield return new AlertEntryViewModel("Local settings file has not been created yet. Saving from Configuration will create it.", "Info", "In-App");
+            yield return new AlertEntryViewModel("Startup", "Local settings file has not been created yet. Saving from Configuration will create it.", "Info", "In-App");
         }
 
-        yield return new AlertEntryViewModel("Coinbase integration is reserved for Phase 2 read-only work.", "Info", "In-App + Email");
+        if (snapshot.SecretStatuses.TryGetValue(SecretNames.CoinbaseApiKey, out var coinbaseKeyStatus) &&
+            coinbaseKeyStatus.Source == SecretSource.Missing)
+        {
+            yield return new AlertEntryViewModel("Startup", "Coinbase credentials are missing. Read-only account sync is unavailable until configured.", "Warning", "In-App");
+        }
+
+        yield return new AlertEntryViewModel("Startup", "Manual refresh and startup refresh are enabled. Background polling remains disabled.", "Info", "In-App + Email");
     }
 
     private static IEnumerable<ActivityEntryViewModel> BuildActivityItems()
@@ -1716,11 +1829,12 @@ public partial class MainWindowViewModel : ViewModelBase
             ]);
     }
 
-    private static IEnumerable<AlertRuleViewModel> BuildAlertRules()
+    private static IEnumerable<AlertRuleViewModel> BuildAlertRules(SettingsSnapshot snapshot)
     {
-        yield return new AlertRuleViewModel("Missing Coinbase secret", "Warning", "In-App");
-        yield return new AlertRuleViewModel("Settings validation failure", "Error", "In-App + Email");
-        yield return new AlertRuleViewModel("Update feed unavailable", "Info", "In-App");
+        foreach (var rule in snapshot.Settings.Alerts.Rules)
+        {
+            yield return new AlertRuleViewModel(rule.Rule, rule.Severity, rule.Destination, rule.Enabled);
+        }
     }
 
     private static string ClassifyValidationMessages(IReadOnlyList<string> messages)
@@ -1824,25 +1938,9 @@ public partial class MainWindowViewModel : ViewModelBase
             : $"{metadata.Name} ({metadata.Symbol})";
     }
 
-    private int CountMutedAlertChannels()
+    private int CountMutedAlertRules()
     {
-        var muted = 0;
-        if (!InAppAlertsEnabled)
-        {
-            muted++;
-        }
-
-        if (!EmailAlertsEnabled)
-        {
-            muted++;
-        }
-
-        if (!SmsAlertsEnabled)
-        {
-            muted++;
-        }
-
-        return muted;
+        return _allAlertRules.Count(rule => !rule.IsEnabled);
     }
 
     private string BuildAlertDestinationLabel()
@@ -2039,6 +2137,8 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         OnPropertyChanged(nameof(OpenAlertsSummary));
+        OnPropertyChanged(nameof(HasAlertEntries));
+        OnPropertyChanged(nameof(ShowNoAlertEntries));
     }
 
     private void RefreshAlertRules()
@@ -2052,6 +2152,9 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             AlertRules.Add(rule);
         }
+
+        AlertRulesSummary = $"{_allAlertRules.Count(rule => rule.IsEnabled)} active rules · {_allAlertRules.Count} total";
+        OnPropertyChanged(nameof(MutedRulesSummary));
     }
 
     partial void OnCurrentSectionChanged(string value)
@@ -2715,8 +2818,10 @@ public sealed class ActivitySourceContributionViewModel(string source, string si
     public string Weight { get; } = weight;
 }
 
-public sealed class AlertEntryViewModel(string summary, string severity, string destination)
+public sealed class AlertEntryViewModel(string timestamp, string summary, string severity, string destination)
 {
+    public string Timestamp { get; } = timestamp;
+
     public string Summary { get; } = summary;
 
     public string Severity { get; } = severity;
@@ -2724,13 +2829,31 @@ public sealed class AlertEntryViewModel(string summary, string severity, string 
     public string Destination { get; } = destination;
 }
 
-public sealed class AlertRuleViewModel(string rule, string severity, string destination)
+public partial class AlertRuleViewModel : ObservableObject
 {
-    public string Rule { get; } = rule;
+    public AlertRuleViewModel(string rule, string severity, string destination, bool isEnabled)
+    {
+        this.rule = rule;
+        this.severity = severity;
+        this.destination = destination;
+        this.isEnabled = isEnabled;
+    }
 
-    public string Severity { get; } = severity;
+    [ObservableProperty]
+    private string rule;
 
-    public string Destination { get; } = destination;
+    [ObservableProperty]
+    private string severity;
+
+    [ObservableProperty]
+    private string destination;
+
+    [ObservableProperty]
+    private bool isEnabled;
+
+    public IReadOnlyList<string> SeverityOptions { get; } = ["Info", "Warning", "Error"];
+
+    public IReadOnlyList<string> DestinationOptions { get; } = ["In-App", "In-App + Email", "In-App + SMS", "In-App + Email + SMS"];
 }
 
 public sealed class SourceEntryViewModel(string name, string type, string state, string scope, string weight)
