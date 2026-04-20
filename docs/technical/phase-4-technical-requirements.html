@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 4 Technical Requirements</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Technical Requirements Document</p>
+          <h1>Phase 4 Technical Requirements</h1>
+          <p class="subtitle">Deterministic strategy pipeline, risk approval engine, and auditable decision modeling.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v0.1</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Draft baseline</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Executive Summary</h2>
+          <p>Phase 4 technical work adds the first deterministic strategy and risk engine on top of the Phase 3 durable-state foundation. The output should be a testable decision pipeline that can score trade candidates, enforce hard constraints, and persist/replay its decisions without introducing execution behavior.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Technical Goal</h2>
+          <p>Separate signal, scoring, and risk approval cleanly enough that later backtesting and paper trading can reuse the same pipeline.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Implementation Boundaries</h2>
+        <ul>
+          <li>Preserve the existing .NET 8 / Avalonia / Core/App solution structure.</li>
+          <li>Add strategy and risk logic as isolated services/models in shared/core code, not directly inside the view models.</li>
+          <li>Use current Coinbase read-only state and current local policy/risk state as inputs only.</li>
+          <li>Do not introduce live order submission, simulated execution, or paper-order lifecycle in Phase 4.</li>
+          <li>Preserve the durable-state/audit contract introduced in Phase 3.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Required Technical Capabilities</h2>
+        <ul>
+          <li>Typed candidate-generation models using current normalized account/product/state inputs.</li>
+          <li>Typed scoring models with deterministic component weights and rationale fields.</li>
+          <li>Typed risk-approval results with explicit rejection/constraint reasons.</li>
+          <li>Durable recording of strategy decisions into the existing Phase 3 event/audit layer.</li>
+          <li>Profile-driven threshold configuration that is deterministic and versionable.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Decision Pipeline Contract</h2>
+        <ul>
+          <li><strong>Input Stage:</strong> consume a normalized snapshot of current balances, holdings, product data, approved candidates, protected-asset policies, and active risk profile.</li>
+          <li><strong>Signal Stage:</strong> calculate deterministic strategy inputs only from currently approved internal data sources.</li>
+          <li><strong>Scoring Stage:</strong> produce a normalized candidate score and component explanations.</li>
+          <li><strong>Risk Stage:</strong> apply non-bypassable hard constraints after scoring and before final approval output.</li>
+          <li><strong>Output Stage:</strong> persist a typed decision result containing status, reasons, candidate size suggestion if applicable, and all relevant blocking/constraint signals.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Hard Risk Contract</h2>
+        <ul>
+          <li>Hard limits must be evaluated independently from candidate attractiveness.</li>
+          <li>At minimum, enforce checks for:
+            <ul>
+              <li>asset eligibility / approved-universe membership</li>
+              <li>protected-asset mode</li>
+              <li>maximum position size</li>
+              <li>maximum concentration / exposure</li>
+              <li>daily loss budget</li>
+              <li>turnover budget</li>
+              <li>stale data</li>
+              <li>refresh / reconciliation / connectivity health</li>
+              <li>operator kill-switch / inactive-trading state</li>
+            </ul>
+          </li>
+          <li>Risk rejection reasons must be explicit, typed, and durable.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Profile Configuration Requirements</h2>
+        <ul>
+          <li>Profiles must be explicit, named, and deterministic: Conservative, Balanced, Aggressive at minimum.</li>
+          <li>Profiles may adjust soft strategy thresholds and ranking sensitivity.</li>
+          <li>Profiles must not modify or bypass hard risk rules.</li>
+          <li>Profile changes must be persisted and auditable.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Decision Persistence Requirements</h2>
+        <ul>
+          <li>Each candidate decision record must include: decision id, timestamp, asset, proposed action, candidate score, final status, rationale summary, and blocking/constraint reasons.</li>
+          <li>Decision records must be durable enough for Activity and future backtesting/replay inspection.</li>
+          <li>Decision records must remain separate from true exchange-account events so the UI can distinguish hypothetical strategy decisions from actual account history.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Testing Requirements</h2>
+        <ul>
+          <li>Add automated tests for deterministic scoring repeatability.</li>
+          <li>Add automated tests for hard-risk rule enforcement and non-bypassability.</li>
+          <li>Add automated tests that prove profile changes affect soft thresholds but not hard safety rules.</li>
+          <li>Add automated tests for decision persistence and replayability.</li>
+          <li>Add integration/regression validation that the app still does not place orders or imply execution readiness.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 4 Technical Completion Criteria</h2>
+        <ul>
+          <li>Strategy, scoring, and risk-approval services are isolated and testable.</li>
+          <li>Decision outputs are durable and inspectable.</li>
+          <li>Risk rules are demonstrably non-bypassable.</li>
+          <li>No execution path exists.</li>
+          <li>The decision pipeline is stable enough to become the baseline for Phase 5 backtesting.</li>
+        </ul>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

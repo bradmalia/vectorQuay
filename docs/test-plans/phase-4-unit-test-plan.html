@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 4 Unit Test Plan</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Unit Test Plan</p>
+          <h1>Phase 4 Unit Test Plan</h1>
+          <p class="subtitle">Deterministic strategy, scoring, and hard-risk rule coverage.</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+      <article class="section-card">
+        <h2>Execution Environment</h2>
+        <ul>
+          <li>Primary environment: local .NET 8 solution on the Ubuntu-first development workstation.</li>
+          <li>Primary command baseline: <code>dotnet restore</code>, <code>dotnet build</code>, and <code>dotnet test</code>.</li>
+          <li>Required fixtures: normalized account snapshot fixture, approved-universe fixture, protected-asset fixture, stale-data fixture, and aggressiveness-profile fixture.</li>
+          <li>Expected evidence: automated test output and targeted Phase 4 result notes under <code>docs/test-results/</code>.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Required Unit Coverage</h2>
+        <ul>
+          <li>UTP4-01: deterministic candidate generation is repeatable from identical inputs.</li>
+          <li>UTP4-02: scoring output is deterministic and explainable.</li>
+          <li>UTP4-03: protected-asset and approved-universe rules block disallowed candidates.</li>
+          <li>UTP4-04: hard-risk limits reject candidates even when their score is high.</li>
+          <li>UTP4-05: profile changes alter soft thresholds without bypassing hard limits.</li>
+          <li>UTP4-06: decision outputs serialize/persist cleanly into the durable history layer.</li>
+          <li>UTP4-07: inactive-trading / kill-switch posture still prevents executable approval semantics.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Pass Condition</h2>
+        <p>The Phase 4 decision engine is deterministic, its hard-risk model is non-bypassable, and durable decision records are stable enough to feed later backtesting and paper-trading phases.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

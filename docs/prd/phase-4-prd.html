@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 4 PRD</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Product Requirements Document</p>
+          <h1>Phase 4 PRD</h1>
+          <p class="subtitle">Deterministic growth strategy, candidate scoring, and hard risk approval baseline.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v0.1</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Draft baseline</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Executive Summary</h2>
+          <p>Phase 4 turns VectorQuay from a read-only operator shell into a deterministic decision engine. It introduces a non-LLM growth-oriented strategy baseline, explicit trade-candidate scoring, hard risk approval rules, and auditable approval/rejection logic while still keeping live order placement and paper trading out of scope.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Phase Goal</h2>
+          <p>Deliver a deterministic growth strategy and risk engine that can evaluate trade candidates safely, explain every approval or rejection, and prepare the product for later backtesting and paper-trading phases.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Purpose</h2>
+        <p>Phase 3 established durable state, replayable audit history, and safe restart behavior. Phase 4 must now create the first real decisioning layer: a deterministic strategy core that can assess the approved asset universe, generate candidate trades, score them against growth criteria, and block unsafe actions through non-bypassable risk rules.</p>
+      </article>
+
+      <article class="section-card">
+        <h2>Carry-Forward Decisions</h2>
+        <ul>
+          <li>Coinbase Advanced Trade remains the only exchange surface.</li>
+          <li>Read-only exchange posture remains mandatory in Phase 4.</li>
+          <li>No live order placement, cancellation, or paper trading is introduced in this phase.</li>
+          <li>Only the approved/allowed asset universe may be considered for deterministic trade candidates.</li>
+          <li>Approved candidate overlays and protected-asset policies remain locally authoritative.</li>
+          <li>AI/LLM-driven signals remain out of scope until the deterministic baseline proves itself.</li>
+        </ul>
+      </article>
+
+      <section class="two-col">
+        <article class="section-card">
+          <h2>In Scope</h2>
+          <ul>
+            <li>Build a deterministic, non-LLM strategy baseline focused on growth rather than passive holding.</li>
+            <li>Separate signal generation, trade scoring, and risk approval into explicit pipeline stages.</li>
+            <li>Generate candidate trade actions from the approved asset universe using current Coinbase read-only state and current local policy overlays.</li>
+            <li>Implement configurable aggressiveness profiles that influence strategy thresholds but do not bypass hard limits.</li>
+            <li>Implement hard risk controls for position size, exposure, daily loss budget, turnover budget, stale data, connectivity failure, reconciliation mismatch, and operator kill switch posture.</li>
+            <li>Make approvals/rejections durable and explainable through the existing Phase 3 audit/history foundation.</li>
+            <li>Upgrade Activity and Performance so they can show deterministic candidate decisions in addition to historical account events.</li>
+          </ul>
+        </article>
+
+        <article class="section-card">
+          <h2>Out of Scope</h2>
+          <ul>
+            <li>Live execution or order submission.</li>
+            <li>Paper trading on live market data.</li>
+            <li>Historical backtesting or replay qualification.</li>
+            <li>LLM, sentiment, watcher, or external-source intelligence scoring.</li>
+            <li>Advanced portfolio optimization beyond the deterministic candidate/risk model needed for this phase.</li>
+          </ul>
+        </article>
+      </section>
+
+      <article class="section-card">
+        <h2>Primary Product Outcomes</h2>
+        <ul>
+          <li>The app can evaluate current account state and approved assets to produce deterministic candidate trade decisions.</li>
+          <li>Every candidate action is either approved or rejected through explicit, non-bypassable risk rules.</li>
+          <li>The operator can inspect why a candidate was approved, rejected, or downgraded.</li>
+          <li>Aggressive, balanced, and conservative behavior can be represented without weakening the hard safety boundary.</li>
+          <li>Phase 5 backtesting and Phase 6 paper trading can use the same deterministic decision pipeline rather than a throwaway prototype.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Operator Problems Solved</h2>
+        <ul>
+          <li>The operator can see what the system would want to do with the current account if execution were allowed.</li>
+          <li>The operator can verify that risk rules meaningfully constrain aggressive behavior.</li>
+          <li>The operator can review candidate trade rationale without trusting a black-box AI model.</li>
+          <li>The operator can compare the effect of different aggressiveness profiles before paper trading exists.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Decision Pipeline Requirements</h2>
+        <ul>
+          <li><strong>Universe Filter:</strong> only approved and eligible assets enter candidate evaluation.</li>
+          <li><strong>Signal Stage:</strong> deterministic price/account/state inputs create candidate direction and confidence inputs.</li>
+          <li><strong>Scoring Stage:</strong> candidate trades receive a normalized deterministic score and rationale summary.</li>
+          <li><strong>Risk Approval Stage:</strong> hard safety checks may reject or constrain candidates regardless of strategy score.</li>
+          <li><strong>Decision Output Stage:</strong> final output must be one of at least: Approved, Rejected, Constrained, or No Action.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Hard Risk Controls</h2>
+        <ul>
+          <li>Maximum position size.</li>
+          <li>Maximum asset exposure / concentration.</li>
+          <li>Daily loss budget.</li>
+          <li>Turnover budget.</li>
+          <li>Protected-asset policy enforcement.</li>
+          <li>Stale data block.</li>
+          <li>Coinbase refresh/connectivity failure block.</li>
+          <li>Recovery/reconciliation mismatch block.</li>
+          <li>Operator kill-switch or inactive-trading block.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Aggressiveness Profiles</h2>
+        <ul>
+          <li>Phase 4 should support at minimum: Conservative, Balanced, and Aggressive.</li>
+          <li>Profiles may change scoring thresholds, candidate ranking sensitivity, and allowable trade frequency assumptions.</li>
+          <li>Profiles must not weaken non-bypassable hard limits.</li>
+          <li>The operator should be able to inspect which profile is active and how it affected the final decision.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Screen-Level Expectations</h2>
+        <ul>
+          <li><strong>Overview:</strong> may surface top deterministic candidates and current strategy posture.</li>
+          <li><strong>Activity:</strong> should become a mixed ledger of durable account events and deterministic candidate decisions, with clear type distinction.</li>
+          <li><strong>Performance:</strong> should remain truthful and may begin showing simple decision-count / approval-rate summaries, but must not claim backtested alpha.</li>
+          <li><strong>Risk &amp; Thresholds:</strong> becomes the main operator surface for aggressiveness profile and hard-limit visibility.</li>
+          <li><strong>Policies:</strong> remains authoritative for protected-asset and approved-universe constraints.</li>
+          <li><strong>Alerts:</strong> may begin surfacing strategy/risk-related local alerts such as candidate rejection due to hard limits.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Functional Requirements</h2>
+        <ul>
+          <li>Implement deterministic candidate generation from current Coinbase read-only data and current local policy state.</li>
+          <li>Implement explicit candidate scoring that is explainable and reproducible from the same inputs.</li>
+          <li>Implement hard risk approval rules that cannot be bypassed by aggressiveness profile or high candidate score.</li>
+          <li>Persist decision outcomes and rationale through the Phase 3 durable-state foundation.</li>
+          <li>Render decision output in the GUI clearly enough for operator review.</li>
+          <li>Keep trading visibly inactive even when candidate trades are approved in theory.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Success Criteria</h2>
+        <ul>
+          <li>The product can produce deterministic candidate decisions from live read-only account data.</li>
+          <li>Hard risk rules reliably block unsafe or disallowed candidates.</li>
+          <li>Approval/rejection logic is auditable and explainable.</li>
+          <li>The implementation is stable enough to support Phase 5 backtesting against the same decision pipeline.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 4 Is Complete When</h2>
+        <ul>
+          <li>Deterministic candidate generation and scoring are implemented.</li>
+          <li>Hard risk approval exists and is non-bypassable.</li>
+          <li>Decision outputs are durable and inspectable in the shell.</li>
+          <li>Phase 4 tests pass and the product is ready for Phase 5 backtesting and growth evaluation.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Risks</h2>
+        <div class="callout risk">
+          <h3>Phase 4 Risks</h3>
+          <ul>
+            <li>A weak deterministic baseline could produce plausible-looking but unsafe candidate decisions.</li>
+            <li>Profiles that are too loosely defined could undermine operator trust in the risk model.</li>
+            <li>Mixing strategy logic and hard-risk rules too early would make later qualification and debugging difficult.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

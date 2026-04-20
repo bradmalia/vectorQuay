@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 4 Regression Test Plan</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Regression Test Plan</p>
+          <h1>Phase 4 Regression Test Plan</h1>
+          <p class="subtitle">Baseline-protection plan for deterministic decisioning without execution drift.</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+      <article class="section-card">
+        <h2>Protected Baselines</h2>
+        <ul>
+          <li>Coinbase Advanced remains the only exchange surface.</li>
+          <li>Read-only exchange posture remains enforced.</li>
+          <li>No execution, no cancellation, and no paper-trading behavior may appear in Phase 4.</li>
+          <li>Phase 3 durable-state and audit boundaries remain intact.</li>
+          <li>Secrets remain external and must not enter decision or audit payloads.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Required Regression Checks</h2>
+        <ul>
+          <li>RTP4-01: strategy/risk additions introduce no write-capable Coinbase path.</li>
+          <li>RTP4-02: decision records remain clearly distinct from actual account-event history.</li>
+          <li>RTP4-03: hard-risk rules cannot be bypassed by aggressiveness-profile changes.</li>
+          <li>RTP4-04: restored/live-state semantics from Phase 3 remain truthful after strategy decisions are added.</li>
+          <li>RTP4-05: no silent polling or automation drift is introduced.</li>
+          <li>RTP4-06: no secret leakage enters decision/audit payloads.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Pass Condition</h2>
+        <p>Phase 4 adds deterministic decisioning and risk enforcement without weakening the existing read-only, durable-state, and secret-handling guarantees established in earlier phases.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 4 Integration Test Plan</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Integration Test Plan</p>
+          <h1>Phase 4 Integration Test Plan</h1>
+          <p class="subtitle">Cross-layer validation for deterministic decisions, GUI visibility, and non-bypassable risk approval.</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+      <article class="section-card">
+        <h2>Execution Environment and Fixtures</h2>
+        <ul>
+          <li>Primary execution environment: Ubuntu-first local workstation with valid Phase 3 durable-state behavior and valid Coinbase read-only connectivity.</li>
+          <li>Primary command baseline: <code>dotnet restore</code>, <code>dotnet build</code>, <code>dotnet test</code>, and <code>dotnet run --project src/VectorQuay.App</code>.</li>
+          <li>Required fixtures: valid live Coinbase snapshot, persisted durable state, approved asset universe, protected-asset example, and multiple risk-profile examples.</li>
+          <li>Expected evidence: command summaries, strategy/risk walkthrough captures, and result artifacts under <code>docs/test-results/</code>.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Required Integration Gates</h2>
+        <ul>
+          <li>ITP4-01: deterministic candidate decisions appear from current live read-only data.</li>
+          <li>ITP4-02: protected assets and hard limits reject candidates visibly and durably.</li>
+          <li>ITP4-03: aggressiveness profile changes alter decision posture but do not bypass hard risk.</li>
+          <li>ITP4-04: Activity distinguishes deterministic decision records from true account-event history.</li>
+          <li>ITP4-05: decision outputs are durable across restart through the Phase 3 persistence layer.</li>
+          <li>ITP4-06: no execution or paper-trading path is introduced.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Pass Condition</h2>
+        <p>The product can generate deterministic candidate decisions, show them clearly in the shell, and enforce hard-risk outcomes without weakening the read-only boundary or blurring decisions with actual executed account history.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
