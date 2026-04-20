@@ -14,6 +14,26 @@ public sealed class VectorQuayPaths
 
     public required string CoinbaseApiKeyJsonTextPath { get; init; }
 
+    public required string DataDirectory { get; init; }
+
+    public required string StateDirectory { get; init; }
+
+    public required string HistoryDirectory { get; init; }
+
+    public required string AuditDirectory { get; init; }
+
+    public required string LastSnapshotPath { get; init; }
+
+    public required string ActivityHistoryPath { get; init; }
+
+    public required string AlertHistoryPath { get; init; }
+
+    public required string PortfolioValueHistoryPath { get; init; }
+
+    public required string AuditEventsPath { get; init; }
+
+    public required string DataSchemaVersionPath { get; init; }
+
     public bool SettingsExists => File.Exists(SettingsPath);
 
     public bool SecretsExists => File.Exists(SecretsPath);
@@ -39,6 +59,16 @@ public sealed class VectorQuayPaths
             SecretsPath = Path.Combine(configDirectory, "secrets.env"),
             CoinbaseApiKeyJsonPath = Path.Combine(configDirectory, "cdp_api_key.json"),
             CoinbaseApiKeyJsonTextPath = Path.Combine(configDirectory, "cdp_api_key.json.txt"),
+            DataDirectory = Path.Combine(configDirectory, "data"),
+            StateDirectory = Path.Combine(configDirectory, "data", "state"),
+            HistoryDirectory = Path.Combine(configDirectory, "data", "history"),
+            AuditDirectory = Path.Combine(configDirectory, "data", "audit"),
+            LastSnapshotPath = Path.Combine(configDirectory, "data", "state", "last-snapshot.json"),
+            ActivityHistoryPath = Path.Combine(configDirectory, "data", "history", "activity.jsonl"),
+            AlertHistoryPath = Path.Combine(configDirectory, "data", "history", "alerts.jsonl"),
+            PortfolioValueHistoryPath = Path.Combine(configDirectory, "data", "history", "portfolio-value.jsonl"),
+            AuditEventsPath = Path.Combine(configDirectory, "data", "audit", "events.jsonl"),
+            DataSchemaVersionPath = Path.Combine(configDirectory, "data", "schema-version.txt"),
             TemplatePath = ResolveTemplatePath(baseDirectory),
         };
     }

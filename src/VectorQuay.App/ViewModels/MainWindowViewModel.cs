@@ -13,6 +13,7 @@ using CommunityToolkit.Mvvm.Input;
 using VectorQuay.App.Models;
 using VectorQuay.Core.Coinbase;
 using VectorQuay.Core.Configuration;
+using VectorQuay.Core.Persistence;
 
 namespace VectorQuay.App.ViewModels;
 
@@ -22,6 +23,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private readonly SettingsService _settingsService;
     private readonly ICoinbaseReadOnlyService? _coinbaseService;
+    private readonly ILocalStateStore? _localStateStore;
     private string? _pendingRiskConfirmationTarget;
     private CoinbaseShellSnapshot? _latestCoinbaseSnapshot;
     private List<AssetPolicySettings>? _launchPolicyBaseline;
@@ -35,14 +37,15 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isRefreshingActivityFilters;
 
     public MainWindowViewModel(SettingsService settingsService)
-        : this(settingsService, null, false)
+        : this(settingsService, null, null, false)
     {
     }
 
-    public MainWindowViewModel(SettingsService settingsService, ICoinbaseReadOnlyService? coinbaseService, bool enableStartupRefresh)
+    public MainWindowViewModel(SettingsService settingsService, ICoinbaseReadOnlyService? coinbaseService, ILocalStateStore? localStateStore, bool enableStartupRefresh)
     {
         _settingsService = settingsService;
         _coinbaseService = coinbaseService;
+        _localStateStore = localStateStore;
         AssetRows = [];
         TopTradeAssetItems = [];
         RecentOverviewActivityItems = [];
@@ -63,6 +66,7 @@ public partial class MainWindowViewModel : ViewModelBase
         ActivityActionOptions = [];
         ActivityOutcomeOptions = [];
         LoadFromSnapshot(_settingsService.Load());
+        TryRestorePersistedState();
 
         if (enableStartupRefresh && _coinbaseService is not null)
         {
@@ -719,12 +723,43 @@ public partial class MainWindowViewModel : ViewModelBase
         AllocationSlices.Clear();
         PortfolioHoldings.Clear();
         UpdateAdvancedThresholdsDisplay();
+        if (_latestCoinbaseSnapshot is null && _localStateStore is not null)
+        {
+            var restored = _localStateStore.LoadSnapshot();
+            if (restored.State == RecoveryTruthState.RestoredFromCache && restored.Snapshot is not null)
+            {
+                ApplyPersistedSnapshot(restored.Snapshot);
+            }
+        }
+        RestorePersistedAlerts();
+        RefreshPersistedPerformanceSummary();
 
         if (_latestCoinbaseSnapshot is not null)
         {
             ApplyCoinbaseSnapshot(_latestCoinbaseSnapshot, false);
         }
         OnPropertyChanged(nameof(StatusBarDetail));
+    }
+
+    private void TryRestorePersistedState()
+    {
+        if (_localStateStore is null)
+        {
+            return;
+        }
+
+        if (_latestCoinbaseSnapshot is null)
+        {
+            var restored = _localStateStore.LoadSnapshot();
+            if (restored.State == RecoveryTruthState.RestoredFromCache && restored.Snapshot is not null)
+            {
+                ApplyPersistedSnapshot(restored.Snapshot);
+            }
+        }
+
+        RestorePersistedActivity();
+        RestorePersistedAlerts();
+        RefreshPersistedPerformanceSummary();
     }
 
     [RelayCommand]
@@ -753,13 +788,30 @@ public partial class MainWindowViewModel : ViewModelBase
 
             var snapshot = await _coinbaseService.RefreshAsync();
             ApplyCoinbaseSnapshot(snapshot, isStartup);
+            _localStateStore?.SaveCoinbaseSnapshot(snapshot);
             await RefreshMissingAssetIconsAsync(snapshot);
+            RefreshPersistedPerformanceSummary();
         }
         catch (Exception ex)
         {
             CoinbaseConnectionSummary = "Refresh Failed";
             CoinbaseRefreshSummary = $"Coinbase refresh failed: {ex.Message}";
             ShellStatus = "Refresh Failed";
+            _localStateStore?.AppendAlert(new PersistedAlertEvent(
+                EventId: $"alert-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}",
+                TimestampUtc: DateTimeOffset.UtcNow,
+                Severity: "Error",
+                Destination: "In-App",
+                Summary: $"Coinbase refresh failed: {ex.Message}"));
+            RestorePersistedAlerts();
+            AppendAuditEvent(
+                "CoinbaseRefreshFailed",
+                "Coinbase",
+                "Coinbase refresh failed.",
+                new Dictionary<string, string?>
+                {
+                    ["message"] = ex.Message,
+                });
             OnPropertyChanged(nameof(StatusBarDetail));
         }
         finally
@@ -778,6 +830,14 @@ public partial class MainWindowViewModel : ViewModelBase
             SaveCoinbaseJsonFile();
             LoadFromSnapshot(_settingsService.Load());
             ConnectionsActionMessage = "Coinbase connection settings saved.";
+            AppendAuditEvent(
+                "CoinbaseConnectionSaved",
+                "Configuration",
+                "Coinbase connection settings were saved locally.",
+                new Dictionary<string, string?>
+                {
+                    ["jsonPath"] = CoinbaseJsonKeyFilePath,
+                });
 
             if (_coinbaseService is not null)
             {
@@ -808,6 +868,15 @@ public partial class MainWindowViewModel : ViewModelBase
             }
             LoadFromSnapshot(_settingsService.Load());
             ConnectionsActionMessage = "Connection settings saved.";
+            AppendAuditEvent(
+                "ConnectionsSaved",
+                "Configuration",
+                "Connection settings were saved locally.",
+                new Dictionary<string, string?>
+                {
+                    ["coinbaseJsonPath"] = CoinbaseJsonKeyFilePath,
+                    ["openAiKeyFilePath"] = OpenAiKeyFilePath,
+                });
 
             if (_coinbaseService is not null)
             {
@@ -843,10 +912,28 @@ public partial class MainWindowViewModel : ViewModelBase
             ConnectionsActionMessage = snapshot.IsConnected
                 ? $"Coinbase connectivity test passed. {snapshot.Accounts.Count} account(s) and {snapshot.Products.Count} product(s) were read successfully."
                 : $"Coinbase connectivity test completed, but the connection is not healthy: {snapshot.Messages.FirstOrDefault() ?? "Unknown result."}";
+            AppendAuditEvent(
+                "CoinbaseConnectivityTest",
+                "Configuration",
+                snapshot.IsConnected ? "Coinbase connectivity test passed." : "Coinbase connectivity test completed but did not return a healthy connection.",
+                new Dictionary<string, string?>
+                {
+                    ["connected"] = snapshot.IsConnected.ToString(),
+                    ["accountCount"] = snapshot.Accounts.Count.ToString(CultureInfo.InvariantCulture),
+                    ["productCount"] = snapshot.Products.Count.ToString(CultureInfo.InvariantCulture),
+                });
         }
         catch (Exception ex)
         {
             ConnectionsActionMessage = $"Coinbase connectivity test failed: {ex.Message}";
+            AppendAuditEvent(
+                "CoinbaseConnectivityTestFailed",
+                "Configuration",
+                "Coinbase connectivity test failed.",
+                new Dictionary<string, string?>
+                {
+                    ["message"] = ex.Message,
+                });
         }
         finally
         {
@@ -883,15 +970,54 @@ public partial class MainWindowViewModel : ViewModelBase
                 OpenAiApiKeyStatus = !string.IsNullOrWhiteSpace(OpenAiKeyFilePath)
                     ? "Present via external key file"
                     : "Present via secrets.env";
+                AppendAuditEvent(
+                    "OpenAiConnectivityTest",
+                    "Configuration",
+                    "OpenAI connectivity test passed.",
+                    new Dictionary<string, string?>
+                    {
+                        ["statusCode"] = ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture),
+                    });
             }
             else
             {
                 ConnectionsActionMessage = $"OpenAI connectivity test failed: {(int)response.StatusCode} {response.ReasonPhrase}.";
+                _localStateStore?.AppendAlert(new PersistedAlertEvent(
+                    EventId: $"alert-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}",
+                    TimestampUtc: DateTimeOffset.UtcNow,
+                    Severity: "Error",
+                    Destination: "In-App",
+                    Summary: $"OpenAI connectivity test failed: {(int)response.StatusCode} {response.ReasonPhrase}."));
+                RestorePersistedAlerts();
+                AppendAuditEvent(
+                    "OpenAiConnectivityTestFailed",
+                    "Configuration",
+                    "OpenAI connectivity test failed.",
+                    new Dictionary<string, string?>
+                    {
+                        ["statusCode"] = ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture),
+                        ["reason"] = response.ReasonPhrase,
+                    });
             }
         }
         catch (Exception ex)
         {
             ConnectionsActionMessage = $"OpenAI connectivity test failed: {ex.Message}";
+            _localStateStore?.AppendAlert(new PersistedAlertEvent(
+                EventId: $"alert-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}",
+                TimestampUtc: DateTimeOffset.UtcNow,
+                Severity: "Error",
+                Destination: "In-App",
+                Summary: $"OpenAI connectivity test failed: {ex.Message}"));
+            RestorePersistedAlerts();
+            AppendAuditEvent(
+                "OpenAiConnectivityTestFailed",
+                "Configuration",
+                "OpenAI connectivity test failed.",
+                new Dictionary<string, string?>
+                {
+                    ["message"] = ex.Message,
+                });
         }
         finally
         {
@@ -908,6 +1034,14 @@ public partial class MainWindowViewModel : ViewModelBase
             SaveOpenAiKeyFile();
             LoadFromSnapshot(_settingsService.Load());
             ConnectionsActionMessage = "OpenAI connection settings saved.";
+            AppendAuditEvent(
+                "OpenAiConnectionSaved",
+                "Configuration",
+                "OpenAI connection settings were saved locally.",
+                new Dictionary<string, string?>
+                {
+                    ["openAiKeyFilePath"] = OpenAiKeyFilePath,
+                });
         }
         catch (Exception ex)
         {
@@ -925,6 +1059,15 @@ public partial class MainWindowViewModel : ViewModelBase
             LoadFromSnapshot(_settingsService.Load());
             SettingsActionMessage = "Save complete. Local non-secret settings were written to settings.json.";
             ValidationSummary = "Settings saved successfully." + Environment.NewLine + ValidationSummary;
+            AppendAuditEvent(
+                "SettingsSaved",
+                "Configuration",
+                "Local non-secret settings were saved.",
+                new Dictionary<string, string?>
+                {
+                    ["valuationCurrency"] = CurrentValuationCurrency,
+                    ["riskProfile"] = SelectedRiskProfile,
+                });
         }
         catch (Exception ex)
         {
@@ -959,6 +1102,167 @@ public partial class MainWindowViewModel : ViewModelBase
             UpdateOverviewAndPortfolio(snapshot, isStartup);
             UpdateActivityFromCoinbase(snapshot);
         }
+    }
+
+    private void ApplyPersistedSnapshot(PersistedShellSnapshot snapshot)
+    {
+        ShellStatus = "Restored from Cache";
+        CoinbaseConnectionSummary = "Restored from Local Cache";
+        CoinbaseRefreshSummary = snapshot.LastRefreshUtc is null
+            ? "Restored from local cache."
+            : $"Restored from local cache: {snapshot.LastRefreshUtc.Value.LocalDateTime:g}";
+        OverviewCoinbaseStatus = "Restored from Local Cache";
+        OverviewTotalValue = FormatUsd(snapshot.TotalPortfolioValueUsd);
+        OverviewUsdAvailable = FormatUsd(snapshot.AvailableUsd);
+        OverviewOpenPositions = snapshot.Holdings.Count(holding => !IsCashLike(holding.Asset) && holding.EstimatedValueUsd > 0.01m).ToString(CultureInfo.InvariantCulture);
+        OverviewRefreshSummary = CoinbaseRefreshSummary;
+        PortfolioTotalValue = FormatUsd(snapshot.TotalPortfolioValueUsd);
+        PortfolioCashStableSummary = FormatUsd(snapshot.AvailableUsd + snapshot.AvailableUsdc);
+        PortfolioUnrealizedSummary = "Restored cached balances";
+        PortfolioLargestExposure = snapshot.Holdings.Count == 0
+            ? "No recoverable holdings"
+            : $"{FormatAssetLabel(snapshot.Holdings[0].Asset)} · {FormatUsd(snapshot.Holdings[0].EstimatedValueUsd)}";
+        PortfolioHistorySummary = "Displayed from restored local cache until the next live refresh completes.";
+        AllocationSummary = $"{FormatUsd(snapshot.TotalPortfolioValueUsd)} restored from local cache.";
+
+        PortfolioHoldings.Clear();
+        foreach (var holding in snapshot.Holdings.Take(12))
+        {
+            var allocationPct = snapshot.TotalPortfolioValueUsd <= 0m ? 0m : Math.Round(holding.EstimatedValueUsd / snapshot.TotalPortfolioValueUsd * 100m, 1);
+            PortfolioHoldings.Add(new PortfolioHoldingViewModel(
+                holding.Asset,
+                holding.Quantity.ToString("0.########", CultureInfo.InvariantCulture),
+                "restored",
+                FormatUsd(holding.EstimatedValueUsd),
+                $"{allocationPct:0.#}%",
+                _allPolicyRules.FirstOrDefault(rule => string.Equals(rule.Asset, holding.Asset, StringComparison.OrdinalIgnoreCase))?.Mode ?? "Allow Full Trade"));
+        }
+
+        AllocationSlices.Clear();
+        var visibleAllocations = snapshot.Holdings.Where(holding => holding.EstimatedValueUsd > 0.01m).Take(6).ToList();
+        var runningPercent = 0d;
+        for (var index = 0; index < visibleAllocations.Count; index++)
+        {
+            var holding = visibleAllocations[index];
+            var percent = snapshot.TotalPortfolioValueUsd <= 0m ? 0d : Math.Round((double)(holding.EstimatedValueUsd / snapshot.TotalPortfolioValueUsd * 100m), 1);
+            AllocationSlices.Add(new AllocationSliceViewModel(
+                holding.Asset,
+                percent,
+                FormatUsd(holding.EstimatedValueUsd),
+                AllocationPalette[index % AllocationPalette.Length])
+            {
+                PathData = BuildDonutSlicePath(runningPercent, percent),
+            });
+            runningPercent += percent;
+        }
+
+        OnPropertyChanged(nameof(StatusBarDetail));
+    }
+
+    private void RestorePersistedActivity()
+    {
+        if (_localStateStore is null)
+        {
+            return;
+        }
+
+        var persisted = _localStateStore.LoadRecentActivity();
+        if (persisted.Count == 0)
+        {
+            return;
+        }
+
+        _allActivityEntries.Clear();
+        foreach (var entry in persisted.OrderByDescending(item => item.TimestampUtc).Take(100))
+        {
+            _allActivityEntries.Add(new ActivityEntryViewModel(
+                entry.TimestampUtc.LocalDateTime.ToString("yyyy-MM-dd HH:mm"),
+                entry.AssetOrSubject,
+                HumanizeWords(entry.EventType),
+                string.Empty,
+                HumanizeWords(entry.Status),
+                entry.Summary,
+                entry.Summary,
+                entry.Detail,
+                [new ActivitySourceContributionViewModel(entry.Origin, entry.Summary, "Restored")]));
+        }
+
+        RefreshActivityEntries();
+    }
+
+    private void RestorePersistedAlerts()
+    {
+        if (_localStateStore is null)
+        {
+            return;
+        }
+
+        var persisted = _localStateStore.LoadRecentAlerts();
+        if (persisted.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var entry in persisted.OrderByDescending(item => item.TimestampUtc))
+        {
+            var timestamp = entry.TimestampUtc.LocalDateTime.ToString("yyyy-MM-dd HH:mm");
+            var duplicateExists = _allAlertEntries.Any(existing =>
+                string.Equals(existing.Timestamp, timestamp, StringComparison.Ordinal) &&
+                string.Equals(existing.Summary, entry.Summary, StringComparison.Ordinal) &&
+                string.Equals(existing.Destination, entry.Destination, StringComparison.Ordinal));
+            if (duplicateExists)
+            {
+                continue;
+            }
+
+            _allAlertEntries.Insert(0, new AlertEntryViewModel(
+                timestamp,
+                entry.Summary,
+                entry.Severity,
+                entry.Destination));
+        }
+
+        RefreshAlertEntries();
+    }
+
+    private void RefreshPersistedPerformanceSummary()
+    {
+        if (_localStateStore is null)
+        {
+            return;
+        }
+
+        var history = _localStateStore.LoadPortfolioValueHistory()
+            .OrderBy(point => point.TimestampUtc)
+            .ToList();
+        if (history.Count == 0)
+        {
+            return;
+        }
+
+        var first = history.First();
+        var last = history.Last();
+        var delta = last.TotalValueUsd - first.TotalValueUsd;
+        var deltaText = $"{(delta >= 0m ? "+" : string.Empty)}{FormatUsd(Math.Abs(delta))}";
+        PerformanceRangeSummary = $"{history.Count} stored snapshot{(history.Count == 1 ? string.Empty : "s")} · {first.TimestampUtc.LocalDateTime:g} to {last.TimestampUtc.LocalDateTime:g}";
+        PerformanceReadModelSummary = $"Durable local portfolio history is active. Stored change across retained snapshots: {deltaText}.";
+    }
+
+    private void AppendAuditEvent(string eventType, string origin, string summary, IReadOnlyDictionary<string, string?> detail)
+    {
+        if (_localStateStore is null)
+        {
+            return;
+        }
+
+        _localStateStore.AppendAuditEvent(new PersistedAuditEvent(
+            EventId: $"{eventType}-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}",
+            TimestampUtc: DateTimeOffset.UtcNow,
+            EventType: eventType,
+            Origin: origin,
+            Summary: summary,
+            CorrelationId: null,
+            Detail: detail));
     }
 
     private void ReplaceAssetRowsWithCoinbaseData(CoinbaseShellSnapshot snapshot)
@@ -1434,6 +1738,15 @@ public partial class MainWindowViewModel : ViewModelBase
             LoadFromSnapshot(_settingsService.Load());
             SettingsActionMessage = $"Applied {selectedRules.Count} policy update{(selectedRules.Count == 1 ? string.Empty : "s")}.";
             SelectedPolicyNotesEditor = string.Empty;
+            AppendAuditEvent(
+                "PolicyUpdated",
+                "Policies",
+                $"Applied {selectedRules.Count} policy update{(selectedRules.Count == 1 ? string.Empty : "s")}.",
+                new Dictionary<string, string?>
+                {
+                    ["assetCount"] = selectedRules.Count.ToString(CultureInfo.InvariantCulture),
+                    ["mode"] = SelectedPolicyModeEditor,
+                });
         }
         catch (Exception ex)
         {
@@ -1477,6 +1790,14 @@ public partial class MainWindowViewModel : ViewModelBase
         _settingsService.Save(settings);
         LoadFromSnapshot(_settingsService.Load());
         SettingsActionMessage = "Policy session changes were restored to the app-launch baseline.";
+        AppendAuditEvent(
+            "PolicyUndo",
+            "Policies",
+            "Policy session changes were restored to the app-launch baseline.",
+            new Dictionary<string, string?>
+            {
+                ["restoredToLaunchBaseline"] = bool.TrueString,
+            });
     }
 
     [RelayCommand]
@@ -1551,17 +1872,32 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             case "Test Alert":
                 var deliveryLabel = BuildAlertDestinationLabel();
-                LastAlertDeliveryTest = $"Ran at {DateTime.Now:HH:mm:ss}";
+                var alertTimestamp = DateTime.Now;
+                LastAlertDeliveryTest = $"Ran at {alertTimestamp:HH:mm:ss}";
                 _allAlertEntries.Insert(0, new AlertEntryViewModel(
-                    DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
-                    $"Manual test alert fired at {DateTime.Now:HH:mm:ss}.",
+                    alertTimestamp.ToString("yyyy-MM-dd HH:mm"),
+                    $"Manual test alert fired at {alertTimestamp:HH:mm:ss}.",
                     "Info",
                     deliveryLabel));
+                _localStateStore?.AppendAlert(new PersistedAlertEvent(
+                    EventId: $"alert-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}",
+                    TimestampUtc: DateTimeOffset.UtcNow,
+                    Severity: "Info",
+                    Destination: deliveryLabel,
+                    Summary: $"Manual test alert fired at {alertTimestamp:HH:mm:ss}."));
                 AlertSeverityFilter = "All Severities";
                 AlertDestinationFilter = "All Destinations";
                 RefreshAlertEntries();
                 AlertActionMessage = BuildTestAlertMessage(deliveryLabel);
                 OnPropertyChanged(nameof(OpenAlertsSummary));
+                AppendAuditEvent(
+                    "AlertTestRun",
+                    "Alerts",
+                    "Manual test alert was generated.",
+                    new Dictionary<string, string?>
+                    {
+                        ["destination"] = deliveryLabel,
+                    });
                 break;
 
             default:
@@ -1579,6 +1915,16 @@ public partial class MainWindowViewModel : ViewModelBase
             _settingsService.Save(settings);
             LoadFromSnapshot(_settingsService.Load());
             AlertActionMessage = "Alert delivery preferences saved to local settings.";
+            AppendAuditEvent(
+                "AlertPreferencesSaved",
+                "Alerts",
+                "Alert delivery preferences were saved locally.",
+                new Dictionary<string, string?>
+                {
+                    ["inApp"] = InAppAlertsEnabled.ToString(),
+                    ["email"] = EmailAlertsEnabled.ToString(),
+                    ["sms"] = SmsAlertsEnabled.ToString(),
+                });
         }
         catch (Exception ex)
         {
@@ -1595,6 +1941,14 @@ public partial class MainWindowViewModel : ViewModelBase
             _settingsService.Save(settings);
             LoadFromSnapshot(_settingsService.Load());
             AlertActionMessage = "Alert rules saved to local settings.";
+            AppendAuditEvent(
+                "AlertRulesSaved",
+                "Alerts",
+                "Alert rules were saved locally.",
+                new Dictionary<string, string?>
+                {
+                    ["enabledRuleCount"] = _allAlertRules.Count(rule => rule.IsEnabled).ToString(CultureInfo.InvariantCulture),
+                });
         }
         catch (Exception ex)
         {
@@ -1636,6 +1990,16 @@ public partial class MainWindowViewModel : ViewModelBase
         SourceActionMessage = isNew
             ? $"{entry.Name} was added to the local {(type == "Watcher" ? "watcher" : "source")} registry."
             : $"{entry.Name} was saved to the local {(type == "Watcher" ? "watcher" : "source")} registry.";
+        AppendAuditEvent(
+            isNew ? "SourceAdded" : "SourceUpdated",
+            "Sources",
+            SourceActionMessage,
+            new Dictionary<string, string?>
+            {
+                ["name"] = entry.Name,
+                ["type"] = entry.Type,
+                ["weight"] = entry.Weight,
+            });
     }
 
     private void ApplySelectedSource()
@@ -1680,6 +2044,14 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         SourceActionMessage = $"{removedName} removed from local source configuration.";
+        AppendAuditEvent(
+            "SourceRemoved",
+            "Sources",
+            SourceActionMessage,
+            new Dictionary<string, string?>
+            {
+                ["name"] = removedName,
+            });
     }
 
     private void PersistSources()
@@ -2522,6 +2894,16 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(StatusBarIndicatorBrush));
         OnPropertyChanged(nameof(StatusBarSummary));
+        OnPropertyChanged(nameof(StatusBarDetail));
+    }
+
+    partial void OnCoinbaseRefreshSummaryChanged(string value)
+    {
+        OnPropertyChanged(nameof(StatusBarDetail));
+    }
+
+    partial void OnOpenAiApiKeyStatusChanged(string value)
+    {
         OnPropertyChanged(nameof(StatusBarDetail));
     }
 
