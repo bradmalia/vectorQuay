@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -38,6 +39,38 @@ public partial class MainWindow : Window
         if (DataContext is MainWindowViewModel viewModel)
         {
             viewModel.SetCoinbaseJsonImportPath(file.Path.LocalPath);
+        }
+    }
+
+    private async void OnChooseOpenAiKeySaveLocation(object? sender, RoutedEventArgs e)
+    {
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var suggestedPath = System.IO.Path.Combine(home, ".local", "share", "VectorQuay", "openai-api-key.txt");
+        var folder = await StorageProvider.TryGetFolderFromPathAsync(System.IO.Path.GetDirectoryName(suggestedPath)!);
+
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Choose OpenAI API Key Save Location",
+            SuggestedFileName = "openai-api-key.txt",
+            SuggestedStartLocation = folder,
+            DefaultExtension = "txt",
+            FileTypeChoices =
+            [
+                new FilePickerFileType("Text File")
+                {
+                    Patterns = ["*.txt"]
+                }
+            ]
+        });
+
+        if (file is null)
+        {
+            return;
+        }
+
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.SetOpenAiKeyFilePath(file.Path.LocalPath);
         }
     }
 

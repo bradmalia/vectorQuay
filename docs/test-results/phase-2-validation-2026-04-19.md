@@ -25,7 +25,11 @@ git -C /home/brad/vectorquay status --short --untracked-files=all
 - `PASS`: approved-asset overlays continue to exist on top of the broader Coinbase product universe
 - `PASS`: activity now uses real Coinbase account events rather than shell-only placeholder rows
 - `PASS`: asset metadata pass is in place for common assets, with bundled names/icons plus fallback badges for unknown symbols
+- `PASS`: missing asset logos can now be fetched and cached locally on refresh, reducing fallback-badge coverage across the broader Coinbase universe
 - `PASS`: local source/watcher registry now supports add/edit/remove flows with a dedicated modal editor
+- `PASS`: connection setup now includes explicit connectivity tests for Coinbase and OpenAI
+- `PASS`: alerts now use predefined alert types with editable delivery/severity settings instead of free-text rule editing
+- `PASS`: OpenAI key storage now uses a user-chosen external file path and blocks repository-local save locations
 
 ## PRD / TRD Conformance Review
 
@@ -40,12 +44,15 @@ git -C /home/brad/vectorquay status --short --untracked-files=all
 
 - `PASS`: `Overview` shows real connection state, refresh cues, balances, allocation, and recent live activity.
 - `PASS`: `Configuration` remains a connection/setup page rather than a general-purpose settings editor.
+- `PASS`: `Configuration` now provides testable provider connectivity and safer external-key storage behavior.
 - `PASS`: `Assets` uses the live Coinbase product universe with local approved/watch/observed overlays.
 - `PASS`: `Portfolio` remains a truthful current-state view, not a fake historical accounting surface.
 - `PASS`: `Activity` now satisfies the PRD allowance for a simple read-only account-event view.
+- `PASS`: `Activity` is now a bounded scrollable ledger and no longer carries stale shell-era decision/detail panels.
 - `PASS`: `Policies` still reflects authoritative local policy state rather than claiming enforcement bypass.
 - `PASS`: `Sources` shows Coinbase as a live direct source while watchers remain local/operator-managed constructs.
 - `PASS`: `Performance` remains explicitly read-only/interim and avoids fabricated return analytics.
+- `PASS`: `Alerts` presents structured alert categories and local delivery preferences without implying autonomous trading behavior or real external transport support.
 
 ### Technical Contract
 
@@ -57,10 +64,11 @@ git -C /home/brad/vectorquay status --short --untracked-files=all
 
 These are not current blockers for the Phase 2 read-only baseline, but they remain the highest-value follow-up items:
 
-- `PARTIAL`: `Sources` is now useful locally, but still needs another visual/product pass to feel fully mature.
-- `PARTIAL`: `Performance` is now honest and readable, but still intentionally shallow until time-series history exists.
+- `PARTIAL`: `Sources` is now useful locally, but still remains the least mature major page from a product-polish perspective.
+- `PARTIAL`: `Performance` is honest and readable, but still intentionally shallow until time-series history exists.
+- `PARTIAL`: external email/SMS alert delivery is still not implemented; test alerts validate local routing/UI behavior only.
 - `PARTIAL`: the current automated suite still leans heavily on core/configuration logic; app-surface regression coverage remains mostly manual.
 
 ## Conclusion
 
-The current implementation is in a credible Phase 2 baseline state. The product is exchange-aware, read-only, and aligned with the approved Phase 2 scope. Remaining work is primarily polish and broader validation evidence, not architectural uncertainty.
+The current implementation is in a credible Phase 2 closeout state. The product is exchange-aware, read-only, and aligned with the approved Phase 2 scope. Remaining work is primarily optional polish and future-phase transport/execution features, not architectural uncertainty.

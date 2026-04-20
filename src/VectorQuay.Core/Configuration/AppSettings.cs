@@ -103,58 +103,7 @@ public sealed class AppSettings
                 EmailAddress = "brad@example.com",
                 SmsNumber = "+1 555-0100",
                 QuietHours = "None configured",
-                Rules =
-                [
-                    new AlertRuleSettings
-                    {
-                        Rule = "Trade Executed",
-                        Severity = "Info",
-                        Destination = "In-App + Email",
-                        Enabled = true,
-                    },
-                    new AlertRuleSettings
-                    {
-                        Rule = "Trade Rejected",
-                        Severity = "Warning",
-                        Destination = "In-App + Email",
-                        Enabled = true,
-                    },
-                    new AlertRuleSettings
-                    {
-                        Rule = "Deposit Received",
-                        Severity = "Info",
-                        Destination = "In-App",
-                        Enabled = true,
-                    },
-                    new AlertRuleSettings
-                    {
-                        Rule = "Withdrawal Detected",
-                        Severity = "Warning",
-                        Destination = "In-App + Email",
-                        Enabled = true,
-                    },
-                    new AlertRuleSettings
-                    {
-                        Rule = "Coinbase refresh failure",
-                        Severity = "Error",
-                        Destination = "In-App + Email",
-                        Enabled = true,
-                    },
-                    new AlertRuleSettings
-                    {
-                        Rule = "Connection Lost",
-                        Severity = "Warning",
-                        Destination = "In-App",
-                        Enabled = true,
-                    },
-                    new AlertRuleSettings
-                    {
-                        Rule = "Risk Threshold Breached",
-                        Severity = "Error",
-                        Destination = "In-App + Email + SMS",
-                        Enabled = true,
-                    },
-                ],
+                Rules = AlertDefaults.CreateDefaultRules(),
             },
         };
     }
@@ -169,6 +118,8 @@ public sealed class GeneralSettings
     public bool AllowUsdcSecondary { get; set; } = true;
 
     public string ReleaseFeedUrl { get; set; } = AppSettings.DefaultReleaseFeedUrl;
+
+    public string OpenAiApiKeyPath { get; set; } = string.Empty;
 }
 
 public sealed class PolicySettings
@@ -250,4 +201,70 @@ public sealed class AlertRuleSettings
     public string Destination { get; set; } = "In-App";
 
     public bool Enabled { get; set; } = true;
+}
+
+public static class AlertDefaults
+{
+    public static List<AlertRuleSettings> CreateDefaultRules()
+    {
+        return
+        [
+            new AlertRuleSettings
+            {
+                Rule = "Trade Executed",
+                Severity = "Info",
+                Destination = "In-App + Email",
+                Enabled = true,
+            },
+            new AlertRuleSettings
+            {
+                Rule = "Trade Rejected",
+                Severity = "Warning",
+                Destination = "In-App + Email",
+                Enabled = true,
+            },
+            new AlertRuleSettings
+            {
+                Rule = "Deposit Received",
+                Severity = "Info",
+                Destination = "In-App",
+                Enabled = true,
+            },
+            new AlertRuleSettings
+            {
+                Rule = "Withdrawal Detected",
+                Severity = "Warning",
+                Destination = "In-App + Email",
+                Enabled = true,
+            },
+            new AlertRuleSettings
+            {
+                Rule = "Coinbase refresh failure",
+                Severity = "Error",
+                Destination = "In-App + Email",
+                Enabled = true,
+            },
+            new AlertRuleSettings
+            {
+                Rule = "Connection Lost",
+                Severity = "Warning",
+                Destination = "In-App",
+                Enabled = true,
+            },
+            new AlertRuleSettings
+            {
+                Rule = "OpenAI Failure",
+                Severity = "Warning",
+                Destination = "In-App",
+                Enabled = true,
+            },
+            new AlertRuleSettings
+            {
+                Rule = "Risk Threshold Breached",
+                Severity = "Error",
+                Destination = "In-App + Email + SMS",
+                Enabled = true,
+            },
+        ];
+    }
 }

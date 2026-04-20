@@ -46,6 +46,7 @@ public partial class MainWindowViewModel : ViewModelBase
         AssetRows = [];
         TopTradeAssetItems = [];
         RecentOverviewActivityItems = [];
+        RecentOverviewAlertItems = [];
         AllocationSlices = [];
         PortfolioHoldings = [];
         SourceEntries = [];
@@ -75,6 +76,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<TopTradeAssetViewModel> TopTradeAssetItems { get; }
 
     public ObservableCollection<OverviewActivityRowViewModel> RecentOverviewActivityItems { get; }
+
+    public ObservableCollection<AlertEntryViewModel> RecentOverviewAlertItems { get; }
 
     public ObservableCollection<AllocationSliceViewModel> AllocationSlices { get; }
 
@@ -192,6 +195,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private string openAiApiKeyEditor = string.Empty;
 
     [ObservableProperty]
+    private string openAiKeyFilePath = string.Empty;
+
+    [ObservableProperty]
     private string coinbaseConnectionSummary = "Not Connected";
 
     [ObservableProperty]
@@ -220,6 +226,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private string refreshUniverseButtonText = "Refresh Universe";
+
+    [ObservableProperty]
+    private string testCoinbaseButtonText = "Test Coinbase";
+
+    [ObservableProperty]
+    private string testOpenAiButtonText = "Test OpenAI";
 
     [ObservableProperty]
     private string overviewAppHealth = "Ready";
@@ -506,6 +518,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool CanRefreshCoinbase => !IsRefreshingCoinbase;
 
+    public bool CanTestCoinbase => TestCoinbaseButtonText == "Test Coinbase";
+
+    public bool CanTestOpenAi => TestOpenAiButtonText == "Test OpenAI";
+
     public bool IsPerformanceRange24H => PerformanceRange == "24H";
 
     public bool IsPerformanceRange7D => PerformanceRange == "7D";
@@ -564,6 +580,10 @@ public partial class MainWindowViewModel : ViewModelBase
         ? $"Detected file: {CoinbaseJsonKeyFilePath}"
         : "No Coinbase JSON key file is configured yet.";
 
+    public string OpenAiKeyFileStatusSummary => string.IsNullOrWhiteSpace(OpenAiKeyFilePath)
+        ? $"Recommended save path: {GetRecommendedOpenAiKeyFilePath()}"
+        : $"Selected key file: {OpenAiKeyFilePath}";
+
     private void LoadFromSnapshot(SettingsSnapshot snapshot)
     {
         SettingsPath = snapshot.Paths.SettingsPath;
@@ -606,8 +626,11 @@ public partial class MainWindowViewModel : ViewModelBase
         ConfigurationSummary = BuildConfigurationSummary(snapshot);
         CoinbaseApiKeyStatus = DescribeSecretStatus(snapshot.SecretStatuses, SecretNames.CoinbaseApiKey);
         CoinbaseApiSecretStatus = DescribeSecretStatus(snapshot.SecretStatuses, SecretNames.CoinbaseApiSecret);
-        OpenAiApiKeyStatus = DescribeSecretStatus(snapshot.SecretStatuses, SecretNames.OpenAiApiKey);
-        OpenAiApiKeyEditor = ResolveSecretEditorValue(snapshot.Paths.SecretsPath, SecretNames.OpenAiApiKey);
+        OpenAiKeyFilePath = snapshot.Settings.General.OpenAiApiKeyPath?.Trim() ?? string.Empty;
+        OpenAiApiKeyEditor = ResolveOpenAiEditorValue(snapshot.Paths.SecretsPath, snapshot.Settings.General.OpenAiApiKeyPath);
+        OpenAiApiKeyStatus = !string.IsNullOrWhiteSpace(OpenAiApiKeyEditor)
+            ? (!string.IsNullOrWhiteSpace(OpenAiKeyFilePath) ? "Present via external key file" : DescribeSecretStatus(snapshot.SecretStatuses, SecretNames.OpenAiApiKey))
+            : "Missing";
         ValidationSummary = string.Join(Environment.NewLine, snapshot.ValidationMessages);
 
         ValidationMessages.Clear();
@@ -730,6 +753,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             var snapshot = await _coinbaseService.RefreshAsync();
             ApplyCoinbaseSnapshot(snapshot, isStartup);
+            await RefreshMissingAssetIconsAsync(snapshot);
         }
         catch (Exception ex)
         {
@@ -778,7 +802,10 @@ public partial class MainWindowViewModel : ViewModelBase
                 SaveCoinbaseJsonFile();
             }
 
-            SaveOpenAiSecret();
+            if (!string.IsNullOrWhiteSpace(OpenAiApiKeyEditor) || !string.IsNullOrWhiteSpace(OpenAiKeyFilePath))
+            {
+                SaveOpenAiKeyFile();
+            }
             LoadFromSnapshot(_settingsService.Load());
             ConnectionsActionMessage = "Connection settings saved.";
 
@@ -794,12 +821,91 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private async Task TestCoinbaseConnectivityAsync()
+    {
+        if (_coinbaseService is null)
+        {
+            ConnectionsActionMessage = "Coinbase connectivity test is unavailable because the Coinbase service is not configured.";
+            return;
+        }
+
+        try
+        {
+            TestCoinbaseButtonText = "Testing...";
+            if (!string.IsNullOrWhiteSpace(CoinbaseJsonImportPath))
+            {
+                SaveCoinbaseJsonFile();
+                LoadFromSnapshot(_settingsService.Load());
+            }
+
+            var snapshot = await _coinbaseService.RefreshAsync();
+            ApplyCoinbaseSnapshot(snapshot, false);
+            ConnectionsActionMessage = snapshot.IsConnected
+                ? $"Coinbase connectivity test passed. {snapshot.Accounts.Count} account(s) and {snapshot.Products.Count} product(s) were read successfully."
+                : $"Coinbase connectivity test completed, but the connection is not healthy: {snapshot.Messages.FirstOrDefault() ?? "Unknown result."}";
+        }
+        catch (Exception ex)
+        {
+            ConnectionsActionMessage = $"Coinbase connectivity test failed: {ex.Message}";
+        }
+        finally
+        {
+            TestCoinbaseButtonText = "Test Coinbase";
+        }
+    }
+
+    [RelayCommand]
+    private async Task TestOpenAiConnectivityAsync()
+    {
+        try
+        {
+            TestOpenAiButtonText = "Testing...";
+
+            if (!string.IsNullOrWhiteSpace(OpenAiApiKeyEditor) && !string.IsNullOrWhiteSpace(OpenAiKeyFilePath))
+            {
+                SaveOpenAiKeyFile();
+                LoadFromSnapshot(_settingsService.Load());
+            }
+
+            if (string.IsNullOrWhiteSpace(OpenAiApiKeyEditor))
+            {
+                ConnectionsActionMessage = "OpenAI connectivity test failed: no API key is configured.";
+                return;
+            }
+
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OpenAiApiKeyEditor.Trim());
+            using var response = await client.GetAsync("https://api.openai.com/v1/models");
+
+            if (response.IsSuccessStatusCode)
+            {
+                ConnectionsActionMessage = "OpenAI connectivity test passed. The API key was accepted by the models endpoint.";
+                OpenAiApiKeyStatus = !string.IsNullOrWhiteSpace(OpenAiKeyFilePath)
+                    ? "Present via external key file"
+                    : "Present via secrets.env";
+            }
+            else
+            {
+                ConnectionsActionMessage = $"OpenAI connectivity test failed: {(int)response.StatusCode} {response.ReasonPhrase}.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ConnectionsActionMessage = $"OpenAI connectivity test failed: {ex.Message}";
+        }
+        finally
+        {
+            TestOpenAiButtonText = "Test OpenAI";
+            OnPropertyChanged(nameof(StatusBarDetail));
+        }
+    }
+
+    [RelayCommand]
     private void SaveOpenAiConnection()
     {
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(SecretsPath)!);
-            SaveOpenAiSecret();
+            SaveOpenAiKeyFile();
             LoadFromSnapshot(_settingsService.Load());
             ConnectionsActionMessage = "OpenAI connection settings saved.";
         }
@@ -890,6 +996,27 @@ public partial class MainWindowViewModel : ViewModelBase
 
         RefreshAssetRows();
         RefreshTopTradeAssets();
+    }
+
+    private async Task RefreshMissingAssetIconsAsync(CoinbaseShellSnapshot snapshot)
+    {
+        var symbols = snapshot.Products
+            .Select(product => string.IsNullOrWhiteSpace(product.BaseCurrencyId) ? product.ProductId : product.BaseCurrencyId)
+            .Where(symbol => !string.IsNullOrWhiteSpace(symbol))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        var downloaded = await AssetMetadataCatalog.EnsureCachedIconsAsync(symbols);
+        if (downloaded <= 0)
+        {
+            return;
+        }
+
+        RefreshAssetRows();
+        RefreshTopTradeAssets();
+        RefreshActivityEntries();
+        RefreshAlertEntries();
+        UpdateOverviewAndPortfolio(snapshot, false);
     }
 
     private void ReplacePolicyRulesFromApprovedUniverse()
@@ -1082,6 +1209,13 @@ public partial class MainWindowViewModel : ViewModelBase
             ? VectorQuayPaths.Resolve(baseDirectory: AppContext.BaseDirectory).CoinbaseApiKeyJsonTextPath
             : VectorQuayPaths.Resolve(baseDirectory: AppContext.BaseDirectory).CoinbaseApiKeyJsonPath;
 
+        if (string.Equals(Path.GetFullPath(sourcePath), Path.GetFullPath(targetPath), StringComparison.OrdinalIgnoreCase))
+        {
+            CoinbaseJsonKeyFilePath = targetPath;
+            CoinbaseJsonKeyFileStatus = "Detected";
+            return;
+        }
+
         Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
         File.Copy(sourcePath, targetPath, true);
         CoinbaseJsonKeyFilePath = targetPath;
@@ -1094,19 +1228,27 @@ public partial class MainWindowViewModel : ViewModelBase
         ConnectionsActionMessage = $"Selected Coinbase JSON key file: {Path.GetFileName(path)}";
     }
 
-    private void SaveOpenAiSecret()
+    public void SetOpenAiKeyFilePath(string path)
     {
-        var secrets = LoadSecretValues(SecretsPath);
+        OpenAiKeyFilePath = path;
+        ConnectionsActionMessage = $"Selected OpenAI key file: {Path.GetFileName(path)}";
+    }
+
+    private void SaveOpenAiKeyFile()
+    {
         if (string.IsNullOrWhiteSpace(OpenAiApiKeyEditor))
         {
-            secrets.Remove(SecretNames.OpenAiApiKey);
-        }
-        else
-        {
-            secrets[SecretNames.OpenAiApiKey] = OpenAiApiKeyEditor.Trim();
+            throw new InvalidOperationException("OpenAI API key is empty.");
         }
 
-        WriteSecretValues(SecretsPath, secrets);
+        if (string.IsNullOrWhiteSpace(OpenAiKeyFilePath))
+        {
+            throw new InvalidOperationException("Choose an OpenAI key file path before saving.");
+        }
+
+        ValidateOpenAiKeyFilePath(OpenAiKeyFilePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(OpenAiKeyFilePath)!);
+        File.WriteAllText(OpenAiKeyFilePath, OpenAiApiKeyEditor.Trim());
     }
 
     private static Dictionary<string, string> LoadSecretValues(string secretsPath)
@@ -1144,6 +1286,49 @@ public partial class MainWindowViewModel : ViewModelBase
 
         var parsed = SecretFileParser.ParseWithDiagnostics(File.ReadAllText(secretsPath));
         return parsed.Values.TryGetValue(secretName, out var value) ? value : string.Empty;
+    }
+
+    private static string ResolveOpenAiEditorValue(string secretsPath, string? openAiKeyFilePath)
+    {
+        if (!string.IsNullOrWhiteSpace(openAiKeyFilePath) && File.Exists(openAiKeyFilePath))
+        {
+            return File.ReadAllText(openAiKeyFilePath).Trim();
+        }
+
+        return ResolveSecretEditorValue(secretsPath, SecretNames.OpenAiApiKey);
+    }
+
+    private string GetRecommendedOpenAiKeyFilePath()
+    {
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        return Path.Combine(home, ".config", "VectorQuay", "openai-api-key.txt");
+    }
+
+    private void ValidateOpenAiKeyFilePath(string path)
+    {
+        var fullPath = Path.GetFullPath(path);
+        var repoRoot = FindRepositoryRoot();
+        if (!string.IsNullOrWhiteSpace(repoRoot) &&
+            fullPath.StartsWith(repoRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("OpenAI key file cannot be saved inside the VectorQuay source repository.");
+        }
+    }
+
+    private static string? FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            if (Directory.Exists(Path.Combine(directory.FullName, ".git")))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        return null;
     }
 
     [RelayCommand]
@@ -1632,6 +1817,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 ValuationCurrency = "USD",
                 AllowUsdcSecondary = UsdcSecondaryEnabled,
                 ReleaseFeedUrl = ReleaseFeedUrl.Trim(),
+                OpenAiApiKeyPath = OpenAiKeyFilePath.Trim(),
             },
             Policy = new PolicySettings
             {
@@ -1985,7 +2171,9 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var filtered = _allAssetRows
             .Where(asset => string.IsNullOrWhiteSpace(AssetSearchText) ||
-                            asset.Asset.Contains(AssetSearchText, StringComparison.OrdinalIgnoreCase))
+                            asset.Asset.Contains(AssetSearchText, StringComparison.OrdinalIgnoreCase) ||
+                            asset.AssetSymbol.Contains(AssetSearchText, StringComparison.OrdinalIgnoreCase) ||
+                            asset.AssetName.Contains(AssetSearchText, StringComparison.OrdinalIgnoreCase))
             .Where(asset => AssetStateFilter == "All States" || string.Equals(asset.State, AssetStateFilter, StringComparison.OrdinalIgnoreCase));
 
         filtered = AssetSortOrder switch
@@ -2150,6 +2338,12 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             AlertEntries.Add(entry);
             AlertItems.Add(entry.Summary);
+        }
+
+        RecentOverviewAlertItems.Clear();
+        foreach (var entry in _allAlertEntries.Take(3))
+        {
+            RecentOverviewAlertItems.Add(entry);
         }
 
         OnPropertyChanged(nameof(OpenAlertsSummary));
@@ -2341,6 +2535,16 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(IsRefreshingCoinbase));
         OnPropertyChanged(nameof(CanRefreshCoinbase));
+    }
+
+    partial void OnTestCoinbaseButtonTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(CanTestCoinbase));
+    }
+
+    partial void OnTestOpenAiButtonTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(CanTestOpenAi));
     }
 
     partial void OnUpdateActionUrlChanged(string value)
@@ -2875,6 +3079,7 @@ public partial class AlertRuleViewModel : ObservableObject
         "Withdrawal Detected",
         "Coinbase refresh failure",
         "Connection Lost",
+        "OpenAI Failure",
         "Risk Threshold Breached",
     ];
 

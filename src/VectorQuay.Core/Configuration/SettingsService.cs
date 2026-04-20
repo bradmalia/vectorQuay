@@ -37,6 +37,7 @@ public sealed class SettingsService
         var templateSettings = TryReadSettings(_paths.TemplatePath, "template settings", validationNotes) ?? defaultSettings;
         var localSettings = TryReadSettings(_paths.SettingsPath, "local settings", validationNotes) ?? templateSettings;
         NormalizePolicySettings(localSettings.Policy);
+        NormalizeAlertSettings(localSettings.Alerts);
 
         localSettings.General.ValuationCurrency = "USD";
         if (string.IsNullOrWhiteSpace(localSettings.General.ReleaseFeedUrl))
@@ -65,6 +66,7 @@ public sealed class SettingsService
         Directory.CreateDirectory(Path.GetDirectoryName(_paths.SettingsPath)!);
         settings.General.ValuationCurrency = "USD";
         NormalizePolicySettings(settings.Policy);
+        NormalizeAlertSettings(settings.Alerts);
         if (string.IsNullOrWhiteSpace(settings.General.ReleaseFeedUrl))
         {
             settings.General.ReleaseFeedUrl = AppSettings.DefaultReleaseFeedUrl;
@@ -298,6 +300,35 @@ public sealed class SettingsService
         if (normalizedPolicies.TryGetValue("ETH", out var ethPolicy))
         {
             policy.ProtectedEthMode = ethPolicy.Mode;
+        }
+    }
+
+    private static void NormalizeAlertSettings(AlertSettings alerts)
+    {
+        alerts.EmailAddress = alerts.EmailAddress?.Trim() ?? string.Empty;
+        alerts.SmsNumber = alerts.SmsNumber?.Trim() ?? string.Empty;
+        alerts.QuietHours = string.IsNullOrWhiteSpace(alerts.QuietHours) ? "None configured" : alerts.QuietHours.Trim();
+
+        if (alerts.Rules is null || alerts.Rules.Count == 0)
+        {
+            alerts.Rules = AlertDefaults.CreateDefaultRules();
+            return;
+        }
+
+        alerts.Rules = alerts.Rules
+            .Where(rule => !string.IsNullOrWhiteSpace(rule.Rule))
+            .Select(rule => new AlertRuleSettings
+            {
+                Rule = rule.Rule.Trim(),
+                Severity = string.IsNullOrWhiteSpace(rule.Severity) ? "Info" : rule.Severity.Trim(),
+                Destination = string.IsNullOrWhiteSpace(rule.Destination) ? "In-App" : rule.Destination.Trim(),
+                Enabled = rule.Enabled,
+            })
+            .ToList();
+
+        if (alerts.Rules.Count == 0)
+        {
+            alerts.Rules = AlertDefaults.CreateDefaultRules();
         }
     }
 }

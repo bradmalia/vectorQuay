@@ -150,6 +150,47 @@
                                         </StackPanel>
                                     </Grid>
                                     <TextBlock Classes="label" Text="{Binding OverviewRefreshSummary}" TextWrapping="Wrap"/>
+                                    <Border Background="#FBFCFF" BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="10" Padding="10">
+                                        <StackPanel Spacing="8">
+                                            <Button HorizontalAlignment="Left"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Padding="0"
+                                                    FontWeight="Bold"
+                                                    Foreground="#262B5B"
+                                                    Content="Recent Activity"
+                                                    Command="{Binding SetSectionCommand}"
+                                                    CommandParameter="Activity"/>
+                                            <Grid ColumnDefinitions="120,140,80,*" ColumnSpacing="10" Margin="0,0,0,6">
+                                                <TextBlock FontWeight="Bold" Text="Timestamp"/>
+                                                <TextBlock Grid.Column="1" FontWeight="Bold" Text="Asset"/>
+                                                <TextBlock Grid.Column="2" FontWeight="Bold" Text="Action"/>
+                                                <TextBlock Grid.Column="3" FontWeight="Bold" Text="Amount"/>
+                                            </Grid>
+                                            <ItemsControl ItemsSource="{Binding RecentOverviewActivityItems}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:OverviewActivityRowViewModel">
+                                                        <Border BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="8" Padding="8,6" Margin="0,0,0,6" Background="#FFFFFF">
+                                                            <Grid ColumnDefinitions="120,140,80,*" ColumnSpacing="10">
+                                                                <TextBlock Text="{Binding Timestamp}"/>
+                                                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                                                    <Grid Width="18" Height="18" VerticalAlignment="Center">
+                                                                        <Image Width="18" Height="18" Source="{Binding AssetIcon}" IsVisible="{Binding HasAssetIcon}"/>
+                                                                        <Border Width="18" Height="18" CornerRadius="9" Background="#EEF2FF" BorderBrush="#CFD7FF" BorderThickness="1" IsVisible="{Binding ShowAssetFallback}">
+                                                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8" FontWeight="Bold" Foreground="#2B357F" Text="{Binding AssetMonogram}"/>
+                                                                        </Border>
+                                                                    </Grid>
+                                                                    <TextBlock Text="{Binding AssetSymbol}" VerticalAlignment="Center"/>
+                                                                </StackPanel>
+                                                                <TextBlock Grid.Column="2" Text="{Binding Action}"/>
+                                                                <TextBlock Grid.Column="3" Text="{Binding Amount}"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="1" Classes="card">
@@ -256,32 +297,24 @@
                                             Padding="0"
                                             FontWeight="Bold"
                                             Foreground="#262B5B"
-                                            Content="Recent Activity"
+                                            Content="Recent Alerts"
                                             Command="{Binding SetSectionCommand}"
-                                            CommandParameter="Activity"/>
-                                    <Grid ColumnDefinitions="120,140,80,*" ColumnSpacing="10" Margin="0,0,0,6">
+                                            CommandParameter="Alerts"/>
+                                    <Grid ColumnDefinitions="120,110,160,*" ColumnSpacing="10" Margin="0,0,0,6">
                                         <TextBlock FontWeight="Bold" Text="Timestamp"/>
-                                        <TextBlock Grid.Column="1" FontWeight="Bold" Text="Asset"/>
-                                        <TextBlock Grid.Column="2" FontWeight="Bold" Text="Action"/>
-                                        <TextBlock Grid.Column="3" FontWeight="Bold" Text="Amount"/>
+                                        <TextBlock Grid.Column="1" FontWeight="Bold" Text="Severity"/>
+                                        <TextBlock Grid.Column="2" FontWeight="Bold" Text="Destination"/>
+                                        <TextBlock Grid.Column="3" FontWeight="Bold" Text="Summary"/>
                                     </Grid>
-                                    <ItemsControl ItemsSource="{Binding RecentOverviewActivityItems}">
+                                    <ItemsControl ItemsSource="{Binding RecentOverviewAlertItems}">
                                         <ItemsControl.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:OverviewActivityRowViewModel">
+                                            <DataTemplate x:DataType="vm:AlertEntryViewModel">
                                                 <Border BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="8" Padding="8,6" Margin="0,0,0,6" Background="#FBFCFF">
-                                                    <Grid ColumnDefinitions="120,140,80,*" ColumnSpacing="10">
+                                                    <Grid ColumnDefinitions="120,110,160,*" ColumnSpacing="10">
                                                         <TextBlock Text="{Binding Timestamp}"/>
-                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                                            <Grid Width="18" Height="18" VerticalAlignment="Center">
-                                                                <Image Width="18" Height="18" Source="{Binding AssetIcon}" IsVisible="{Binding HasAssetIcon}"/>
-                                                                <Border Width="18" Height="18" CornerRadius="9" Background="#EEF2FF" BorderBrush="#CFD7FF" BorderThickness="1" IsVisible="{Binding ShowAssetFallback}">
-                                                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8" FontWeight="Bold" Foreground="#2B357F" Text="{Binding AssetMonogram}"/>
-                                                                </Border>
-                                                            </Grid>
-                                                            <TextBlock Text="{Binding AssetSymbol}" VerticalAlignment="Center"/>
-                                                        </StackPanel>
-                                                        <TextBlock Grid.Column="2" Text="{Binding Action}"/>
-                                                        <TextBlock Grid.Column="3" Text="{Binding Amount}"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Severity}"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding Destination}"/>
+                                                        <TextBlock Grid.Column="3" Text="{Binding Summary}" TextWrapping="Wrap"/>
                                                     </Grid>
                                                 </Border>
                                             </DataTemplate>
@@ -315,17 +348,27 @@
                         <Border Classes="card" MaxWidth="780" HorizontalAlignment="Left">
                             <StackPanel Spacing="14">
                                 <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Connection Setup"/>
-                                <TextBlock Classes="label" Text="{Binding ConnectionStatusSummary}" TextWrapping="Wrap"/>
+                                <TextBlock Classes="label" Text="Connect Coinbase for read-only account data and add an OpenAI key for AI-assisted workflows. Test each connection after saving." TextWrapping="Wrap"/>
 
                                 <Border Background="#F7F9FF" BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="12" Padding="14">
                                     <StackPanel Spacing="8">
-                                        <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Coinbase Read-Only"/>
-                                        <TextBlock Classes="label" Text="Use the downloaded CDP JSON key file for the Coinbase Advanced Trade read-only connection." TextWrapping="Wrap"/>
+                                        <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Coinbase"/>
+                                        <TextBlock Classes="label" Text="Use the downloaded CDP JSON key file for the Coinbase Advanced Trade connection. This phase uses it in read-only mode." TextWrapping="Wrap"/>
                                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
                                             <TextBox Text="{Binding CoinbaseJsonImportPath}" PlaceholderText="/home/brad/.config/VectorQuay/cdp_api_key.json"/>
                                             <Button Grid.Column="1" Content="Browse" Click="OnBrowseCoinbaseJson"/>
                                         </Grid>
                                         <TextBlock Classes="label" Text="{Binding CoinbaseJsonStatusSummary}" TextWrapping="Wrap"/>
+                                        <TextBlock Classes="label"
+                                                   Text="Need help? In Coinbase Developer Platform, create an Advanced Trade API key with read-only permissions, download the JSON file, then browse to it here."
+                                                   TextWrapping="Wrap"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Button Command="{Binding TestCoinbaseConnectivityCommand}"
+                                                    IsEnabled="{Binding CanTestCoinbase}"
+                                                    Content="{Binding TestCoinbaseButtonText}"
+                                                    Background="#EEF2FF"
+                                                    Foreground="#2B357F"/>
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
 
@@ -334,6 +377,20 @@
                                         <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="OpenAI"/>
                                         <TextBlock Classes="label" Text="Used for AI-assisted source and watcher workflows." TextWrapping="Wrap"/>
                                         <TextBox Width="320" HorizontalAlignment="Left" Text="{Binding OpenAiApiKeyEditor}" PlaceholderText="sk-..." />
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                            <TextBlock VerticalAlignment="Center" Classes="label" Text="{Binding OpenAiKeyFileStatusSummary}" TextWrapping="Wrap"/>
+                                            <Button Grid.Column="1" Content="Choose Save Location" Click="OnChooseOpenAiKeySaveLocation"/>
+                                        </Grid>
+                                        <TextBlock Classes="label"
+                                                   Text="Need help? Create an API key in the OpenAI developer dashboard, choose a save location outside the repo and config folder, then test the connection."
+                                                   TextWrapping="Wrap"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Button Content="{Binding TestOpenAiButtonText}"
+                                                    Command="{Binding TestOpenAiConnectivityCommand}"
+                                                    IsEnabled="{Binding CanTestOpenAi}"
+                                                    Background="#EEF2FF"
+                                                    Foreground="#2B357F"/>
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
 
@@ -360,6 +417,9 @@
                         <Border Classes="card" Background="#F7F9FF">
                             <StackPanel Spacing="10">
                                 <TextBlock FontSize="22" FontWeight="Bold" Foreground="#262B5B" Text="Asset Universe"/>
+                                <TextBlock Classes="label"
+                                           Text="State and priority are currently system-controlled by screening and policy logic. Use Policies to govern approved assets; the universe itself stays machine-ranked for consistency."
+                                           TextWrapping="Wrap"/>
                                 <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                         <TextBox Width="180" PlaceholderText="Search asset" Text="{Binding AssetSearchText}"/>
@@ -659,11 +719,11 @@
                                 <Border Background="#F7F9FF" BorderBrush="#DFE4FB" BorderThickness="1" CornerRadius="10" Padding="12" IsVisible="{Binding ShowNoActivityEntries}">
                                     <TextBlock Foreground="#5F6794" Text="No Coinbase account events matched the current filters. Adjust the filters or refresh Coinbase to reload the latest activity." TextWrapping="Wrap"/>
                                 </Border>
-                                <ItemsControl ItemsSource="{Binding ActivityEntries}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:ActivityEntryViewModel">
-                                            <Button Command="{Binding $parent[Window].DataContext.SelectActivityEntryCommand}" CommandParameter="{Binding .}" Background="Transparent" BorderThickness="0" Padding="0" HorizontalContentAlignment="Stretch">
-                                                <Border Background="#FFFFFF" CornerRadius="10" Padding="8" BorderBrush="#DFE4FB" BorderThickness="1" Margin="0,0,0,6">
+                                <ScrollViewer MaxHeight="520">
+                                    <ItemsControl ItemsSource="{Binding ActivityEntries}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:ActivityEntryViewModel">
+                                                <Border Background="#FFFFFF" BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="8,10">
                                                     <Grid ColumnDefinitions="150,170,120,120,130,*" ColumnSpacing="10">
                                                         <TextBlock Text="{Binding Timestamp}" TextWrapping="Wrap"/>
                                                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
@@ -684,57 +744,10 @@
                                                         <TextBlock Grid.Column="5" Text="{Binding Confidence}" TextWrapping="Wrap"/>
                                                     </Grid>
                                                 </Border>
-                                            </Button>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
-                        <Border Classes="card" Background="#F7F9FF">
-                            <StackPanel Spacing="8">
-                                <TextBlock FontWeight="Bold" Text="Event Details"/>
-                                <Grid ColumnDefinitions="140,*" ColumnSpacing="10">
-                                    <TextBlock Classes="label" Text="Event"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding ActivityDetailTitle}" FontWeight="SemiBold"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="140,*" ColumnSpacing="10">
-                                    <TextBlock Classes="label" Text="Timestamp"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding ActivityDetailTimestamp}"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="140,*" ColumnSpacing="10">
-                                    <TextBlock Classes="label" Text="Amount"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding ActivityDetailAmount}"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="140,*" ColumnSpacing="10">
-                                    <TextBlock Classes="label" Text="Status"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding ActivityDetailStatus}"/>
-                                </Grid>
-                            </StackPanel>
-                        </Border>
-                        <Border Classes="card">
-                            <StackPanel Spacing="8">
-                                <TextBlock FontWeight="Bold" Text="Coinbase Detail"/>
-                                <TextBlock Classes="label" Text="{Binding ActivityDetailSummary}" TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Border>
-                        <Border Classes="card">
-                            <StackPanel Spacing="8">
-                                <Grid ColumnDefinitions="*,*,*" Margin="0,0,0,6">
-                                    <TextBlock FontWeight="Bold" Text="Source"/>
-                                    <TextBlock Grid.Column="1" FontWeight="Bold" Text="Signal"/>
-                                    <TextBlock Grid.Column="2" FontWeight="Bold" Text="Weight"/>
-                                </Grid>
-                                <ItemsControl ItemsSource="{Binding SelectedActivitySources}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:ActivitySourceContributionViewModel">
-                                            <Grid ColumnDefinitions="*,*,*" Margin="0,0,0,4">
-                                                <TextBlock Text="{Binding Source}"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Signal}"/>
-                                                <TextBlock Grid.Column="2" Text="{Binding Weight}"/>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -798,14 +811,14 @@
                             <Border Classes="card">
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="Operator-Safe Controls"/>
-                                    <TextBlock Classes="label" Text="{Binding SelectedRiskProfile, StringFormat=Direct editing mode: {0}}" />
-                                    <TextBlock Classes="label" Text="Threshold fields are editable only when Custom is selected." TextWrapping="Wrap"/>
+                                    <TextBlock Classes="label" Text="{Binding SelectedRiskProfile, StringFormat=Editing mode: {0}}" />
+                                    <TextBlock Classes="label" Text="Editing any threshold below switches the page into Custom mode automatically." TextWrapping="Wrap"/>
                                     <TextBlock Classes="label" Text="Max Daily Loss"/>
-                                    <TextBox Text="{Binding CustomDailyLossPct}" IsEnabled="{Binding CanEditRiskThresholds}"/>
+                                    <TextBox Text="{Binding CustomDailyLossPct}"/>
                                     <TextBlock Classes="label" Text="Max Position Size"/>
-                                    <TextBox Text="{Binding CustomMaxPositionPct}" IsEnabled="{Binding CanEditRiskThresholds}"/>
+                                    <TextBox Text="{Binding CustomMaxPositionPct}"/>
                                     <TextBlock Classes="label" Text="Max Portfolio Exposure / Turnover"/>
-                                    <TextBox Text="{Binding CustomTurnoverPct}" IsEnabled="{Binding CanEditRiskThresholds}"/>
+                                    <TextBox Text="{Binding CustomTurnoverPct}"/>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="1" Classes="card">
@@ -928,47 +941,9 @@
                             <Border Grid.Column="2" Classes="card"><StackPanel><TextBlock Classes="label" Text="Last Delivery Test"/><TextBlock FontSize="20" FontWeight="Bold" Text="{Binding LastAlertDeliveryTest}"/></StackPanel></Border>
                         </Grid>
                         <Grid ColumnDefinitions="1.1*,0.9*" ColumnSpacing="12">
-                            <Border Classes="card">
-                                <StackPanel Spacing="10">
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <ComboBox Width="160" ItemsSource="{Binding AlertSeverityOptions}" SelectedItem="{Binding AlertSeverityFilter}"/>
-                                        <ComboBox Width="180" ItemsSource="{Binding AlertDestinationOptions}" SelectedItem="{Binding AlertDestinationFilter}"/>
-                                    </StackPanel>
-                                    <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,2">
-                                        <StackPanel Spacing="2">
-                                            <TextBlock FontWeight="Bold" Text="Alert Rules"/>
-                                            <TextBlock Classes="label" Text="Choose which predefined alert types are enabled, and where they should be delivered." TextWrapping="Wrap"/>
-                                        </StackPanel>
-                                        <Button Grid.Column="1" Content="Apply Rules" Command="{Binding SaveAlertRulesCommand}" Background="#262B5B" Foreground="White"/>
-                                    </Grid>
-                                    <Grid ColumnDefinitions="70,2.2*,*,*" ColumnSpacing="10" Margin="0,0,0,6">
-                                        <TextBlock FontWeight="Bold" Text="Enabled"/>
-                                        <TextBlock Grid.Column="1" FontWeight="Bold" Text="Alert Type"/>
-                                        <TextBlock Grid.Column="2" FontWeight="Bold" Text="Severity"/>
-                                        <TextBlock Grid.Column="3" FontWeight="Bold" Text="Destination"/>
-                                    </Grid>
-                                    <ScrollViewer MaxHeight="320">
-                                        <ItemsControl ItemsSource="{Binding AlertRules}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="vm:AlertRuleViewModel">
-                                                    <Border BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="0,6">
-                                                        <Grid ColumnDefinitions="70,2.2*,*,*" ColumnSpacing="10">
-                                                            <CheckBox IsChecked="{Binding IsEnabled}" VerticalAlignment="Center"/>
-                                                            <ComboBox Grid.Column="1" ItemsSource="{Binding RuleOptions}" SelectedItem="{Binding Rule}"/>
-                                                            <ComboBox Grid.Column="2" ItemsSource="{Binding SeverityOptions}" SelectedItem="{Binding Severity}"/>
-                                                            <ComboBox Grid.Column="3" ItemsSource="{Binding DestinationOptions}" SelectedItem="{Binding Destination}"/>
-                                                        </Grid>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </ScrollViewer>
-                                </StackPanel>
-                            </Border>
                             <Border Grid.Column="1" Classes="card">
                                 <StackPanel Spacing="10">
                                     <TextBlock FontWeight="Bold" Text="Delivery Preferences"/>
-                                    <TextBlock Classes="label" Text="Choose where alerts should go, then save the local delivery profile. Test Alert validates local routing and UI behavior." TextWrapping="Wrap"/>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <CheckBox IsChecked="{Binding InAppAlertsEnabled}" VerticalAlignment="Center"/>
                                         <TextBlock VerticalAlignment="Center" Text="In-App Alerts"/>
@@ -995,12 +970,42 @@
                                     <Border Background="#F7F9FF" BorderBrush="#CFD7FF" BorderThickness="1" CornerRadius="10" Padding="10,12">
                                         <TextBlock Text="{Binding AlertActionMessage}" TextWrapping="Wrap" Foreground="#424A76"/>
                                     </Border>
+                                    <Border Background="#EEF1F7" BorderBrush="#D7DBE8" BorderThickness="1" CornerRadius="10" Height="1"/>
+                                    <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,2">
+                                        <TextBlock FontWeight="Bold" Text="Alert Rules"/>
+                                        <Button Grid.Column="1" Content="Save Alert Rules" Command="{Binding SaveAlertRulesCommand}" Background="#262B5B" Foreground="White"/>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="70,2.2*,*,*" ColumnSpacing="10" Margin="0,0,0,6">
+                                        <TextBlock FontWeight="Bold" Text="Enabled"/>
+                                        <TextBlock Grid.Column="1" FontWeight="Bold" Text="Alert Type"/>
+                                        <TextBlock Grid.Column="2" FontWeight="Bold" Text="Severity"/>
+                                        <TextBlock Grid.Column="3" FontWeight="Bold" Text="Destination"/>
+                                    </Grid>
+                                    <ScrollViewer MaxHeight="260">
+                                        <ItemsControl ItemsSource="{Binding AlertRules}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:AlertRuleViewModel">
+                                                    <Border BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="0,6">
+                                                        <Grid ColumnDefinitions="70,2.2*,*,*" ColumnSpacing="10">
+                                                            <CheckBox IsChecked="{Binding IsEnabled}" VerticalAlignment="Center"/>
+                                                            <ComboBox Grid.Column="1" ItemsSource="{Binding RuleOptions}" SelectedItem="{Binding Rule}"/>
+                                                            <ComboBox Grid.Column="2" ItemsSource="{Binding SeverityOptions}" SelectedItem="{Binding Severity}"/>
+                                                            <ComboBox Grid.Column="3" ItemsSource="{Binding DestinationOptions}" SelectedItem="{Binding Destination}"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
                                 </StackPanel>
                             </Border>
-                        </Grid>
-                        <Border Classes="card">
+                            <Border Classes="card">
                             <StackPanel Spacing="8">
-                                <TextBlock FontWeight="Bold" Text="Recent Alerts"/>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <ComboBox Width="160" ItemsSource="{Binding AlertSeverityOptions}" SelectedItem="{Binding AlertSeverityFilter}"/>
+                                    <ComboBox Width="180" ItemsSource="{Binding AlertDestinationOptions}" SelectedItem="{Binding AlertDestinationFilter}"/>
+                                </StackPanel>
+                                <TextBlock FontWeight="Bold" Text="All Alerts"/>
                                 <Grid ColumnDefinitions="120,110,160,*" ColumnSpacing="10" Margin="0,0,0,6">
                                     <TextBlock FontWeight="Bold" Text="Timestamp"/>
                                     <TextBlock Grid.Column="1" FontWeight="Bold" Text="Severity"/>
@@ -1026,6 +1031,7 @@
                                 </ScrollViewer>
                             </StackPanel>
                         </Border>
+                        </Grid>
                     </StackPanel>
 
                     <StackPanel IsVisible="{Binding IsAboutSection}" Spacing="16">
