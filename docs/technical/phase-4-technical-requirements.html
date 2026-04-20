@@ -60,13 +60,78 @@
       </article>
 
       <article class="section-card">
+        <h2>Scoring Contract</h2>
+        <ul>
+          <li>Phase 4 must define one explicit normalized score range: <code>0.0</code> to <code>1.0</code>.</li>
+          <li>The final score must be composed from named deterministic components, each with an explicit bounded range and documented weight.</li>
+          <li>The initial component set should include at minimum:
+            <ul>
+              <li>trend/momentum strength</li>
+              <li>liquidity / spread quality</li>
+              <li>portfolio cash availability</li>
+              <li>concentration penalty</li>
+              <li>turnover/churn penalty</li>
+            </ul>
+          </li>
+          <li>The default component weights should be:
+            <ul>
+              <li>trend/momentum strength: <code>0.35</code></li>
+              <li>liquidity / spread quality: <code>0.20</code></li>
+              <li>portfolio cash availability: <code>0.15</code></li>
+              <li>concentration penalty: <code>0.15</code></li>
+              <li>turnover/churn penalty: <code>0.15</code></li>
+            </ul>
+          </li>
+          <li>Weights may differ by aggressiveness profile, but the weights and ranges must remain fixed and inspectable within a given build/runtime configuration.</li>
+          <li>The persisted decision record must include both the final score and the component-level breakdown used to produce it.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
         <h2>Decision Pipeline Contract</h2>
         <ul>
+          <li><strong>Universe Eligibility Pass:</strong> evaluate whether an asset is allowed to enter the approved trade universe using exchange availability, quote-path support, liquidity/spread thresholds, and operator policy constraints.</li>
           <li><strong>Input Stage:</strong> consume a normalized snapshot of current balances, holdings, product data, approved candidates, protected-asset policies, and active risk profile.</li>
           <li><strong>Signal Stage:</strong> calculate deterministic strategy inputs only from currently approved internal data sources.</li>
           <li><strong>Scoring Stage:</strong> produce a normalized candidate score and component explanations.</li>
           <li><strong>Risk Stage:</strong> apply non-bypassable hard constraints after scoring and before final approval output.</li>
           <li><strong>Output Stage:</strong> persist a typed decision result containing status, reasons, candidate size suggestion if applicable, and all relevant blocking/constraint signals.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Eligibility and Reevaluation Requirements</h2>
+        <ul>
+          <li>The eligibility contract must be evaluated separately from trade approval.</li>
+          <li>The default eligibility thresholds should be:
+            <ul>
+              <li>minimum 24H liquidity: <code>$250,000</code></li>
+              <li>maximum quoted spread tolerance: <code>0.40%</code></li>
+            </ul>
+          </li>
+          <li>Eligibility must run at minimum after a successful startup/live refresh, after an explicit <code>Refresh Universe</code> action, and after approved-universe or policy-state changes.</li>
+          <li>Trade-candidate evaluation must run after each successful live refresh and after relevant policy, profile, or threshold changes.</li>
+          <li>Risk-profile changes must affect trade approval and scoring sensitivity, not silently reclassify universe membership unless a hard protected-asset rule fully blocks trading.</li>
+          <li>The default execution model should be:
+            <ul>
+              <li>full-universe eligibility reevaluation after startup refresh and explicit <code>Refresh Universe</code></li>
+              <li>full-approved-subset decision reevaluation after successful live refresh</li>
+              <li>targeted reevaluation of only affected assets after a single-asset policy change where technically practical; otherwise fall back safely to full-approved-subset reevaluation</li>
+            </ul>
+          </li>
+          <li>Reevaluation may be synchronous in Phase 4 if the bounded asset set keeps latency acceptable; asynchronous/background reevaluation should not be introduced unless explicitly approved later.</li>
+          <li>The default evaluation shape should be <strong>independent per asset, then ranked</strong>. Assets are first evaluated independently, then ranked for operator-facing candidate summaries.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Evaluation State and Progress Requirements</h2>
+        <ul>
+          <li>The decision engine must expose a typed operator-facing evaluation state model rather than leaving reevaluation silent.</li>
+          <li>The minimum evaluation states are: <code>Idle</code>, <code>RefreshingData</code>, <code>EvaluatingUniverse</code>, <code>ScoringCandidates</code>, <code>ApplyingRiskChecks</code>, <code>Completed</code>, and <code>Failed</code>.</li>
+          <li>The app-facing layer must surface the current evaluation state to the footer/status bar and to operator-triggered actions such as <code>Refresh Universe</code>.</li>
+          <li>On successful completion, the app-facing layer must expose a durable last-evaluated timestamp.</li>
+          <li>On failure, the app-facing layer must expose which evaluation stage failed and preserve the last known decision state safely.</li>
         </ul>
       </article>
 
@@ -92,6 +157,39 @@
       </article>
 
       <article class="section-card">
+        <h2>Candidate Sizing Contract</h2>
+        <ul>
+          <li>Phase 4 must produce a deterministic suggested size for Approved or Constrained decisions even though no order is placed.</li>
+          <li>The initial sizing model should be derived from available deployable cash, capped by:
+            <ul>
+              <li>maximum position size</li>
+              <li>maximum concentration / exposure</li>
+              <li>minimum trade threshold</li>
+              <li>protected-asset and turnover constraints</li>
+            </ul>
+          </li>
+          <li>The sizing result must include a size rationale or cap reason whenever the raw desired size is reduced or zeroed.</li>
+          <li>The default minimum trade threshold should be explicit and operator-visible; the baseline Phase 4 default should be <code>$10.00</code> notional.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Decision Explainability Contract</h2>
+        <ul>
+          <li>Each decision output must include separate explanation sections for:
+            <ul>
+              <li>eligibility result</li>
+              <li>score components and rationale</li>
+              <li>hard-risk checks and blocking reasons</li>
+              <li>final disposition and any size cap or no-action reason</li>
+            </ul>
+          </li>
+          <li>Explainability records must be durable and distinguishable from true account-event history.</li>
+          <li>The UI-facing model must be explicit enough that an operator can validate whether the system made the right decision without reading raw files.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
         <h2>Profile Configuration Requirements</h2>
         <ul>
           <li>Profiles must be explicit, named, and deterministic: Conservative, Balanced, Aggressive at minimum.</li>
@@ -104,18 +202,22 @@
       <article class="section-card">
         <h2>Decision Persistence Requirements</h2>
         <ul>
-          <li>Each candidate decision record must include: decision id, timestamp, asset, proposed action, candidate score, final status, rationale summary, and blocking/constraint reasons.</li>
+          <li>Each candidate decision record must include: decision schema version, decision id, timestamp, asset, proposed action, candidate score, score-component breakdown, final status, rationale summary, blocking/constraint reasons, profile/risk context, and input snapshot correlation id.</li>
           <li>Decision records must be durable enough for Activity and future backtesting/replay inspection.</li>
           <li>Decision records must remain separate from true exchange-account events so the UI can distinguish hypothetical strategy decisions from actual account history.</li>
+          <li>Persistent <code>No Action</code> decisions should be stored selectively rather than exhaustively, so the durable log remains operator-meaningful.</li>
+          <li>The default operator-facing retention model should persist all Approved, Constrained, and operator-relevant Rejected decisions, then surface only the top ranked subset in compact summary views such as Overview.</li>
         </ul>
       </article>
 
       <article class="section-card">
         <h2>Testing Requirements</h2>
         <ul>
+          <li>Add automated tests for universe-eligibility rules and reevaluation timing triggers where logic is isolated enough to unit test.</li>
           <li>Add automated tests for deterministic scoring repeatability.</li>
           <li>Add automated tests for hard-risk rule enforcement and non-bypassability.</li>
           <li>Add automated tests that prove profile changes affect soft thresholds but not hard safety rules.</li>
+          <li>Add automated tests for decision explainability payload completeness.</li>
           <li>Add automated tests for decision persistence and replayability.</li>
           <li>Add integration/regression validation that the app still does not place orders or imply execution readiness.</li>
         </ul>

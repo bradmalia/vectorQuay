@@ -43,6 +43,16 @@
       </article>
 
       <article class="section-card">
+        <h2>Initial Strategy Class</h2>
+        <p>Phase 4 must implement one clearly defined deterministic strategy family rather than leaving strategy selection open-ended. The baseline strategy should be a <strong>trend-following / momentum deployment model</strong> that uses current portfolio state, current asset price state, and current approved-universe eligibility to identify buy, reduce, or no-action candidates. Mean-reversion, rotation, or multi-strategy blending are out of scope until a later phase explicitly approves them.</p>
+        <ul>
+          <li>Primary objective: deploy capital toward assets with the strongest deterministic current-state trend posture inside the approved universe.</li>
+          <li>Secondary objective: avoid over-concentration, stale data, and churn that would obviously undermine growth after fees.</li>
+          <li>No external sentiment, watcher, or LLM-derived scoring is allowed in this phase.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
         <h2>Carry-Forward Decisions</h2>
         <ul>
           <li>Coinbase Advanced Trade remains the only exchange surface.</li>
@@ -113,6 +123,85 @@
       </article>
 
       <article class="section-card">
+        <h2>Sell / Reduce Candidate Rules</h2>
+        <ul>
+          <li>Phase 4 must evaluate both deploy-capital and reduce-risk decisions.</li>
+          <li><strong>Buy</strong> candidates represent capital deployment into an eligible approved asset.</li>
+          <li><strong>Reduce</strong> candidates represent a deterministic recommendation to trim an existing position because trend posture weakened, concentration became too high, or a hard risk constraint requires exposure reduction.</li>
+          <li><strong>Sell</strong> candidates should be limited to hard-risk or policy-driven exits in Phase 4 rather than free-form profit-taking logic.</li>
+          <li>Protected-asset and policy rules still govern whether a reduce or sell action may be recommended at all.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Asset Eligibility and Approval Contract</h2>
+        <ul>
+          <li>Phase 4 must distinguish <strong>asset eligibility</strong> from <strong>trade approval</strong>.</li>
+          <li><strong>Asset eligibility</strong> determines whether an asset may enter the approved universe and candidate pipeline at all.</li>
+          <li><strong>Trade approval</strong> determines whether an eligible asset may produce an Approved or Constrained trade candidate under current strategy and risk conditions.</li>
+          <li>Asset eligibility should remain primarily policy-governed and relatively stable; it must not be reclassified solely because of short-term scoring changes.</li>
+          <li>At minimum, an asset must satisfy all of the following before entering the approved universe:
+            <ul>
+              <li>listed and available on Coinbase spot</li>
+              <li>supported quote path through USD or USDC</li>
+              <li>not explicitly blocked by operator policy</li>
+              <li>passes minimum liquidity and spread requirements</li>
+              <li>not under a protected mode that fully forbids trading</li>
+            </ul>
+          </li>
+          <li>Risk &amp; Thresholds should influence trade approval, not the existence of the asset in the approved universe itself, except where a hard protected-asset rule fully forbids trading.</li>
+          <li>The system may recommend approval-state changes in later phases, but in Phase 4 it must not silently promote or demote assets without an explicit operator-visible explanation and durable record.</li>
+          <li>The operator may not manually force an ineligible asset into the approved universe through Phase 4 strategy controls; universe membership remains governed by policy and eligibility rules.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Evaluation Timing</h2>
+        <ul>
+          <li><strong>Universe Eligibility Pass</strong> should run at startup after a successful Coinbase refresh, every time <code>Refresh Universe</code> is triggered, and whenever policy or approved-universe settings change.</li>
+          <li><strong>Trade Candidate Evaluation Pass</strong> should run after each successful live refresh, after relevant policy/risk/profile changes, and whenever the operator explicitly requests reevaluation.</li>
+          <li>Neither pass should imply execution readiness or place orders.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Decision Explainability and User Validation</h2>
+        <ul>
+          <li>Every deterministic decision must be user-inspectable.</li>
+          <li>The operator must be able to review:
+            <ul>
+              <li>why the asset was eligible or excluded</li>
+              <li>the score breakdown and primary positive/negative factors</li>
+              <li>the hard-risk checks that passed, failed, or constrained the candidate</li>
+              <li>the final disposition: Approved, Rejected, Constrained, or No Action</li>
+              <li>the proposed side and any suggested size or size cap rationale</li>
+            </ul>
+          </li>
+          <li>Decision explanations must persist through the Phase 3 audit/history foundation so the operator can validate prior decisions after restart.</li>
+          <li>The UI should make it obvious that these are deterministic strategy decisions, not executed account events.</li>
+          <li><strong>Activity</strong> should be the primary decision-inspection surface in Phase 4.</li>
+          <li><strong>Risk &amp; Thresholds</strong> should be the primary surface for inspecting profile posture and hard-limit values that influenced the decision.</li>
+          <li><strong>Overview</strong> may surface a compact decision summary, but it must not become the authoritative explanation surface.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Decision Retention Scope</h2>
+        <ul>
+          <li>Phase 4 should not persist a full <code>No Action</code> record for every evaluated asset on every pass.</li>
+          <li>Persistent decision history should include:
+            <ul>
+              <li>Approved decisions</li>
+              <li>Constrained decisions</li>
+              <li>Rejected decisions where the rejection reason is operator-relevant</li>
+              <li>top-ranked or operator-visible <code>No Action</code> cases only when they are needed to explain why nothing happened</li>
+            </ul>
+          </li>
+          <li>This keeps Activity and audit history useful instead of flooding them with low-value non-decisions.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
         <h2>Hard Risk Controls</h2>
         <ul>
           <li>Maximum position size.</li>
@@ -135,26 +224,42 @@
           <li>Profiles must not weaken non-bypassable hard limits.</li>
           <li>The operator should be able to inspect which profile is active and how it affected the final decision.</li>
         </ul>
+        <p><strong>Conservative</strong> should favor fewer, higher-confidence deployment candidates and stronger concentration control. <strong>Balanced</strong> should represent the default middle posture. <strong>Aggressive</strong> should surface more candidates and higher deployment willingness, but still remain inside the same hard safety limits.</p>
       </article>
 
       <article class="section-card">
         <h2>Screen-Level Expectations</h2>
         <ul>
-          <li><strong>Overview:</strong> may surface top deterministic candidates and current strategy posture.</li>
-          <li><strong>Activity:</strong> should become a mixed ledger of durable account events and deterministic candidate decisions, with clear type distinction.</li>
-          <li><strong>Performance:</strong> should remain truthful and may begin showing simple decision-count / approval-rate summaries, but must not claim backtested alpha.</li>
+          <li><strong>Overview:</strong> may surface top deterministic candidates and current strategy posture, but only as a compact summary.</li>
+          <li><strong>Activity:</strong> should become a mixed ledger of durable account events and deterministic candidate decisions, with clear type distinction and an inspectable explanation view for decisions.</li>
+          <li><strong>Performance:</strong> should remain truthful and may begin showing simple decision-count / approval-rate summaries such as approved, rejected, constrained, and no-action counts by asset and by profile, but must not claim backtested alpha.</li>
           <li><strong>Risk &amp; Thresholds:</strong> becomes the main operator surface for aggressiveness profile and hard-limit visibility.</li>
           <li><strong>Policies:</strong> remains authoritative for protected-asset and approved-universe constraints.</li>
           <li><strong>Alerts:</strong> may begin surfacing strategy/risk-related local alerts such as candidate rejection due to hard limits.</li>
+        </ul>
+        <p><strong>Activity</strong> should remain the authoritative decision-inspection surface. <strong>Overview</strong> may summarize candidate posture, but it must not replace the detailed explanation workflow.</p>
+      </article>
+
+      <article class="section-card">
+        <h2>Evaluation Progress Visibility</h2>
+        <ul>
+          <li>The operator must be able to tell when deterministic evaluation is running.</li>
+          <li>The UI should expose at minimum these states: <strong>Idle</strong>, <strong>Refreshing Data</strong>, <strong>Evaluating Universe</strong>, <strong>Scoring Candidates</strong>, <strong>Applying Risk Checks</strong>, <strong>Completed</strong>, and <strong>Failed</strong>.</li>
+          <li>Progress visibility should appear in the footer/status bar and in any operator-triggered action surface such as <code>Refresh Universe</code>.</li>
+          <li>After evaluation completes, the shell should show a last-evaluated timestamp or equivalent completion cue.</li>
+          <li>Evaluation must not feel silent or stalled to the operator, even if the underlying work is relatively fast.</li>
         </ul>
       </article>
 
       <article class="section-card">
         <h2>Functional Requirements</h2>
         <ul>
+          <li>Implement a distinct universe-eligibility pass before trade candidate scoring begins.</li>
           <li>Implement deterministic candidate generation from current Coinbase read-only data and current local policy state.</li>
           <li>Implement explicit candidate scoring that is explainable and reproducible from the same inputs.</li>
+          <li>Implement deterministic sizing guidance for approved or constrained candidates, even if no orders are ever placed in this phase.</li>
           <li>Implement hard risk approval rules that cannot be bypassed by aggressiveness profile or high candidate score.</li>
+          <li>Implement explicit decision explanation data so the operator can validate why the system made each choice.</li>
           <li>Persist decision outcomes and rationale through the Phase 3 durable-state foundation.</li>
           <li>Render decision output in the GUI clearly enough for operator review.</li>
           <li>Keep trading visibly inactive even when candidate trades are approved in theory.</li>
@@ -167,6 +272,8 @@
           <li>The product can produce deterministic candidate decisions from live read-only account data.</li>
           <li>Hard risk rules reliably block unsafe or disallowed candidates.</li>
           <li>Approval/rejection logic is auditable and explainable.</li>
+          <li>Universe eligibility, scoring, and risk approval are visibly distinct to the operator.</li>
+          <li>Buy, reduce, and sell-side decisions are governed by explicit deterministic rules rather than implicit behavior.</li>
           <li>The implementation is stable enough to support Phase 5 backtesting against the same decision pipeline.</li>
         </ul>
       </article>

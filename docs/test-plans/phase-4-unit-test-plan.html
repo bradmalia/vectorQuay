@@ -25,7 +25,7 @@
         <ul>
           <li>Primary environment: local .NET 8 solution on the Ubuntu-first development workstation.</li>
           <li>Primary command baseline: <code>dotnet restore</code>, <code>dotnet build</code>, and <code>dotnet test</code>.</li>
-          <li>Required fixtures: normalized account snapshot fixture, approved-universe fixture, protected-asset fixture, stale-data fixture, and aggressiveness-profile fixture.</li>
+          <li>Required fixtures: normalized account snapshot fixture, approved-universe fixture, ineligible-asset fixture, protected-asset fixture, stale-data fixture, and aggressiveness-profile fixture.</li>
           <li>Expected evidence: automated test output and targeted Phase 4 result notes under <code>docs/test-results/</code>.</li>
         </ul>
       </article>
@@ -33,13 +33,27 @@
       <article class="section-card">
         <h2>Required Unit Coverage</h2>
         <ul>
-          <li>UTP4-01: deterministic candidate generation is repeatable from identical inputs.</li>
-          <li>UTP4-02: scoring output is deterministic and explainable.</li>
-          <li>UTP4-03: protected-asset and approved-universe rules block disallowed candidates.</li>
-          <li>UTP4-04: hard-risk limits reject candidates even when their score is high.</li>
-          <li>UTP4-05: profile changes alter soft thresholds without bypassing hard limits.</li>
-          <li>UTP4-06: decision outputs serialize/persist cleanly into the durable history layer.</li>
-          <li>UTP4-07: inactive-trading / kill-switch posture still prevents executable approval semantics.</li>
+          <li>UTP4-01: universe-eligibility evaluation is deterministic and repeatable from identical inputs.</li>
+          <li>UTP4-02: deterministic candidate generation is repeatable from identical inputs.</li>
+          <li>UTP4-03: scoring output is deterministic and explainable.</li>
+          <li>UTP4-04: protected-asset and approved-universe rules block disallowed candidates.</li>
+          <li>UTP4-05: hard-risk limits reject candidates even when their score is high.</li>
+          <li>UTP4-06: profile changes alter soft thresholds without bypassing hard limits.</li>
+          <li>UTP4-07: decision outputs serialize/persist cleanly into the durable history layer.</li>
+          <li>UTP4-08: decision explanation payloads contain eligibility, scoring, risk, and final-decision fields.</li>
+          <li>UTP4-09: sell/reduce candidate logic behaves according to the explicit deterministic rules.</li>
+          <li>UTP4-10: inactive-trading / kill-switch posture still prevents executable approval semantics.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Fixture Baseline</h2>
+        <ul>
+          <li><strong>Eligible Asset Fixture:</strong> approved spot asset with valid USD/USDC route and acceptable liquidity/spread.</li>
+          <li><strong>Ineligible Asset Fixture:</strong> asset lacking quote-path support, blocked by policy, or failing liquidity/spread requirements.</li>
+          <li><strong>Protected Asset Fixture:</strong> asset that is otherwise eligible but blocked or constrained by protected mode.</li>
+          <li><strong>Stale Data Fixture:</strong> otherwise-attractive candidate rejected because its input snapshot is stale.</li>
+          <li><strong>Aggressive Profile Fixture:</strong> same market/account inputs evaluated under Conservative, Balanced, and Aggressive profiles to prove soft-threshold change without hard-risk bypass.</li>
         </ul>
       </article>
 

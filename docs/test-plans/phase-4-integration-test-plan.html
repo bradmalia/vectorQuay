@@ -25,7 +25,7 @@
         <ul>
           <li>Primary execution environment: Ubuntu-first local workstation with valid Phase 3 durable-state behavior and valid Coinbase read-only connectivity.</li>
           <li>Primary command baseline: <code>dotnet restore</code>, <code>dotnet build</code>, <code>dotnet test</code>, and <code>dotnet run --project src/VectorQuay.App</code>.</li>
-          <li>Required fixtures: valid live Coinbase snapshot, persisted durable state, approved asset universe, protected-asset example, and multiple risk-profile examples.</li>
+          <li>Required fixtures: valid live Coinbase snapshot, persisted durable state, approved asset universe, protected-asset example, ineligible-asset example, and multiple risk-profile examples.</li>
           <li>Expected evidence: command summaries, strategy/risk walkthrough captures, and result artifacts under <code>docs/test-results/</code>.</li>
         </ul>
       </article>
@@ -33,13 +33,82 @@
       <article class="section-card">
         <h2>Required Integration Gates</h2>
         <ul>
-          <li>ITP4-01: deterministic candidate decisions appear from current live read-only data.</li>
-          <li>ITP4-02: protected assets and hard limits reject candidates visibly and durably.</li>
-          <li>ITP4-03: aggressiveness profile changes alter decision posture but do not bypass hard risk.</li>
-          <li>ITP4-04: Activity distinguishes deterministic decision records from true account-event history.</li>
-          <li>ITP4-05: decision outputs are durable across restart through the Phase 3 persistence layer.</li>
-          <li>ITP4-06: no execution or paper-trading path is introduced.</li>
+          <li>ITP4-01: universe eligibility runs at the approved times and gates which assets enter candidate evaluation.</li>
+          <li>ITP4-02: deterministic candidate decisions appear from current live read-only data.</li>
+          <li>ITP4-03: protected assets and hard limits reject candidates visibly and durably.</li>
+          <li>ITP4-04: aggressiveness profile changes alter decision posture but do not bypass hard risk.</li>
+          <li>ITP4-05: Activity distinguishes deterministic decision records from true account-event history.</li>
+          <li>ITP4-06: decision outputs are durable across restart through the Phase 3 persistence layer.</li>
+          <li>ITP4-07: no execution or paper-trading path is introduced.</li>
         </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Contract</h2>
+        <div class="callout gate">
+          <h3>ITP4-01: Eligibility Timing and Gating</h3>
+          <p><strong>Automation:</strong> Required where logic is isolated; manual shell review may supplement UI evidence.</p>
+          <p><strong>Fixture:</strong> mix of eligible, ineligible, and protected assets plus current approved-universe state.</p>
+          <p><strong>Command:</strong> launch the shell, perform startup refresh, trigger <code>Refresh Universe</code>, then change policy state affecting one asset and observe reevaluation.</p>
+          <p><strong>Pass condition:</strong> only eligible assets enter candidate evaluation, and reevaluation occurs at the documented times with durable explanation/audit visibility.</p>
+          <p><strong>Expected evidence:</strong> startup state capture, post-refresh universe change capture, and an audit/history record showing why an asset was eligible, blocked, or unchanged.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP4-02: Deterministic Candidate Emergence</h3>
+          <p><strong>Automation:</strong> Required where logic is isolated; manual shell review may supplement UI evidence.</p>
+          <p><strong>Fixture:</strong> valid live Coinbase snapshot with at least one asset that should score into the top candidate set.</p>
+          <p><strong>Command:</strong> launch the shell, allow startup/live refresh to complete, then inspect Overview and Activity.</p>
+          <p><strong>Pass condition:</strong> the same inputs produce the same candidate posture, and the candidate appears in operator-facing views with deterministic explanation context.</p>
+          <p><strong>Expected evidence:</strong> repeated run capture or logged decision payload showing stable decision output from the same fixture.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP4-03: Hard-Risk Rejection</h3>
+          <p><strong>Automation:</strong> Required where logic is isolated; manual shell review may supplement UI evidence.</p>
+          <p><strong>Fixture:</strong> asset that scores well but violates protected mode or concentration/position rules.</p>
+          <p><strong>Command:</strong> evaluate the candidate through the live shell after refresh and inspect Activity / Risk &amp; Thresholds output.</p>
+          <p><strong>Pass condition:</strong> the candidate is visibly rejected or constrained with explicit hard-risk reasons and durable decision history.</p>
+          <p><strong>Expected evidence:</strong> Activity decision record plus Risk &amp; Thresholds state showing the blocking rule and final constrained/rejected disposition.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP4-04: Profile Change Without Hard-Risk Bypass</h3>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> same asset/account state under Conservative, Balanced, and Aggressive profiles.</p>
+          <p><strong>Command:</strong> switch profiles and reevaluate decisions.</p>
+          <p><strong>Pass condition:</strong> score posture or ranking sensitivity may change, but hard-limit failures remain blocking.</p>
+          <p><strong>Expected evidence:</strong> three decision outputs under the three profiles, showing changed soft posture without hard-limit drift.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP4-05: Decision Ledger Separation</h3>
+          <p><strong>Automation:</strong> Required where practical; manual shell review may supplement UI evidence.</p>
+          <p><strong>Fixture:</strong> retained account-event history plus new deterministic decisions.</p>
+          <p><strong>Command:</strong> review Activity after refresh and after restart.</p>
+          <p><strong>Pass condition:</strong> deterministic decisions remain clearly distinguishable from real executed account events.</p>
+          <p><strong>Expected evidence:</strong> Activity capture showing separate decision records vs account-event records without ambiguous labeling.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP4-06: UI Explainability Completeness</h3>
+          <p><strong>Automation:</strong> Manual shell review is acceptable for this gate in Phase 4.</p>
+          <p><strong>Fixture:</strong> one approved candidate, one constrained candidate, and one rejected candidate.</p>
+          <p><strong>Command:</strong> inspect the Activity decision-explanation surface for each case.</p>
+          <p><strong>Pass condition:</strong> the operator can see eligibility result, score breakdown, hard-risk checks, final disposition, and size rationale where applicable.</p>
+          <p><strong>Expected evidence:</strong> decision-inspection capture for all three cases showing complete explanation sections.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP4-07: No Execution / No Paper Drift</h3>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> fully functioning deterministic decision engine with current Phase 4 UI surfaces enabled.</p>
+          <p><strong>Command:</strong> review available commands and runtime behavior after startup and manual reevaluation.</p>
+          <p><strong>Pass condition:</strong> no execution or paper-trading path is introduced.</p>
+          <p><strong>Expected evidence:</strong> command/UI review record showing deterministic decisioning only, with no order lifecycle or simulated fill path available.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP4-08: Evaluation Progress Visibility</h3>
+          <p><strong>Automation:</strong> Manual shell review is acceptable for this gate in Phase 4.</p>
+          <p><strong>Fixture:</strong> startup refresh plus an operator-triggered <code>Refresh Universe</code> reevaluation.</p>
+          <p><strong>Command:</strong> observe footer/status bar and action surfaces while evaluation runs.</p>
+          <p><strong>Pass condition:</strong> the operator can see that evaluation is in progress, distinguish the current stage, and see a completion timestamp or equivalent completion cue.</p>
+          <p><strong>Expected evidence:</strong> runtime capture or manual result note showing visible transition through evaluation states.</p>
+        </div>
       </article>
 
       <article class="section-card">
