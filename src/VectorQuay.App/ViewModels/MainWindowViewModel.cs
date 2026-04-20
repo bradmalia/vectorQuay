@@ -1365,16 +1365,17 @@ public partial class MainWindowViewModel : ViewModelBase
         switch (actionName)
         {
             case "Test Alert":
-                LastAlertDeliveryTest = $"Passed at {DateTime.Now:HH:mm:ss}";
+                var deliveryLabel = BuildAlertDestinationLabel();
+                LastAlertDeliveryTest = $"Ran at {DateTime.Now:HH:mm:ss}";
                 _allAlertEntries.Insert(0, new AlertEntryViewModel(
                     DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
                     $"Manual test alert fired at {DateTime.Now:HH:mm:ss}.",
                     "Info",
-                    BuildAlertDestinationLabel()));
+                    deliveryLabel));
                 AlertSeverityFilter = "All Severities";
                 AlertDestinationFilter = "All Destinations";
                 RefreshAlertEntries();
-                AlertActionMessage = "Manual test alert generated. The recent-alerts list and delivery-test summary were updated.";
+                AlertActionMessage = BuildTestAlertMessage(deliveryLabel);
                 OnPropertyChanged(nameof(OpenAlertsSummary));
                 break;
 
@@ -1414,17 +1415,6 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             AlertActionMessage = $"Alert rule save failed: {ex.Message}";
         }
-    }
-
-    [RelayCommand]
-    private void AddAlertRule()
-    {
-        _allAlertRules.Add(new AlertRuleViewModel("New rule", "Warning", "In-App", true));
-        AlertSeverityFilter = "All Severities";
-        AlertDestinationFilter = "All Destinations";
-        RefreshAlertRules();
-        AlertRulesSummary = $"{_allAlertRules.Count(rule => rule.IsEnabled)} active rules · {_allAlertRules.Count} total";
-        AlertActionMessage = "A new alert rule row was added. Edit it and click Apply Rules to save.";
     }
 
     public void AddOrUpdateSourceFromDialog(string name, string type, string scope, string weight, bool isNew, SourceEntryViewModel? existing)
@@ -1963,6 +1953,32 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         return channels.Count == 0 ? "No active channel" : string.Join(" + ", channels);
+    }
+
+    private string BuildTestAlertMessage(string deliveryLabel)
+    {
+        if (deliveryLabel == "No active channel")
+        {
+            return "Test alert created in the local log, but no delivery channels are enabled.";
+        }
+
+        var notes = new List<string> { $"Test alert generated for {deliveryLabel}." };
+        if (EmailAlertsEnabled)
+        {
+            notes.Add(string.IsNullOrWhiteSpace(AlertEmailAddress)
+                ? "Email is enabled but no address is configured."
+                : $"Email destination: {AlertEmailAddress}.");
+        }
+
+        if (SmsAlertsEnabled)
+        {
+            notes.Add(string.IsNullOrWhiteSpace(AlertSmsNumber)
+                ? "SMS is enabled but no number is configured."
+                : $"SMS destination: {AlertSmsNumber}.");
+        }
+
+        notes.Add("External email/SMS delivery is not live yet; this test currently validates local alert routing and UI behavior only.");
+        return string.Join(" ", notes);
     }
 
     private void RefreshAssetRows()
@@ -2850,6 +2866,17 @@ public partial class AlertRuleViewModel : ObservableObject
 
     [ObservableProperty]
     private bool isEnabled;
+
+    public IReadOnlyList<string> RuleOptions { get; } =
+    [
+        "Trade Executed",
+        "Trade Rejected",
+        "Deposit Received",
+        "Withdrawal Detected",
+        "Coinbase refresh failure",
+        "Connection Lost",
+        "Risk Threshold Breached",
+    ];
 
     public IReadOnlyList<string> SeverityOptions { get; } = ["Info", "Warning", "Error"];
 

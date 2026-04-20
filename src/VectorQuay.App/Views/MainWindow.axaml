@@ -333,7 +333,7 @@
                                     <StackPanel Spacing="8">
                                         <TextBlock FontWeight="Bold" Foreground="#262B5B" Text="OpenAI"/>
                                         <TextBlock Classes="label" Text="Used for AI-assisted source and watcher workflows." TextWrapping="Wrap"/>
-                                        <TextBox Width="320" Text="{Binding OpenAiApiKeyEditor}" PlaceholderText="sk-..." />
+                                        <TextBox Width="320" HorizontalAlignment="Left" Text="{Binding OpenAiApiKeyEditor}" PlaceholderText="sk-..." />
                                     </StackPanel>
                                 </Border>
 
@@ -937,16 +937,13 @@
                                     <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,2">
                                         <StackPanel Spacing="2">
                                             <TextBlock FontWeight="Bold" Text="Alert Rules"/>
-                                            <TextBlock Classes="label" Text="{Binding AlertRulesSummary}"/>
+                                            <TextBlock Classes="label" Text="Choose which predefined alert types are enabled, and where they should be delivered." TextWrapping="Wrap"/>
                                         </StackPanel>
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                            <Button Content="Add Rule" Command="{Binding AddAlertRuleCommand}" Background="#EEF2FF" Foreground="#2B357F"/>
-                                            <Button Content="Apply Rules" Command="{Binding SaveAlertRulesCommand}" Background="#262B5B" Foreground="White"/>
-                                        </StackPanel>
+                                        <Button Grid.Column="1" Content="Apply Rules" Command="{Binding SaveAlertRulesCommand}" Background="#262B5B" Foreground="White"/>
                                     </Grid>
                                     <Grid ColumnDefinitions="70,2.2*,*,*" ColumnSpacing="10" Margin="0,0,0,6">
                                         <TextBlock FontWeight="Bold" Text="Enabled"/>
-                                        <TextBlock Grid.Column="1" FontWeight="Bold" Text="Rule"/>
+                                        <TextBlock Grid.Column="1" FontWeight="Bold" Text="Alert Type"/>
                                         <TextBlock Grid.Column="2" FontWeight="Bold" Text="Severity"/>
                                         <TextBlock Grid.Column="3" FontWeight="Bold" Text="Destination"/>
                                     </Grid>
@@ -957,7 +954,7 @@
                                                     <Border BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="0,6">
                                                         <Grid ColumnDefinitions="70,2.2*,*,*" ColumnSpacing="10">
                                                             <CheckBox IsChecked="{Binding IsEnabled}" VerticalAlignment="Center"/>
-                                                            <TextBox Grid.Column="1" Text="{Binding Rule}" PlaceholderText="Rule description"/>
+                                                            <ComboBox Grid.Column="1" ItemsSource="{Binding RuleOptions}" SelectedItem="{Binding Rule}"/>
                                                             <ComboBox Grid.Column="2" ItemsSource="{Binding SeverityOptions}" SelectedItem="{Binding Severity}"/>
                                                             <ComboBox Grid.Column="3" ItemsSource="{Binding DestinationOptions}" SelectedItem="{Binding Destination}"/>
                                                         </Grid>
@@ -971,7 +968,7 @@
                             <Border Grid.Column="1" Classes="card">
                                 <StackPanel Spacing="10">
                                     <TextBlock FontWeight="Bold" Text="Delivery Preferences"/>
-                                    <TextBlock Classes="label" Text="Choose where alerts should go, then save the local delivery profile." TextWrapping="Wrap"/>
+                                    <TextBlock Classes="label" Text="Choose where alerts should go, then save the local delivery profile. Test Alert validates local routing and UI behavior." TextWrapping="Wrap"/>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <CheckBox IsChecked="{Binding InAppAlertsEnabled}" VerticalAlignment="Center"/>
                                         <TextBlock VerticalAlignment="Center" Text="In-App Alerts"/>

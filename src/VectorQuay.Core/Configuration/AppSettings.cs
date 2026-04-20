@@ -107,6 +107,34 @@ public sealed class AppSettings
                 [
                     new AlertRuleSettings
                     {
+                        Rule = "Trade Executed",
+                        Severity = "Info",
+                        Destination = "In-App + Email",
+                        Enabled = true,
+                    },
+                    new AlertRuleSettings
+                    {
+                        Rule = "Trade Rejected",
+                        Severity = "Warning",
+                        Destination = "In-App + Email",
+                        Enabled = true,
+                    },
+                    new AlertRuleSettings
+                    {
+                        Rule = "Deposit Received",
+                        Severity = "Info",
+                        Destination = "In-App",
+                        Enabled = true,
+                    },
+                    new AlertRuleSettings
+                    {
+                        Rule = "Withdrawal Detected",
+                        Severity = "Warning",
+                        Destination = "In-App + Email",
+                        Enabled = true,
+                    },
+                    new AlertRuleSettings
+                    {
                         Rule = "Coinbase refresh failure",
                         Severity = "Error",
                         Destination = "In-App + Email",
@@ -114,16 +142,16 @@ public sealed class AppSettings
                     },
                     new AlertRuleSettings
                     {
-                        Rule = "Missing Coinbase credentials",
+                        Rule = "Connection Lost",
                         Severity = "Warning",
                         Destination = "In-App",
                         Enabled = true,
                     },
                     new AlertRuleSettings
                     {
-                        Rule = "Update feed unavailable",
-                        Severity = "Info",
-                        Destination = "In-App",
+                        Rule = "Risk Threshold Breached",
+                        Severity = "Error",
+                        Destination = "In-App + Email + SMS",
                         Enabled = true,
                     },
                 ],
