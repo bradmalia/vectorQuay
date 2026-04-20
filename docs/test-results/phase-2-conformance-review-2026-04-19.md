@@ -22,6 +22,7 @@ Scope: focused review of the current implementation against the approved Phase 2
 5. `Alerts` now uses predefined alert categories and local delivery preferences instead of free-text rule editing, which is more consistent with the intended future product shape.
 6. `Sources` has progressed beyond the minimum PRD baseline into a useful local-management surface. This is acceptable, but the UX is still less mature than `Overview`, `Assets`, and `Portfolio`.
 7. The startup/manual refresh contract remains intact and no silent polling drift was observed in the implementation path reviewed.
+8. Automated test coverage now protects several previously manual-only Phase 2 regression points: alert-rule default normalization, approved-policy normalization, launch-baseline policy undo, and OpenAI key path safety.
 
 ## Overall Status
 
@@ -31,6 +32,7 @@ Scope: focused review of the current implementation against the approved Phase 2
 - `PASS`: shell truthfulness on primary read-only screens
 - `PASS`: configuration/connectivity workflow
 - `PASS`: structured alert configuration baseline
+- `PASS`: high-value Phase 2 configuration/regression behaviors now have executable test coverage
 - `PARTIAL`: polish/consistency maturity on secondary screens, especially `Sources`
 
 ## Recommendation

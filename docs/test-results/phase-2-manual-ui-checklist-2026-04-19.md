@@ -21,6 +21,7 @@ Scope: manual checklist artifact for the current Phase 2 read-only operator shel
 ## Notes
 
 - This artifact records a manual checklist/status review rather than a screenshot bundle.
+- Automated coverage was expanded after this checklist pass to protect key Phase 2 configuration/regression behaviors; UI-led integration flow validation remains manual here.
 - The latest pass focused on moving the Phase 2 shell away from obvious placeholder behavior and toward a truthful read-only operator console.
 - The most mature read-only surfaces are now `Overview`, `Assets`, `Portfolio`, `Activity`, and `Configuration`.
 - `Sources` remains the main page that could still benefit from one more optional visual/interaction polish pass, but it is no longer a functional blocker for Phase 2.

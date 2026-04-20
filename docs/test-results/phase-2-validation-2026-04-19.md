@@ -17,7 +17,7 @@ git -C /home/brad/vectorquay status --short --untracked-files=all
 ## Results Summary
 
 - `PASS`: solution build is valid on the primary Linux development environment
-- `PASS`: current automated core test suite passed (`13/13`)
+- `PASS`: current automated suite passed (`17/17`)
 - `PASS`: shell runtime smoke launch stayed alive for the capture window without immediate console failure output
 - `PASS`: Coinbase read-only runtime wiring exists through startup refresh and manual refresh surfaces
 - `PASS`: Overview, Assets, Portfolio, Activity, Policies, Sources, and Configuration all render against the current Phase 2 shell structure
@@ -30,6 +30,7 @@ git -C /home/brad/vectorquay status --short --untracked-files=all
 - `PASS`: connection setup now includes explicit connectivity tests for Coinbase and OpenAI
 - `PASS`: alerts now use predefined alert types with editable delivery/severity settings instead of free-text rule editing
 - `PASS`: OpenAI key storage now uses a user-chosen external file path and blocks repository-local save locations
+- `PASS`: automated regression coverage now explicitly verifies alert-rule default restoration, policy-overlay normalization, app-launch-baseline policy undo, and OpenAI key path safety
 
 ## PRD / TRD Conformance Review
 
@@ -67,7 +68,7 @@ These are not current blockers for the Phase 2 read-only baseline, but they rema
 - `PARTIAL`: `Sources` is now useful locally, but still remains the least mature major page from a product-polish perspective.
 - `PARTIAL`: `Performance` is honest and readable, but still intentionally shallow until time-series history exists.
 - `PARTIAL`: external email/SMS alert delivery is still not implemented; test alerts validate local routing/UI behavior only.
-- `PARTIAL`: the current automated suite still leans heavily on core/configuration logic; app-surface regression coverage remains mostly manual.
+- `PARTIAL`: the automated suite now covers the highest-value Phase 2 config/regression behaviors, but app-surface integration coverage remains primarily manual/runbook-based because there is still no dedicated UI automation harness.
 
 ## Conclusion
 
