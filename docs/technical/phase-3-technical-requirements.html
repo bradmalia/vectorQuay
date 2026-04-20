@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 3 Technical Requirements</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Technical Requirements Document</p>
+          <h1>Phase 3 Technical Requirements</h1>
+          <p class="subtitle">Local persistence, event/audit modeling, and restart recovery requirements.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v0.1</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Draft baseline</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Executive Summary</h2>
+          <p>Phase 3 technical work adds a local persistence layer and a replayable event trail without breaking the existing read-only exchange boundary. The output should be a restart-safe, auditable shell that preserves operational continuity and gives later phases a durable foundation for strategy and paper-trading work.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Technical Goal</h2>
+          <p>Persist only what the product needs, label restored state truthfully, and make operator/system changes reconstructable.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Implementation Boundaries</h2>
+        <ul>
+          <li>Preserve the existing .NET 8 / Avalonia / Core/App solution shape.</li>
+          <li>Add storage and audit logic in isolated services/models rather than directly in view models.</li>
+          <li>Keep Coinbase integration read-only.</li>
+          <li>Do not persist secret values, secret files, or secret-derived plaintext into the new storage layer.</li>
+          <li>Do not introduce background polling or recovery behaviors that mutate exchange state.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Required Technical Capabilities</h2>
+        <ul>
+          <li>Durable local storage for approved persisted models.</li>
+          <li>Typed event/audit records for operator changes and key system actions.</li>
+          <li>Startup recovery service that can load last-known durable state before the next refresh.</li>
+          <li>Versioned or forward-compatible persisted document/schema handling.</li>
+          <li>Safe corruption handling with graceful fallback when durable files are unreadable.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Persistence Boundary</h2>
+        <ul>
+          <li>Persisted Phase 3 data may include: last-known Coinbase summary state, recent account-event history, recent alert history, source/watcher registry state, policy state, and audit/event records for local changes.</li>
+          <li>Persisted Phase 3 data must not include: secret values, OAuth tokens, API secrets, raw provider credentials, or unnecessary raw exchange payload dumps.</li>
+          <li>Where possible, store normalized app-facing models instead of entire raw provider responses.</li>
+          <li>Storage should remain local to the current machine and operator profile.</li>
+        </ul>
+      </article>
+
+      <section class="two-col">
+        <article class="section-card">
+          <h2>Recovery Requirements</h2>
+          <ul>
+            <li>Startup should load the last known durable state before or while a new approved refresh is attempted.</li>
+            <li>The UI must distinguish restored cached state from newly refreshed live state.</li>
+            <li>If storage is missing or corrupted, the app must fall back safely without crashing.</li>
+            <li>Recovery must not trigger repeated background retry loops.</li>
+          </ul>
+        </article>
+
+        <article class="section-card">
+          <h2>Audit Requirements</h2>
+          <ul>
+            <li>Every persisted audit/event record must include a timestamp, event type, and enough context to explain what changed.</li>
+            <li>Operator-originated changes should record origin like policy edit, alert-rule save, source add/remove, and configuration update.</li>
+            <li>System-originated changes should record origin like startup recovery loaded, Coinbase refresh succeeded, Coinbase refresh failed, or icon cache updated.</li>
+            <li>Audit records must remain readable without inspecting raw JSON manually.</li>
+          </ul>
+        </article>
+      </section>
+
+      <article class="section-card">
+        <h2>Storage Design Requirements</h2>
+        <ul>
+          <li>Use a deterministic local storage location under the approved user config/app-data path rather than inside the repository.</li>
+          <li>Use explicit file names or subdirectories for snapshots, audit/event logs, and schema/version markers.</li>
+          <li>Writes should be atomic enough to avoid partially written state on interruption.</li>
+          <li>Retention should be bounded where needed so local logs do not grow without limit.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Screen Interpretation Requirements</h2>
+        <ul>
+          <li><strong>Overview:</strong> may show last live refresh and restored-state cues from the persistence layer.</li>
+          <li><strong>Portfolio:</strong> may use persisted last-known balances during startup recovery.</li>
+          <li><strong>Activity:</strong> should unify recent durable account/system events into a replayable ledger.</li>
+          <li><strong>Performance:</strong> may use persisted historical snapshots to show simple value trends, but must not claim full strategy analytics.</li>
+          <li><strong>Configuration:</strong> may show storage/recovery health or audit-file status only if it improves operator clarity without becoming noisy.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Testing Requirements</h2>
+        <ul>
+          <li>Add automated tests for serialization, normalization, migration/compatibility handling, and corruption fallback.</li>
+          <li>Add automated tests for startup recovery behavior and for preserving the read-only boundary.</li>
+          <li>Add automated tests for audit/event recording of policy, alert, and source changes.</li>
+          <li>Update validation artifacts under <code>docs/test-results/</code> for Phase 3 execution.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 3 Technical Completion Criteria</h2>
+        <ul>
+          <li>Durable state and audit/event services are isolated and testable.</li>
+          <li>Startup recovery works without weakening the Phase 2 refresh contract.</li>
+          <li>Persisted state is safe, local, and excludes secrets.</li>
+          <li>Activity and recent-history surfaces can consume durable data.</li>
+          <li>No execution path exists.</li>
+        </ul>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

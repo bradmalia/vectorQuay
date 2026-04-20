@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 3 Unit Test Plan</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Unit Test Plan</p>
+          <h1>Phase 3 Unit Test Plan</h1>
+          <p class="subtitle">Persistence-model, recovery, and audit normalization coverage for the storage phase.</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+      <article class="section-card">
+        <h2>Required Unit Coverage</h2>
+        <ul>
+          <li>UTP3-01: persisted snapshot serialization/deserialization round-trip.</li>
+          <li>UTP3-02: schema-version or compatibility fallback behavior.</li>
+          <li>UTP3-03: corruption-safe fallback when stored files are malformed.</li>
+          <li>UTP3-04: audit/event record creation for policy, alert, and source changes.</li>
+          <li>UTP3-05: startup recovery chooses restored state without implying live refresh success.</li>
+          <li>UTP3-06: secret values are excluded from persisted event/snapshot payloads.</li>
+          <li>UTP3-07: retention and truncation logic where bounded history is required.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Pass Condition</h2>
+        <p>Persisted models are stable, recovery is safe under normal and corrupted-state conditions, and audit/event creation is deterministic enough to support later debugging and evaluation.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

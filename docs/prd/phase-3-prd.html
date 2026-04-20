@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 3 PRD</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Product Requirements Document</p>
+          <h1>Phase 3 PRD</h1>
+          <p class="subtitle">Durable storage, replayable audit trail, and safe restart/recovery baseline.</p>
+        </div>
+      </div>
+      <section class="meta-grid">
+        <div class="meta-card"><span class="label">Version</span><span class="value">v0.1</span></div>
+        <div class="meta-card"><span class="label">Status</span><span class="value">Draft baseline</span></div>
+        <div class="meta-card"><span class="label">Owner</span><span class="value">Brad Malia</span></div>
+        <div class="meta-card"><span class="label">Theme</span><span class="value">Indigo Signal</span></div>
+      </section>
+    </header>
+
+    <section class="content">
+      <section class="hero-summary">
+        <article class="summary-card">
+          <h2>Executive Summary</h2>
+          <p>Phase 3 turns the Phase 2 read-only shell into a durable operational baseline. It adds local persistence for account state, market snapshots, operator policy state, and a replayable audit trail so the app can survive restart, explain prior state, and support later strategy and paper-trading phases without reworking the data foundation.</p>
+        </article>
+        <aside class="spotlight-card">
+          <h2>Phase Goal</h2>
+          <p>Deliver safe local storage, restart recovery, and a trustworthy decision/activity history without introducing execution capability.</p>
+        </aside>
+      </section>
+
+      <article class="section-card">
+        <h2>Purpose</h2>
+        <p>Phase 2 proved that VectorQuay can connect to Coinbase read-only and present truthful current-state data. Phase 3 must now make that state durable enough for operational continuity, debugging, later performance measurement, and future deterministic decisioning. The product must be able to restart cleanly, reconstruct recent truth, and explain how the current state was reached.</p>
+      </article>
+
+      <article class="section-card">
+        <h2>Carry-Forward Decisions</h2>
+        <ul>
+          <li>Coinbase Advanced Trade remains the only exchange surface.</li>
+          <li>Read-only exchange posture remains mandatory in Phase 3.</li>
+          <li>No live order placement, order cancellation, or paper trading is introduced in this phase.</li>
+          <li>Spot-only and trade-only scope remain intact.</li>
+          <li>Approved-candidate and protected-asset overlays remain locally authoritative.</li>
+          <li>USD remains the primary valuation currency, with USDC retained as an approved secondary quote/routing asset.</li>
+        </ul>
+      </article>
+
+      <section class="two-col">
+        <article class="section-card">
+          <h2>In Scope</h2>
+          <ul>
+            <li>Persist Coinbase read-only snapshots needed for restart recovery and recent-history display.</li>
+            <li>Persist audit records for refreshes, configuration changes, policy changes, alert-rule changes, and source/watcher changes.</li>
+            <li>Build a replayable local event trail showing what changed, when it changed, and why it changed.</li>
+            <li>Implement safe startup recovery that restores the last durable known state before the next refresh completes.</li>
+            <li>Improve Activity and Performance so they can use stored history rather than only current-session memory.</li>
+            <li>Preserve secrets outside the repository and outside the durable audit payloads.</li>
+          </ul>
+        </article>
+
+        <article class="section-card">
+          <h2>Out of Scope</h2>
+          <ul>
+            <li>Live trading or paper trading.</li>
+            <li>Strategy scoring, risk approval, or execution simulation.</li>
+            <li>Historical backtesting and bulk replay tooling beyond what is needed for operational recovery and recent audit visibility.</li>
+            <li>Cloud sync, multi-machine replication, or remote storage.</li>
+            <li>AI-driven signals or watcher intelligence.</li>
+          </ul>
+        </article>
+      </section>
+
+      <article class="section-card">
+        <h2>Primary Product Outcomes</h2>
+        <ul>
+          <li>The app can restart without losing track of the last known account and portfolio state.</li>
+          <li>The operator can inspect a durable history of important system and configuration events.</li>
+          <li>Activity and performance surfaces can start showing stored history instead of session-only state.</li>
+          <li>Future strategy, paper-trading, and live-validation phases can build on a stable persisted baseline.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Operator Problems Solved</h2>
+        <ul>
+          <li>The operator no longer loses useful app state when the shell closes or crashes.</li>
+          <li>The operator can see what changed in policies, alerts, and sources across sessions.</li>
+          <li>The operator can distinguish current-state truth from last-known persisted truth and new refresh results.</li>
+          <li>The operator can trust that later phases will have an audit trail instead of building one after execution logic exists.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Screen-Level Expectations</h2>
+        <ul>
+          <li><strong>Overview:</strong> may show last successful refresh time and whether current data is live or restored-from-cache.</li>
+          <li><strong>Portfolio:</strong> may show last-known balance snapshot on startup before the next live refresh completes.</li>
+          <li><strong>Activity:</strong> becomes a durable local ledger of recent account events and system events rather than only current-session memory.</li>
+          <li><strong>Performance:</strong> may start showing simple persisted trend information such as recent portfolio-value snapshots, but must not claim full backtested analytics.</li>
+          <li><strong>Policies:</strong> edits become auditable, with durable change records.</li>
+          <li><strong>Sources:</strong> local source/watcher changes become durable and auditable.</li>
+          <li><strong>Alerts:</strong> alert-rule and delivery-preference changes become durable and auditable.</li>
+          <li><strong>Configuration:</strong> can show storage/recovery health, but should remain primarily a connectivity/setup surface.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 3 Functional Requirements</h2>
+        <ul>
+          <li>Persist the last known successful Coinbase read-only snapshot needed for safe startup recovery.</li>
+          <li>Persist a local audit/event trail for operator changes and key system actions.</li>
+          <li>Restore last-known durable state on startup before or alongside the next approved live refresh attempt.</li>
+          <li>Ensure durable records are timestamped, typed, and explainable enough to reconstruct recent state changes.</li>
+          <li>Exclude secret values and secret material from persisted audit/event data.</li>
+          <li>Preserve the Phase 2 startup/manual refresh contract; persistence must not introduce silent polling.</li>
+          <li>Keep trading clearly inactive.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Success Criteria</h2>
+        <ul>
+          <li>The app restarts and shows last-known valid state safely even before a fresh live read completes.</li>
+          <li>Recent system/configuration changes are durable and inspectable.</li>
+          <li>The operator can reconstruct what happened across sessions without reading raw files.</li>
+          <li>No persisted data weakens the Phase 2 read-only or secret-handling boundary.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Phase 3 Is Complete When</h2>
+        <ul>
+          <li>Durable local storage exists for the approved Phase 3 data classes.</li>
+          <li>Startup recovery restores last-known state safely.</li>
+          <li>Recent event/audit history is visible and replayable enough for debugging and evaluation.</li>
+          <li>Phase 3 test plans pass and the product is ready for Phase 4 deterministic strategy/risk work.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Risks</h2>
+        <div class="callout risk">
+          <h3>Phase 3 Risks</h3>
+          <ul>
+            <li>Poorly scoped persistence could store secrets or unnecessary raw payloads.</li>
+            <li>Recovery logic could accidentally present stale state as current live truth without clear labeling.</li>
+            <li>Audit logging added too late or too weakly would leave later phases hard to debug or trust.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

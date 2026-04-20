@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 3 Integration Test Plan</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Integration Test Plan</p>
+          <h1>Phase 3 Integration Test Plan</h1>
+          <p class="subtitle">Cross-layer validation for durable state, recovery, and replayable history.</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+      <article class="section-card">
+        <h2>Required Integration Gates</h2>
+        <ul>
+          <li>ITP3-01: startup recovers last-known state safely before the next refresh completes.</li>
+          <li>ITP3-02: a successful Coinbase refresh updates both live shell state and durable snapshot state.</li>
+          <li>ITP3-03: policy edits, alert-rule edits, and source changes create durable audit records.</li>
+          <li>ITP3-04: corrupted or missing persisted state falls back safely without crashing the shell.</li>
+          <li>ITP3-05: Activity consumes durable history across restarts.</li>
+          <li>ITP3-06: the read-only/no-polling boundary remains intact after persistence is introduced.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Pass Condition</h2>
+        <p>The product can restart safely, reconstruct recent operational state, and expose audit history without weakening the Phase 2 exchange boundary.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

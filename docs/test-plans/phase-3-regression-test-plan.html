@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorQuay Phase 3 Regression Test Plan</title>
+  <link rel="stylesheet" href="../templates/vectorquay-document-theme.css" />
+</head>
+<body>
+  <main class="document-shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <img class="brand-logo" src="../../assets/logo/vectorquay-indigo-signal.svg" alt="VectorQuay Indigo Signal logo" />
+        <div class="title-block">
+          <p class="eyebrow">Regression Test Plan</p>
+          <h1>Phase 3 Regression Test Plan</h1>
+          <p class="subtitle">Baseline-protection plan for persistence without execution or secret leakage.</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+      <article class="section-card">
+        <h2>Protected Baselines</h2>
+        <ul>
+          <li>Coinbase Advanced remains the only exchange surface.</li>
+          <li>Read-only mode remains enforced throughout Phase 3.</li>
+          <li>No execution, no cancellation, and no paper-trading behavior is introduced.</li>
+          <li>Secrets remain external and must not enter durable state or audit payloads.</li>
+          <li>Startup/manual refresh remains explicit; persistence must not drift into silent polling.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Required Regression Checks</h2>
+        <ul>
+          <li>RTP3-01: persistence introduces no write-capable Coinbase path.</li>
+          <li>RTP3-02: persisted payloads exclude secrets and secret-derived plaintext.</li>
+          <li>RTP3-03: startup recovery does not label restored state as fresh live state incorrectly.</li>
+          <li>RTP3-04: local policy overlays remain authoritative after recovery and subsequent refresh.</li>
+          <li>RTP3-05: failure/corruption fallback retains safe shell behavior.</li>
+          <li>RTP3-06: Phase 2 no-polling and inactive-trading boundaries remain intact.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Pass Condition</h2>
+        <p>Phase 3 adds durable local state and auditability without weakening the approved read-only, no-execution, and no-secret-leakage boundaries established in earlier phases.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
