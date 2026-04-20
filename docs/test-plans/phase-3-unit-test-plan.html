@@ -21,6 +21,16 @@
 
     <section class="content">
       <article class="section-card">
+        <h2>Execution Environment</h2>
+        <ul>
+          <li>Primary environment: local .NET 8 solution on the Ubuntu-first development workstation.</li>
+          <li>Primary command baseline: <code>dotnet restore</code>, <code>dotnet build</code>, and <code>dotnet test</code>.</li>
+          <li>Required fixtures: valid normalized snapshot fixture, corrupted persisted-state fixture, missing-file fixture, audit-event creation fixture, and retention-boundary fixture.</li>
+          <li>Expected evidence: automated test output, targeted failure messages, and durable result notes under <code>docs/test-results/</code>.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
         <h2>Required Unit Coverage</h2>
         <ul>
           <li>UTP3-01: persisted snapshot serialization/deserialization round-trip.</li>
@@ -31,6 +41,34 @@
           <li>UTP3-06: secret values are excluded from persisted event/snapshot payloads.</li>
           <li>UTP3-07: retention and truncation logic where bounded history is required.</li>
         </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Contract</h2>
+        <div class="callout gate">
+          <h3>UTP3-01: Snapshot Round-Trip</h3>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> normalized persisted snapshot with balances, holdings summary, and refresh metadata.</p>
+          <p><strong>Pass condition:</strong> serialized output can be read back without losing required fields or changing semantic values.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP3-03: Corruption Fallback</h3>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> malformed JSON or incompatible stored payload.</p>
+          <p><strong>Pass condition:</strong> the storage layer returns a safe fallback classification and does not throw an unhandled exception into the shell path.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP3-05: Restored-State Truthfulness</h3>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> recovered snapshot plus failed/absent live refresh result.</p>
+          <p><strong>Pass condition:</strong> restored-state classification remains distinct from live-state classification.</p>
+        </div>
+        <div class="callout gate">
+          <h3>UTP3-06: Secret Exclusion</h3>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> representative settings, snapshot, and audit-event payloads with secret-adjacent fields available in memory.</p>
+          <p><strong>Pass condition:</strong> persisted payloads contain no secret values, secret file contents, or raw credential strings.</p>
+        </div>
       </article>
 
       <article class="section-card">

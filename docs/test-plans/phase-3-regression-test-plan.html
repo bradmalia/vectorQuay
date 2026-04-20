@@ -21,6 +21,15 @@
 
     <section class="content">
       <article class="section-card">
+        <h2>Execution Environment and Evidence</h2>
+        <ul>
+          <li>Run regression review whenever persistence scope, recovery behavior, audit/event schema, or retained-history rules change materially.</li>
+          <li>Primary review inputs: approved roadmap, approved Phase 2 closeout artifacts, approved Phase 3 PRD/TRD, and the latest implementation/test-result artifacts.</li>
+          <li>Expected evidence: comparison checklist, identified drift items if any, and a durable result artifact under <code>docs/test-results/phase-3-regression-results.md</code> or equivalent.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
         <h2>Protected Baselines</h2>
         <ul>
           <li>Coinbase Advanced remains the only exchange surface.</li>
@@ -40,7 +49,42 @@
           <li>RTP3-04: local policy overlays remain authoritative after recovery and subsequent refresh.</li>
           <li>RTP3-05: failure/corruption fallback retains safe shell behavior.</li>
           <li>RTP3-06: Phase 2 no-polling and inactive-trading boundaries remain intact.</li>
+          <li>RTP3-07: when no durable state exists, Phase 2 empty/non-connected behavior remains intact and no false recovered-state cues appear.</li>
         </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Contract</h2>
+        <div class="callout gate">
+          <h3>RTP3-01: No Write-Capable Drift</h3>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Review method:</strong> codepath review plus integration verification that persistence adds no order-placement or cancellation affordances.</p>
+          <p><strong>Expected evidence:</strong> command map / service-path review showing no write-capable exchange action present.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP3-02: Secret Exclusion Preservation</h3>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Review method:</strong> persisted-payload inspection and automated serialization tests.</p>
+          <p><strong>Expected evidence:</strong> sample durable payloads and passing automated assertions showing no secret leakage.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP3-03: Restored-State Truthfulness</h3>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Review method:</strong> startup recovery test with failed/absent refresh follow-up.</p>
+          <p><strong>Expected evidence:</strong> shell-state record showing restored data is labeled distinctly from live data.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP3-06: No-Polling / Inactive-Trading Preservation</h3>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Review method:</strong> compare current startup and refresh behavior against the approved Phase 2/3 contract.</p>
+          <p><strong>Expected evidence:</strong> review artifact showing one-time startup recovery plus explicit live refresh behavior only.</p>
+        </div>
+        <div class="callout gate">
+          <h3>RTP3-07: No-Recovery-Data Baseline Preservation</h3>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Review method:</strong> run the shell with no persisted state present and compare behavior against the approved Phase 2 never-loaded / non-connected baseline.</p>
+          <p><strong>Expected evidence:</strong> startup-state record showing no false recovered-state label and no degraded empty-state behavior.</p>
+        </div>
       </article>
 
       <article class="section-card">

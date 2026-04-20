@@ -62,10 +62,22 @@
       <article class="section-card">
         <h2>Persistence Boundary</h2>
         <ul>
-          <li>Persisted Phase 3 data may include: last-known Coinbase summary state, recent account-event history, recent alert history, source/watcher registry state, policy state, and audit/event records for local changes.</li>
+          <li>Persisted Phase 3 data may include: last-known Coinbase summary state, bounded recent account-event history, bounded recent alert history, source/watcher registry state, policy state, bounded recent portfolio-value history, and audit/event records for local changes.</li>
           <li>Persisted Phase 3 data must not include: secret values, OAuth tokens, API secrets, raw provider credentials, or unnecessary raw exchange payload dumps.</li>
           <li>Where possible, store normalized app-facing models instead of entire raw provider responses.</li>
           <li>Storage should remain local to the current machine and operator profile.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Persisted Model Contract</h2>
+        <ul>
+          <li>The minimum persisted snapshot contract must include: snapshot timestamp, refresh outcome, connection-health classification, normalized balances summary, holdings summary, and allocation summary.</li>
+          <li>Persisted snapshot data is cache-like restored state, not an audit-grade record of truth by itself.</li>
+          <li>The minimum persisted recent-activity contract must include: event timestamp, event type, asset or subject, status, summary/detail text, and durable source classification.</li>
+          <li>The minimum persisted portfolio-history contract must include: timestamp and total portfolio value in USD.</li>
+          <li>Persisted product visibility should be summarized only as needed for restart UX; Phase 3 must not store the full Coinbase product universe unless later approved explicitly.</li>
+          <li>Audit/event records are operator-trusted records and must be modeled separately from cache-like restored snapshots.</li>
         </ul>
       </article>
 
@@ -74,7 +86,9 @@
           <h2>Recovery Requirements</h2>
           <ul>
             <li>Startup should load the last known durable state before or while a new approved refresh is attempted.</li>
-            <li>The UI must distinguish restored cached state from newly refreshed live state.</li>
+            <li>The UI must distinguish restored cached state from newly refreshed live state using explicit app-facing status values.</li>
+            <li>The minimum recovery truth states are <code>Live</code>, <code>RestoredFromCache</code>, and <code>NoRecoverableState</code>.</li>
+            <li>If live refresh fails after recovery succeeds, the restored state may remain visible, but the shell must show the refresh failure distinctly and preserve the restored-state label.</li>
             <li>If storage is missing or corrupted, the app must fall back safely without crashing.</li>
             <li>Recovery must not trigger repeated background retry loops.</li>
           </ul>
@@ -83,7 +97,9 @@
         <article class="section-card">
           <h2>Audit Requirements</h2>
           <ul>
-            <li>Every persisted audit/event record must include a timestamp, event type, and enough context to explain what changed.</li>
+            <li>Every persisted audit/event record must include at minimum: event id, timestamp, event type, origin, summary, and redacted detail payload.</li>
+            <li>Where a durable change modifies prior state, the record should include before/after values or a normalized diff sufficient to reconstruct the change.</li>
+            <li>Refresh-related records should include a correlation identifier or session identifier so startup/recovery/refresh events can be grouped.</li>
             <li>Operator-originated changes should record origin like policy edit, alert-rule save, source add/remove, and configuration update.</li>
             <li>System-originated changes should record origin like startup recovery loaded, Coinbase refresh succeeded, Coinbase refresh failed, or icon cache updated.</li>
             <li>Audit records must remain readable without inspecting raw JSON manually.</li>
@@ -92,12 +108,31 @@
       </section>
 
       <article class="section-card">
+        <h2>Redaction Rules</h2>
+        <ul>
+          <li>Secret values, secret file contents, raw credential strings, authorization headers, and provider tokens must never be persisted.</li>
+          <li>Connection test messages and refresh errors may be persisted only in redacted/operator-safe form.</li>
+          <li>Free-text operator notes, source prompts, and alert destinations may be persisted only if they are treated as operator-authored local configuration data and not mixed with secret-bearing diagnostic payloads.</li>
+          <li>Where free-text fields may contain risky values, the storage layer should trim or redact them rather than persist raw content automatically.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
         <h2>Storage Design Requirements</h2>
         <ul>
           <li>Use a deterministic local storage location under the approved user config/app-data path rather than inside the repository.</li>
           <li>Use explicit file names or subdirectories for snapshots, audit/event logs, and schema/version markers.</li>
+          <li>The baseline local storage layout should be defined explicitly before implementation, for example:
+            <code>~/.config/VectorQuay/data/state/last-snapshot.json</code>,
+            <code>~/.config/VectorQuay/data/history/activity.jsonl</code>,
+            <code>~/.config/VectorQuay/data/history/alerts.jsonl</code>,
+            <code>~/.config/VectorQuay/data/history/portfolio-value.jsonl</code>,
+            and <code>~/.config/VectorQuay/data/audit/events.jsonl</code>.
+          </li>
+          <li>The storage layer should include a schema/version marker so future migration logic has a stable anchor.</li>
           <li>Writes should be atomic enough to avoid partially written state on interruption.</li>
           <li>Retention should be bounded where needed so local logs do not grow without limit.</li>
+          <li>The baseline retention contract is: 250 recent activity events, 250 recent alerts, 1,000 recent portfolio-value points, and audit-log rotation on a bounded size or count threshold.</li>
         </ul>
       </article>
 
@@ -118,6 +153,7 @@
           <li>Add automated tests for serialization, normalization, migration/compatibility handling, and corruption fallback.</li>
           <li>Add automated tests for startup recovery behavior and for preserving the read-only boundary.</li>
           <li>Add automated tests for audit/event recording of policy, alert, and source changes.</li>
+          <li>Add automated tests for restored-state labeling rules so cached state is never presented as fresh live state incorrectly.</li>
           <li>Update validation artifacts under <code>docs/test-results/</code> for Phase 3 execution.</li>
         </ul>
       </article>

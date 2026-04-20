@@ -29,7 +29,7 @@
       <section class="hero-summary">
         <article class="summary-card">
           <h2>Executive Summary</h2>
-          <p>Phase 3 turns the Phase 2 read-only shell into a durable operational baseline. It adds local persistence for account state, market snapshots, operator policy state, and a replayable audit trail so the app can survive restart, explain prior state, and support later strategy and paper-trading phases without reworking the data foundation.</p>
+          <p>Phase 3 turns the Phase 2 read-only shell into a durable operational baseline. It adds local persistence for last-known account state, bounded portfolio-value history, operator policy state, and a replayable audit trail so the app can survive restart, explain prior state, and support later strategy and paper-trading phases without reworking the data foundation.</p>
         </article>
         <aside class="spotlight-card">
           <h2>Phase Goal</h2>
@@ -58,7 +58,8 @@
         <article class="section-card">
           <h2>In Scope</h2>
           <ul>
-            <li>Persist Coinbase read-only snapshots needed for restart recovery and recent-history display.</li>
+            <li>Persist the last known successful Coinbase read-only snapshot needed for restart recovery and recent-history display.</li>
+            <li>Persist a bounded recent portfolio-value history sufficient for simple trend display, not a full market-data warehouse.</li>
             <li>Persist audit records for refreshes, configuration changes, policy changes, alert-rule changes, and source/watcher changes.</li>
             <li>Build a replayable local event trail showing what changed, when it changed, and why it changed.</li>
             <li>Implement safe startup recovery that restores the last durable known state before the next refresh completes.</li>
@@ -78,6 +79,27 @@
           </ul>
         </article>
       </section>
+
+      <article class="section-card">
+        <h2>Persisted Data Classes</h2>
+        <ul>
+          <li><strong>Last Known Account Snapshot:</strong> a cache-like restored-state record containing normalized balances, holdings summary, allocation summary, refresh timestamp, and connection-health result from the last successful live refresh.</li>
+          <li><strong>Recent Activity History:</strong> bounded recent account/system events needed for cross-session Activity continuity.</li>
+          <li><strong>Recent Alert History:</strong> bounded recent alert entries needed for cross-session alert visibility.</li>
+          <li><strong>Recent Portfolio Value History:</strong> bounded timestamped portfolio-value points used only for simple trend/history display.</li>
+          <li><strong>Audit/Event Trail:</strong> operator-trusted durable records for policy changes, alert-rule changes, source/watcher changes, configuration changes, startup recovery events, and refresh outcomes.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Retention Baseline</h2>
+        <ul>
+          <li>Recent Activity History should retain the latest 250 events by default.</li>
+          <li>Recent Alert History should retain the latest 250 alerts by default.</li>
+          <li>Recent Portfolio Value History should retain the latest 1,000 points by default.</li>
+          <li>Audit/Event Trail should remain append-oriented but rotate on a bounded size or count threshold rather than growing forever.</li>
+        </ul>
+      </article>
 
       <article class="section-card">
         <h2>Primary Product Outcomes</h2>
@@ -100,10 +122,21 @@
       </article>
 
       <article class="section-card">
+        <h2>Restored-State Semantics</h2>
+        <ul>
+          <li>The UI must distinguish three truth states explicitly: <strong>Live</strong>, <strong>Restored from Local Cache</strong>, and <strong>No Recoverable State</strong>.</li>
+          <li>If startup recovery succeeds before the next live refresh, restored state may be shown on Overview, Portfolio, Activity, Alerts, and Performance, but it must be labeled clearly as restored.</li>
+          <li>If the next live refresh succeeds, restored labels must be replaced by live-state cues.</li>
+          <li>If the next live refresh fails, restored state may remain visible as last-known truth, but the failure must be surfaced distinctly and must not be mistaken for current live data.</li>
+          <li>If no recoverable state exists, the shell must fall back to the existing non-connected / never-loaded behavior.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
         <h2>Screen-Level Expectations</h2>
         <ul>
-          <li><strong>Overview:</strong> may show last successful refresh time and whether current data is live or restored-from-cache.</li>
-          <li><strong>Portfolio:</strong> may show last-known balance snapshot on startup before the next live refresh completes.</li>
+          <li><strong>Overview:</strong> should show last successful refresh time and whether current data is live or restored-from-cache.</li>
+          <li><strong>Portfolio:</strong> should show last-known balance snapshot on startup before the next live refresh completes when recovery data exists.</li>
           <li><strong>Activity:</strong> becomes a durable local ledger of recent account events and system events rather than only current-session memory.</li>
           <li><strong>Performance:</strong> may start showing simple persisted trend information such as recent portfolio-value snapshots, but must not claim full backtested analytics.</li>
           <li><strong>Policies:</strong> edits become auditable, with durable change records.</li>
@@ -117,6 +150,7 @@
         <h2>Phase 3 Functional Requirements</h2>
         <ul>
           <li>Persist the last known successful Coinbase read-only snapshot needed for safe startup recovery.</li>
+          <li>Persist only bounded recent histories; Phase 3 must not become an unbounded historical store.</li>
           <li>Persist a local audit/event trail for operator changes and key system actions.</li>
           <li>Restore last-known durable state on startup before or alongside the next approved live refresh attempt.</li>
           <li>Ensure durable records are timestamped, typed, and explainable enough to reconstruct recent state changes.</li>

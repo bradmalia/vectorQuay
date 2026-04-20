@@ -21,6 +21,16 @@
 
     <section class="content">
       <article class="section-card">
+        <h2>Execution Environment and Fixtures</h2>
+        <ul>
+          <li>Primary execution environment: Ubuntu-first local workstation with the Phase 3 .NET 8 solution and valid Phase 2 Coinbase read-only connectivity.</li>
+          <li>Primary command baseline: <code>dotnet restore</code>, <code>dotnet build</code>, <code>dotnet test</code>, and the documented shell launch command such as <code>dotnet run --project src/VectorQuay.App</code>.</li>
+          <li>Required fixtures: valid last-known snapshot fixture, missing-storage fixture, corrupted-storage fixture, valid Coinbase read-only credentials, and known local policy/source/alert-change actions.</li>
+          <li>Expected evidence: command summaries, restart walkthrough captures, recovery-state records, and durable results under <code>docs/test-results/phase-3-integration-results.md</code> or equivalent.</li>
+        </ul>
+      </article>
+
+      <article class="section-card">
         <h2>Required Integration Gates</h2>
         <ul>
           <li>ITP3-01: startup recovers last-known state safely before the next refresh completes.</li>
@@ -30,6 +40,51 @@
           <li>ITP3-05: Activity consumes durable history across restarts.</li>
           <li>ITP3-06: the read-only/no-polling boundary remains intact after persistence is introduced.</li>
         </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Execution Contract</h2>
+        <div class="callout gate">
+          <h3>ITP3-01: Startup Recovery</h3>
+          <p><strong>Automation:</strong> Required where practical; manual shell review may supplement startup-state rendering evidence.</p>
+          <p><strong>Fixture:</strong> valid persisted snapshot from a prior successful live refresh.</p>
+          <p><strong>Command:</strong> launch the shell with recovery data present and capture pre-refresh and post-refresh states.</p>
+          <p><strong>Pass condition:</strong> last-known state is restored safely, labeled as restored, and replaced or preserved correctly after the next live refresh outcome.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP3-02: Refresh Updates Durable State</h3>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> valid read-only Coinbase credentials plus an existing older persisted snapshot.</p>
+          <p><strong>Command:</strong> launch the shell, trigger a successful live refresh, then inspect the durable snapshot/state files and the rendered shell state.</p>
+          <p><strong>Pass condition:</strong> the rendered live state and the updated durable snapshot reflect the same new refresh timestamp and normalized summary values.</p>
+          <p><strong>Expected evidence:</strong> before/after durable snapshot record plus shell capture showing consistent updated state.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP3-03: Durable Audit Creation</h3>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> known operator actions such as policy apply, alert-rule save, and source add/remove.</p>
+          <p><strong>Pass condition:</strong> each action produces a durable audit/event record with required identifying fields.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP3-04: Corruption Fallback</h3>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> malformed persisted snapshot/history files.</p>
+          <p><strong>Pass condition:</strong> the shell starts safely, surfaces the failure understandably, and avoids crashing or presenting malformed data as valid.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP3-05: Activity Uses Durable History Across Restarts</h3>
+          <p><strong>Automation:</strong> Required where practical; manual shell review may supplement UI evidence.</p>
+          <p><strong>Fixture:</strong> stored recent activity history from a prior session plus no new live events on the next startup.</p>
+          <p><strong>Command:</strong> populate durable activity history, restart the app, and inspect the Activity screen before and after a live refresh attempt.</p>
+          <p><strong>Pass condition:</strong> Activity shows the persisted recent history across restart and labels the truth state correctly until new live data changes it.</p>
+          <p><strong>Expected evidence:</strong> restart walkthrough showing durable activity continuity with correct restored/live labeling.</p>
+        </div>
+        <div class="callout gate">
+          <h3>ITP3-06: Read-Only / No-Polling Preservation</h3>
+          <p><strong>Automation:</strong> Required.</p>
+          <p><strong>Fixture:</strong> valid Phase 3 persistence plus valid read-only Coinbase credentials.</p>
+          <p><strong>Pass condition:</strong> persistence introduces no write-capable path and no recurring silent refresh loop.</p>
+        </div>
       </article>
 
       <article class="section-card">
