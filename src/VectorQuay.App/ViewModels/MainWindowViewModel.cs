@@ -10,6 +10,7 @@ using System.Globalization;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Http;
 using VectorQuay.App.Models;
 using VectorQuay.Core.Coinbase;
 using VectorQuay.Core.Configuration;
@@ -34,18 +35,20 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly List<ActivityEntryViewModel> _allActivityEntries = [];
     private readonly List<AlertEntryViewModel> _allAlertEntries = [];
     private readonly List<AlertRuleViewModel> _allAlertRules = [];
+    private readonly IHttpClientFactory? _httpClientFactory;
     private bool _isRefreshingActivityFilters;
 
     public MainWindowViewModel(SettingsService settingsService)
-        : this(settingsService, null, null, false)
+        : this(settingsService, null, null, false, default!)
     {
     }
 
-    public MainWindowViewModel(SettingsService settingsService, ICoinbaseReadOnlyService? coinbaseService, ILocalStateStore? localStateStore, bool enableStartupRefresh)
+    public MainWindowViewModel(SettingsService settingsService, ICoinbaseReadOnlyService? coinbaseService, ILocalStateStore? localStateStore, bool enableStartupRefresh, IHttpClientFactory? httpClientFactory = null)
     {
         _settingsService = settingsService;
         _coinbaseService = coinbaseService;
         _localStateStore = localStateStore;
+        _httpClientFactory = httpClientFactory!;
         AssetRows = [];
         TopTradeAssetItems = [];
         RecentOverviewActivityItems = [];
@@ -960,7 +963,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 return;
             }
 
-            using var client = new HttpClient();
+            using var client = _httpClientFactory!.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OpenAiApiKeyEditor.Trim());
             using var response = await client.GetAsync("https://api.openai.com/v1/models");
 
@@ -2134,7 +2137,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         try
         {
-            using var client = new HttpClient();
+            using var client = _httpClientFactory!.CreateClient();
             client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("VectorQuay", AppVersion));
 
             using var response = await client.GetAsync(ReleaseFeedUrl);

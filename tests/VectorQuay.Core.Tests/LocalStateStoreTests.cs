@@ -44,8 +44,9 @@ public sealed class LocalStateStoreTests
     }
 
     [Fact]
-    public void LoadSnapshot_ReturnsCorruptedStateForIncompatibleSchemaVersion()
+    public void LoadSnapshot_SkipsVersionCheckAndRestoresFromCache()
     {
+        // Issue 6 fix: version mismatch no longer hard-fails; valid data is restored.
         var paths = CreateTestPaths();
         var store = new LocalStateStore(paths);
         store.SaveCoinbaseSnapshot(CreateConnectedSnapshot());
@@ -53,9 +54,8 @@ public sealed class LocalStateStoreTests
 
         var restored = store.LoadSnapshot();
 
-        Assert.Equal(RecoveryTruthState.CorruptedState, restored.State);
-        Assert.Null(restored.Snapshot);
-        Assert.Contains("incompatible", restored.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(RecoveryTruthState.RestoredFromCache, restored.State);
+        Assert.NotNull(restored.Snapshot);
     }
 
     [Fact]

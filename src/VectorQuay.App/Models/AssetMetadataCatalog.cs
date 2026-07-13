@@ -9,12 +9,39 @@ using Avalonia.Media.Imaging;
 
 namespace VectorQuay.App.Models;
 
-public static class AssetMetadataCatalog
+/// <summary>
+/// Non-static, DI-injectable asset metadata catalog. Static forwarders are maintained 
+/// for backward compatibility with existing call sites (set by App initialization).
+/// </summary>
+public sealed class AssetMetadataCatalog
 {
+    private static readonly object _syncRoot = new();
+    private static AssetMetadataCatalog? _instance;
+    
+    public static AssetMetadataCatalog Instance
+    {
+        get => _instance ??= new(null!); // Fallback if not yet set by DI
+        internal set
+        {
+            lock (_syncRoot)
+            {
+                _instance = value;
+            }
+        }
+    }
+
+    private readonly IHttpClientFactory? _httpClientFactory;
+    
+    public AssetMetadataCatalog(IHttpClientFactory? httpClientFactory)
+    {
+        _httpClientFactory = httpClientFactory;
+    }
+
     private const string AssetBasePath = "Assets/Crypto/";
     private const string RemoteIconBaseUrl = "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/";
 
-    private static readonly Dictionary<string, AssetMetadata> Known = new(StringComparer.OrdinalIgnoreCase)
+    // Static fallback copy for forwarders (set during DI resolution)
+    private static readonly Dictionary<string, AssetMetadata> _knownStatic = new(StringComparer.OrdinalIgnoreCase)
     {
         ["BTC"] = new("BTC", "Bitcoin", $"{AssetBasePath}btc.png"),
         ["ETH"] = new("ETH", "Ethereum", $"{AssetBasePath}eth.png"),
@@ -44,7 +71,10 @@ public static class AssetMetadataCatalog
         ["XLM"] = new("XLM", "Stellar", string.Empty),
     };
 
-    public static AssetMetadata Resolve(string? symbol)
+    /// <summary>Static forwarder for backward compatibility.</summary>
+    public static AssetMetadata Resolve(string? symbol) => Instance.ResolveInternal(symbol);
+    
+    private AssetMetadata ResolveInternal(string? symbol)
     {
         var normalized = string.IsNullOrWhiteSpace(symbol) ? "N/A" : symbol.Trim().ToUpperInvariant();
         if (normalized.Contains('-', StringComparison.Ordinal))
@@ -52,7 +82,7 @@ public static class AssetMetadataCatalog
             normalized = normalized.Split('-', 2, StringSplitOptions.RemoveEmptyEntries)[0];
         }
 
-        if (Known.TryGetValue(normalized, out var metadata))
+        if (_knownStatic.TryGetValue(normalized, out var metadata))
         {
             return string.IsNullOrWhiteSpace(metadata.IconPath)
                 ? metadata with { IconPath = GetCachedIconPathOrEmpty(normalized) }
@@ -62,8 +92,16 @@ public static class AssetMetadataCatalog
         return new AssetMetadata(normalized, normalized, GetCachedIconPathOrEmpty(normalized));
     }
 
-    public static async Task<int> EnsureCachedIconsAsync(IEnumerable<string> symbols, CancellationToken cancellationToken = default)
+    /// <summary>Static forwarder for backward compatibility.</summary>
+    public static Task<int> EnsureCachedIconsAsync(IEnumerable<string> symbols, CancellationToken cancellationToken = default) => Instance.EnsureCachedIconsInternal(symbols, cancellationToken);
+    
+    private async Task<int> EnsureCachedIconsInternal(IEnumerable<string> symbols, CancellationToken cancellationToken)
     {
+        if (_httpClientFactory == null)
+        {
+            return 0;
+        }
+        
         var normalizedSymbols = symbols
             .Where(symbol => !string.IsNullOrWhiteSpace(symbol))
             .Select(symbol => Normalize(symbol!))
@@ -77,13 +115,13 @@ public static class AssetMetadataCatalog
 
         var cacheDirectory = GetCacheDirectory();
         Directory.CreateDirectory(cacheDirectory);
-        using var client = new HttpClient();
+        using var client = _httpClientFactory.CreateClient();
         var downloaded = 0;
 
         foreach (var symbol in normalizedSymbols)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (Known.TryGetValue(symbol, out var metadata) && !string.IsNullOrWhiteSpace(metadata.IconPath))
+            if (_knownStatic.TryGetValue(symbol, out var metadata) && !string.IsNullOrWhiteSpace(metadata.IconPath))
             {
                 continue;
             }
@@ -121,7 +159,7 @@ public static class AssetMetadataCatalog
         return downloaded;
     }
 
-    private static string Normalize(string symbol)
+    private string Normalize(string symbol)
     {
         var normalized = symbol.Trim().ToUpperInvariant();
         if (normalized.Contains('-', StringComparison.Ordinal))
@@ -132,13 +170,13 @@ public static class AssetMetadataCatalog
         return normalized;
     }
 
-    private static string GetCachedIconPathOrEmpty(string normalizedSymbol)
+    private string GetCachedIconPathOrEmpty(string normalizedSymbol)
     {
         var path = Path.Combine(GetCacheDirectory(), $"{normalizedSymbol.ToLowerInvariant()}.png");
         return File.Exists(path) ? path : string.Empty;
     }
 
-    private static string GetCacheDirectory()
+    private string GetCacheDirectory()
     {
         var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         return Path.Combine(home, ".config", "VectorQuay", "asset-icons");

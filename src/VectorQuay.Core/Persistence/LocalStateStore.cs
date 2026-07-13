@@ -151,6 +151,7 @@ public sealed class LocalStateStore : ILocalStateStore
             return new PersistedSnapshotLoadResult(RecoveryTruthState.NoRecoverableState, null, "No persisted snapshot is available.");
         }
 
+        // Read schema version but do NOT block on mismatch; continue to attempt deserialization.
         if (File.Exists(_paths.DataSchemaVersionPath))
         {
             try
@@ -159,27 +160,36 @@ public sealed class LocalStateStore : ILocalStateStore
                 if (!string.IsNullOrWhiteSpace(schemaVersion) &&
                     !string.Equals(schemaVersion, CurrentSchemaVersion, StringComparison.Ordinal))
                 {
-                    return new PersistedSnapshotLoadResult(RecoveryTruthState.CorruptedState, null, $"Persisted snapshot schema version '{schemaVersion}' is incompatible with '{CurrentSchemaVersion}'.");
+                    // Do NOT return CorruptedState here — allow deserialization to proceed.
                 }
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                return new PersistedSnapshotLoadResult(RecoveryTruthState.CorruptedState, null, $"Persisted snapshot schema version could not be read safely ({ex.GetType().Name}).");
+                // Non-fatal: we still attempt deserialization below.
             }
         }
 
+        PersistedShellSnapshot? snapshot;
         try
         {
-            var snapshot = JsonSerializer.Deserialize<PersistedShellSnapshot>(File.ReadAllText(_paths.LastSnapshotPath), JsonOptions);
-            return snapshot is null
-                ? new PersistedSnapshotLoadResult(RecoveryTruthState.CorruptedState, null, "Persisted snapshot could not be deserialized.")
-                : new PersistedSnapshotLoadResult(RecoveryTruthState.RestoredFromCache, snapshot, "Persisted snapshot restored from local cache.");
+            var raw = File.ReadAllText(_paths.LastSnapshotPath);
+            snapshot = JsonSerializer.Deserialize<PersistedShellSnapshot>(raw, JsonOptions);
         }
         catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
         {
             return new PersistedSnapshotLoadResult(RecoveryTruthState.CorruptedState, null, $"Persisted snapshot could not be loaded safely ({ex.GetType().Name}).");
         }
+
+        if (snapshot is null)
+        {
+            return new PersistedSnapshotLoadResult(RecoveryTruthState.CorruptedState, null, "Persisted snapshot could not be deserialized.");
+        }
+
+        // Deserialization succeeded. If there was a schema version mismatch we allow it to proceed;
+        // the caller can surface a non-blocking warning if needed.
+        return new PersistedSnapshotLoadResult(RecoveryTruthState.RestoredFromCache, snapshot, "Persisted snapshot restored from local cache.");
     }
+
 
     public IReadOnlyList<PersistedActivityEvent> LoadRecentActivity() => LoadJsonLines<PersistedActivityEvent>(_paths.ActivityHistoryPath);
 
