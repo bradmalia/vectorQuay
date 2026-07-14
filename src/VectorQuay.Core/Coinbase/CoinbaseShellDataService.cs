@@ -6,6 +6,7 @@ namespace VectorQuay.Core.Coinbase;
 public interface ICoinbaseReadOnlyService
 {
     Task<CoinbaseShellSnapshot> RefreshAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ProductPricePoint>> GetProductPriceHistoryAsync(string productId, DateTimeOffset start, DateTimeOffset end, CancellationToken cancellationToken = default);
 }
 
 public sealed class CoinbaseShellDataService : ICoinbaseReadOnlyService
@@ -125,6 +126,11 @@ public sealed class CoinbaseShellDataService : ICoinbaseReadOnlyService
 
         messages.Add($"Loaded {accounts.Count} accounts, {products.Count} products, {fills.Count} recent fills, and {transactions.Count} wallet transactions from Coinbase.");
         return CoinbaseShellSnapshot.Connected(permissions, accounts, products, fills, transactions, messages);
+    }
+
+    public async Task<IReadOnlyList<ProductPricePoint>> GetProductPriceHistoryAsync(string productId, DateTimeOffset start, DateTimeOffset end, CancellationToken cancellationToken = default)
+    {
+        return await _readOnlyClient.GetProductPriceHistoryAsync(productId, start, end, cancellationToken);
     }
 
     private async Task<ServiceResult<IReadOnlyList<CoinbaseFill>>> TryListFillsAsync(

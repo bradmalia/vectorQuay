@@ -735,7 +735,7 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         }
         RestorePersistedAlerts();
-        RefreshPersistedPerformanceSummary();
+        _ = RefreshPersistedPerformanceSummaryAsync();
 
         if (_latestCoinbaseSnapshot is not null)
         {
@@ -762,7 +762,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         RestorePersistedActivity();
         RestorePersistedAlerts();
-        RefreshPersistedPerformanceSummary();
+        _ = RefreshPersistedPerformanceSummaryAsync();
     }
 
     [RelayCommand]
@@ -793,7 +793,7 @@ public partial class MainWindowViewModel : ViewModelBase
             ApplyCoinbaseSnapshot(snapshot, isStartup);
             _localStateStore?.SaveCoinbaseSnapshot(snapshot);
             await RefreshMissingAssetIconsAsync(snapshot);
-            RefreshPersistedPerformanceSummary();
+            await RefreshPersistedPerformanceSummaryAsync();
         }
         catch (Exception ex)
         {
@@ -1228,7 +1228,7 @@ public partial class MainWindowViewModel : ViewModelBase
         RefreshAlertEntries();
     }
 
-    private void RefreshPersistedPerformanceSummary()
+    private async Task RefreshPersistedPerformanceSummaryAsync()
     {
         if (_localStateStore is null)
         {
@@ -1248,8 +1248,34 @@ public partial class MainWindowViewModel : ViewModelBase
         var delta = last.TotalValueUsd - first.TotalValueUsd;
         var deltaText = $"{(delta >= 0m ? "+" : string.Empty)}{FormatUsd(Math.Abs(delta))}";
         PerformanceRangeSummary = $"{history.Count} stored snapshot{(history.Count == 1 ? string.Empty : "s")} · {first.TimestampUtc.LocalDateTime:g} to {last.TimestampUtc.LocalDateTime:g}";
-        PerformanceReadModelSummary = $"Durable local portfolio history is active. Stored change across retained snapshots: {deltaText}.";
+
+        // Fetch BTC benchmark data for the same time range
+        var btcGrowthText = "Benchmark unavailable";
+        try
+        {
+            if (_coinbaseService is not null && last.TimestampUtc > first.TimestampUtc)
+            {
+                var btcHistory = await _coinbaseService.GetProductPriceHistoryAsync("BTC-USD", first.TimestampUtc, last.TimestampUtc);
+                if (btcHistory.Count >= 2)
+                {
+                    var btcStart = btcHistory[0].Price;
+                    var btcEnd = btcHistory[^1].Price;
+                    if (btcStart > 0m)
+                    {
+                        var btcGrowth = (btcEnd - btcStart) / btcStart;
+                        btcGrowthText = $"BTC benchmark: {(btcGrowth * 100):F2}%";
+                    }
+                }
+            }
+        }
+        catch { /* Benchmark fetch failure does not block UI */ }
+
+        var portfolioChange = first.TotalValueUsd > 0 ? (last.TotalValueUsd / first.TotalValueUsd) - 1 : 0m;
+        var portfolioText = $"Portfolio: {(portfolioChange * 100):F2}% ({deltaText})";
+        
+        PerformanceReadModelSummary = $"{portfolioText} · {btcGrowthText}";
     }
+
 
     private void AppendAuditEvent(string eventType, string origin, string summary, IReadOnlyDictionary<string, string?> detail)
     {
