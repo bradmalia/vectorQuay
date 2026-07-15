@@ -14,6 +14,8 @@ public sealed class AppSettings
 
     public AlertSettings Alerts { get; set; } = new();
 
+    public AiSettings AI { get; set; } = new();
+
     public static AppSettings CreateDefault()
     {
         return new AppSettings
@@ -87,11 +89,11 @@ public sealed class AppSettings
                     },
                     new SourceEntrySettings
                     {
-                        Name = "r/CryptoCurrency Monitor",
+                        Name = "r/CryptoCurrency Monitoring",
                         Type = "Watcher",
-                        State = "Needs Review",
-                        Weight = "Review",
-                        Scope = "Placeholder for future Reddit/topic watcher onboarding",
+                        State = "Observed",
+                        Weight = "Baseline",
+                        Scope = "Social sentiment analysis via subreddit monitoring",
                     },
                 ],
             },
@@ -104,6 +106,13 @@ public sealed class AppSettings
                 SmsNumber = "+1 555-0100",
                 QuietHours = "None configured",
                 Rules = AlertDefaults.CreateDefaultRules(),
+            },
+            AI = new AiSettings
+            {
+                Rolling24hTokenLimit = 2000000, // Quadrupled to ~2M
+                SessionTokenLimit = 8000000,     // Quadrupled to ~8M
+                MaxRequestCount = 100,           // Quadrupled to 100
+                EnableGuideMode = true,          // Let AI see budget as a guide, not a blocker
             },
         };
     }
@@ -118,7 +127,6 @@ public sealed class GeneralSettings
     public bool AllowUsdcSecondary { get; set; } = true;
 
     public string ReleaseFeedUrl { get; set; } = AppSettings.DefaultReleaseFeedUrl;
-
     public string OpenAiApiKeyPath { get; set; } = string.Empty;
 }
 
@@ -267,4 +275,12 @@ public static class AlertDefaults
             },
         ];
     }
+}
+
+public sealed class AiSettings
+{
+    public int Rolling24hTokenLimit { get; set; } = 2000000; // Quadrupled to ~2M
+    public int SessionTokenLimit { get; set; } = 8000000;     // Quadrupled to ~8M
+    public int MaxRequestCount { get; set; } = 100;           // Quadrupled to 100
+    public bool EnableGuideMode { get; set; } = true;         // Let AI see budget as a guide, not a blocker
 }

@@ -97,6 +97,10 @@ public partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<PolicyRuleViewModel> VisiblePolicyRules { get; }
 
     public ObservableCollection<ActivityEntryViewModel> ActivityEntries { get; }
+    [ObservableProperty]
+    private bool isRefreshingActivity;
+
+    public ObservableCollection<ActivityGroupViewModel> ActivityGroups { get; } = new();
 
     public ObservableCollection<AlertEntryViewModel> AlertEntries { get; }
 
@@ -2452,6 +2456,28 @@ public partial class MainWindowViewModel : ViewModelBase
 
         return new ReleaseCheckResult(version, name, actionUrl);
     }
+    private void RefreshActivityGroups()
+    {
+        ActivityGroups.Clear();
+
+        var grouped = ActivityEntries.GroupBy(e => new
+        {
+            Timestamp = e.Timestamp.Substring(0, 16),
+            e.AssetPair,
+            e.Action
+        });
+
+        foreach (var group in grouped.OrderByDescending(g => g.Key.Timestamp))
+        {
+            var vm = new ActivityGroupViewModel(group.Key.Timestamp, group.Key.AssetPair, group.Key.Action, group.Count());
+            foreach (var entry in group)
+            {
+                vm.Entries.Add(entry);
+            }
+            ActivityGroups.Add(vm);
+        }
+    }
+
 
     private static string TryBuildRepositoryReleasePageUrl(string releaseFeedUrl)
     {
@@ -2691,6 +2717,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         OnPropertyChanged(nameof(ActivityEntryCountSummary));
+        RefreshActivityGroups();
         OnPropertyChanged(nameof(HasActivityEntries));
         OnPropertyChanged(nameof(ShowNoActivityEntries));
         OnPropertyChanged(nameof(ActivityCountSummary));
@@ -3517,3 +3544,14 @@ public sealed class SourceEntryViewModel(string name, string type, string state,
 }
 
 public sealed record ReleaseCheckResult(string Version, string Name, string ActionUrl);
+
+
+public sealed class ActivityGroupViewModel(string timestamp, string assetPair, string action, int count)
+{
+    public string Timestamp { get; } = timestamp;
+    public string AssetPair { get; } = assetPair;
+    public string Action { get; } = action;
+    public int Count { get; } = count;
+    public ObservableCollection<ActivityEntryViewModel> Entries { get; } = new();
+    public string GroupTitle => $"{Count}x {Action} {AssetPair} at {Timestamp}";
+}

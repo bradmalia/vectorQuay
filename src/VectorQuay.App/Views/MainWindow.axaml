@@ -720,30 +720,39 @@
                                     <TextBlock Foreground="#5F6794" Text="No Coinbase account events matched the current filters. Adjust the filters or refresh Coinbase to reload the latest activity." TextWrapping="Wrap"/>
                                 </Border>
                                 <ScrollViewer MaxHeight="520">
-                                    <ItemsControl ItemsSource="{Binding ActivityEntries}">
+                                    <ItemsControl ItemsSource="{Binding ActivityGroups}">
                                         <ItemsControl.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:ActivityEntryViewModel">
-                                                <Border Background="#FFFFFF" BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="8,10">
-                                                    <Grid ColumnDefinitions="150,170,120,120,130,*" ColumnSpacing="10">
-                                                        <TextBlock Text="{Binding Timestamp}" TextWrapping="Wrap"/>
-                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                                            <Grid Width="20" Height="20" VerticalAlignment="Center">
-                                                                <Image Width="20" Height="20" Source="{Binding AssetIcon}" IsVisible="{Binding HasAssetIcon}"/>
-                                                                <Border Width="20" Height="20" CornerRadius="10" Background="#EEF2FF" BorderBrush="#CFD7FF" BorderThickness="1" IsVisible="{Binding ShowAssetFallback}">
-                                                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="9" FontWeight="Bold" Foreground="#2B357F" Text="{Binding AssetMonogram}"/>
+                                            <DataTemplate x:DataType="vm:ActivityGroupViewModel">
+                                                <StackPanel Margin="0,0,0,12" Spacing="4">
+                                                    <TextBlock Classes="label" FontWeight="SemiBold" Foreground="#3D457A" Text="{Binding GroupTitle}"/>
+                                                    <ItemsControl ItemsSource="{Binding Entries}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate x:DataType="vm:ActivityEntryViewModel">
+                                                                <Border Background="#FFFFFF" BorderBrush="#DFE4FB" BorderThickness="0,0,0,1" Padding="8,6">
+                                                                    <Grid ColumnDefinitions="150,170,120,120,130,*" ColumnSpacing="10">
+                                                                        <TextBlock Text="{Binding Timestamp}" TextWrapping="Wrap"/>
+                                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                                                            <Grid Width="20" Height="20" VerticalAlignment="Center">
+                                                                                <Image Width="20" Height="20" Source="{Binding AssetIcon}" IsVisible="{Binding HasAssetIcon}"/>
+                                                                                <Border Width="20" Height="20" CornerRadius="10" Background="#EEF2FF" BorderBrush="#CFD7FF" BorderThickness="1" IsVisible="{Binding ShowAssetFallback}">
+                                                                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="9" FontWeight="Bold" Foreground="#2B357F" Text="{Binding AssetMonogram}"/>
+                                                                                </Border>
+                                                                            </Grid>
+                                                                            <StackPanel Spacing="0">
+                                                                                <TextBlock Text="{Binding AssetName}" TextWrapping="Wrap"/>
+                                                                                <TextBlock Classes="label" Text="{Binding AssetSymbol}"/>
+                                                                            </StackPanel>
+                                                                        </StackPanel>
+                                                                        <TextBlock Grid.Column="2" Text="{Binding Action}" TextWrapping="Wrap"/>
+                                                                        <TextBlock Grid.Column="3" Text="{Binding Amount}" TextWrapping="Wrap"/>
+                                                                        <TextBlock Grid.Column="4" Text="{Binding Outcome}" TextWrapping="Wrap"/>
+                                                                        <TextBlock Grid.Column="5" Text="{Binding Confidence}" TextWrapping="Wrap"/>
+                                                                    </Grid>
                                                                 </Border>
-                                                            </Grid>
-                                                            <StackPanel Spacing="0">
-                                                                <TextBlock Text="{Binding AssetName}" TextWrapping="Wrap"/>
-                                                                <TextBlock Classes="label" Text="{Binding AssetSymbol}"/>
-                                                            </StackPanel>
-                                                        </StackPanel>
-                                                        <TextBlock Grid.Column="2" Text="{Binding Action}" TextWrapping="Wrap"/>
-                                                        <TextBlock Grid.Column="3" Text="{Binding Amount}" TextWrapping="Wrap"/>
-                                                        <TextBlock Grid.Column="4" Text="{Binding Outcome}" TextWrapping="Wrap"/>
-                                                        <TextBlock Grid.Column="5" Text="{Binding Confidence}" TextWrapping="Wrap"/>
-                                                    </Grid>
-                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
